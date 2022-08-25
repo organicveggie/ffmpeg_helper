@@ -1,0 +1,42 @@
+{
+    "media": {
+        "@ref": "media_minimal.mkv",
+        "track": [
+            {
+                "@type": "General",
+                "UniqueID": "a731c0b030da413e884363aaf6bd0528",
+                "VideoCount": "1",
+                "AudioCount": "2",
+                "TextCount": "3",
+                "MenuCount": "1",
+                "FileExtension": "mkv",
+                "Format": "Matroska",
+                "Title": "Media Minimal"
+            },
+            {
+                "@type": "Video",
+                "StreamOrder": "0",
+                "ID": "1",
+                "UniqueID": "6d86c4300aca4e9682e263cd7f89a4c4",
+                "Format": "AVC"
+            },
+            {
+                "@type": "Audio",
+                "@typeorder": "1",
+                "StreamOrder": "1",
+                "ID": "2",
+                "UniqueID": "5caa9c9bf83244df93ee9f91d69686bc",
+                "Format": "AC-3"
+            },
+            {
+                "@type": "Text",
+                "@typeorder": "1",
+                "ID": "3",
+                "UniqueID": "0992ad7a97924e198c9027351a1943e4"
+            },
+            {
+                "@type": "Menu"
+            }
+        ]
+    }
+}
