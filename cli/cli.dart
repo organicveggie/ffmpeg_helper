@@ -2,6 +2,7 @@
 
 import 'dart:io';
 
+import 'exceptions.dart';
 import 'mediainfo_exec.dart';
 import 'suggest.dart';
 import 'summary.dart';
@@ -21,9 +22,19 @@ void main(List<String> args) async {
   runner.argParser.addOption('mediainfo_bin',
       defaultsTo: Platform.isMacOS ? mediainfoBinMac : mediainfoBinLinux);
 
-  runner.run(args).catchError((error) {
-    if (error is! UsageException) throw error;
+  // runner.run(args).catchError((error) {
+  //   if (error is! UsageException) throw error;
+  //   print(error);
+  //   exit(64); // Exit code 64 indicates a usage error.
+  // });
+
+  try {
+    await runner.run(args);
+  } on UsageException catch (error) {
     print(error);
     exit(64); // Exit code 64 indicates a usage error.
-  });
+  } on CliException catch (e) {
+    print('Error! $e');
+    exit(1);
+  }
 }

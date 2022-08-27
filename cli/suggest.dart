@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'exceptions.dart';
 import 'mediainfo_exec.dart';
 
@@ -38,6 +40,12 @@ class SuggestCommand extends Command {
       if (filename.isEmpty) {
         throw const MissingRequiredArgumentException('filename');
       }
+
+      final f = File(filename);
+      if (!f.existsSync()) {
+        throw FileNotFoundException(filename);
+      }
+
       runMediaInfo(filename);
     }
   }

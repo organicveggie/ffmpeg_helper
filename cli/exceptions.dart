@@ -1,6 +1,18 @@
 import 'package:ffmpeg_helper/models/audio_format.dart';
 
-class InvalidMetadataException implements Exception {
+abstract class CliException implements Exception {
+  const CliException();
+}
+
+class FileNotFoundException extends CliException {
+  final String filename;
+  const FileNotFoundException(this.filename);
+
+  @override
+  String toString() => 'File not found: $filename';
+}
+
+class InvalidMetadataException extends CliException {
   final String message;
   final String filename;
   const InvalidMetadataException(this.message, this.filename);
@@ -9,7 +21,7 @@ class InvalidMetadataException implements Exception {
   String toString() => 'Invalid media metadata: $message';
 }
 
-class MissingAudioSourceException implements Exception {
+class MissingAudioSourceException extends CliException {
   final String purpose;
   final List<AudioFormat> availableFormats;
   const MissingAudioSourceException(this.purpose, this.availableFormats);
@@ -19,7 +31,7 @@ class MissingAudioSourceException implements Exception {
       'Only found the following formats: ${availableFormats.join(", ")}';
 }
 
-class MissingRequiredArgumentException implements Exception {
+class MissingRequiredArgumentException extends CliException {
   final String argument;
   const MissingRequiredArgumentException(this.argument);
 

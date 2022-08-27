@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'exceptions.dart';
 import 'mediainfo_exec.dart';
 
@@ -34,6 +36,11 @@ class SummaryCommand extends Command {
     String filename = argResults.rest[0];
     if (filename.isEmpty) {
       throw const MissingRequiredArgumentException('filename');
+    }
+
+    final f = File(filename);
+    if (!f.existsSync()) {
+      throw FileNotFoundException(filename);
     }
 
     MediaRoot root = await parseMediainfo(filename);
