@@ -5,6 +5,18 @@ import 'package:ffmpeg_helper/models/mediainfo.dart';
 import 'package:test/test.dart';
 
 void main() {
+  test('Media model can parse audio only track', () async {
+    final file = File('test_resources/audiotrack_full.json');
+    Map<String, dynamic> trackMap = jsonDecode(await file.readAsString());
+    var track = AudioTrack.fromJson(trackMap);
+
+    expect(track.id, '2');
+    expect(track.channels, 8);
+    expect(track.title, 'Atmos 7.1');
+    expect(track.isDefault, true);
+    expect(track.isForced, false);
+  });
+
   test('Media model can parse minimal required JSON', () async {
     final file = File('test_resources/media_minimal.json');
     Map<String, dynamic> mediaMap = jsonDecode(await file.readAsString());
