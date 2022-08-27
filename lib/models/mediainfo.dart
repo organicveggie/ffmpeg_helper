@@ -1,46 +1,8 @@
 import 'package:json_annotation/json_annotation.dart';
 
+import 'audio_format.dart';
+
 part 'mediainfo.g.dart';
-
-enum AudioFormat {
-  unknown(name: 'unknown'),
-  trueHD(name: 'Dolby TrueHD'),
-  dtsHDMA(name: 'DTS-HD Master Audio'),
-  dolbyDigitalPlus(name: 'Dolby Digital Plus'),
-  dolbyDigital(name: 'Dolby Digital'),
-  dtsX(name: 'DTS:X'),
-  dts(name: 'DTS'),
-  aacMulti(name: 'AAC multichannel'),
-  stereo(name: 'stereo'),
-  mono(name: 'mono');
-
-  const AudioFormat({required this.name});
-
-  final String name;
-
-  @override
-  String toString() => name;
-}
-
-int _stringToInt(String? s) => (s == null) ? 0 : int.parse(s);
-String _intToString(int? n) => (n == null) ? '' : n.toString();
-
-RegExp _truthyRegEx = RegExp(r'^\s*(yes|true)\s*$', multiLine: true, caseSensitive: false);
-
-bool _stringToBool(String? s) => (s == null) ? false : _truthyRegEx.hasMatch(s);
-
-AudioFormat _aacSubType(int? channels) {
-  if (channels != null) {
-    if (channels >= 5) {
-      return AudioFormat.aacMulti;
-    } else if (channels == 2) {
-      return AudioFormat.stereo;
-    } else if (channels == 1) {
-      return AudioFormat.mono;
-    }
-  }
-  return AudioFormat.stereo;
-}
 
 @JsonSerializable()
 class MediaRoot {
@@ -237,7 +199,12 @@ class AudioTrack extends Track {
       this.bitRateMode,
       this.bitRateMax);
 
-  AudioFormat get simpleFormat {
+  factory AudioTrack.fromJson(Map<String, dynamic> json) => _$AudioTrackFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$AudioTrackToJson(this);
+
+  AudioFormat toAudioFormat() {
     switch (format) {
       case 'MLP FBA':
         return AudioFormat.trueHD;
@@ -250,7 +217,7 @@ class AudioTrack extends Track {
     }
 
     if (format == 'AAC') {
-      return _aacSubType(channels);
+      return AudioFormat.fromAacSubType(channels);
     }
 
     if (codecId != null) {
@@ -266,7 +233,7 @@ class AudioTrack extends Track {
       }
 
       if (codecId == 'A_AAC-2') {
-        return _aacSubType(channels);
+        return AudioFormat.fromAacSubType(channels);
       }
     }
 
@@ -285,11 +252,6 @@ class AudioTrack extends Track {
   }
 
   int? get bitRateLimit => bitRate ?? bitRateMax;
-
-  factory AudioTrack.fromJson(Map<String, dynamic> json) => _$AudioTrackFromJson(json);
-
-  @override
-  Map<String, dynamic> toJson() => _$AudioTrackToJson(this);
 }
 
 @JsonSerializable()
@@ -329,6 +291,11 @@ class TextTrack extends Track {
   const TextTrack(this.typeOrder, this.id, this.uniqueId, this.extra, this.title, this.language,
       this.isDefault, this.isForced, this.format, this.codecId);
 
+  factory TextTrack.fromJson(Map<String, dynamic> json) => _$TextTrackFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$TextTrackToJson(this);
+
   String get languageName {
     if (language == null) {
       return 'Unknown';
@@ -367,11 +334,6 @@ class TextTrack extends Track {
     }
     return buffer.toString();
   }
-
-  factory TextTrack.fromJson(Map<String, dynamic> json) => _$TextTrackFromJson(json);
-
-  @override
-  Map<String, dynamic> toJson() => _$TextTrackToJson(this);
 }
 
 @JsonSerializable(fieldRename: FieldRename.pascal)
@@ -406,8 +368,7 @@ class VideoTrack extends Track {
   Map<String, dynamic> toJson() => _$VideoTrackToJson(this);
 
   bool get isHDR => hdrFormat != null;
-
-  String hdrName() => isHDR ? 'HDR' : 'SDR';
+  String get hdrName => isHDR ? 'HDR' : 'SDR';
 
   String get sizeName {
     if (width == 1920) {
@@ -429,3 +390,10 @@ class UnknownTrack implements Track {
     throw UnimplementedError();
   }
 }
+
+int _stringToInt(String? s) => (s == null) ? 0 : int.parse(s);
+String _intToString(int? n) => (n == null) ? '' : n.toString();
+
+final RegExp _truthyRegEx = RegExp(r'^\s*(yes|true)\s*$', multiLine: true, caseSensitive: false);
+
+bool _stringToBool(String? s) => (s == null) ? false : _truthyRegEx.hasMatch(s);

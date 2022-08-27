@@ -3,6 +3,7 @@ import 'dart:io';
 import 'mediainfo_exec.dart';
 
 import 'package:args/command_runner.dart';
+import 'package:ffmpeg_helper/models/audio_format.dart';
 import 'package:ffmpeg_helper/models/mediainfo.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
@@ -204,11 +205,15 @@ class SuggestCommand extends Command {
       throw const MissingRequiredArgumentException('filename');
     }
 
-    String filename = argResults.rest[0];
-    if (filename.isEmpty) {
-      throw const MissingRequiredArgumentException('filename');
+    for (var filename in argResults.rest) {
+      if (filename.isEmpty) {
+        throw const MissingRequiredArgumentException('filename');
+      }
+      runMediaInfo(filename);
     }
+  }
 
+  void runMediaInfo(String filename) async {
     log.info('Running mediainfo...');
     MediaRoot root = await parseMediainfo(filename);
     if (root.media.trackList.tracks.isEmpty) {
@@ -277,7 +282,8 @@ class SuggestCommand extends Command {
       if (t.title != null && t.title!.toLowerCase().contains('commentary')) {
         continue;
       }
-      tracksByFormat[t.simpleFormat] = AudioTrackWrapper(i, t, t.simpleFormat);
+      var af = t.toAudioFormat();
+      tracksByFormat[af] = AudioTrackWrapper(i, t, af);
     }
 
     // Find the best audio source track for the main multichannel audio track.
