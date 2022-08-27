@@ -35,6 +35,6 @@ void main() {
     var mediaRoot = MediaRoot.fromJson(mediaMap);
     var media = mediaRoot.media;
 
-    expect(media.ref, 'media-large.mkv');
+    expect(media.ref, 'The.Media.2160p.X265.HDR/The.Media.2160p.X265.HDR.mkv');
   });
 }
