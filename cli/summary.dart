@@ -77,8 +77,8 @@ class SummaryCommand extends Command {
 
     bool isDetailed = argResults[detailedFlagName];
     StringBuffer buffer = StringBuffer();
-    FixedPrint fp =
-        FixedPrint(buffer, defaultAlign: Alignment.right, defaultOverflow: Overflow.ellipsis);
+    FixedPrinter fp =
+        FixedPrinter(buffer, defaultAlign: Alignment.right, defaultOverflow: Overflow.ellipsis);
 
     buffer.writeln('Container format: ${tl.generalTrack?.format}');
     buffer.writeln('Video count: ${tl.generalTrack?.videoCount}');

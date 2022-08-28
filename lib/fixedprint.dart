@@ -9,13 +9,13 @@ enum Overflow {
   ellipsis;
 }
 
-class FixedPrint {
+class FixedPrinter {
   final StringSink out;
   final Alignment defaultAlign;
   final Overflow defaultOverflow;
   final String defaultPadding;
 
-  const FixedPrint(this.out,
+  const FixedPrinter(this.out,
       {Alignment? defaultAlign, Overflow? defaultOverflow, String? defaultPadding})
       : defaultAlign = defaultAlign ?? Alignment.left,
         defaultOverflow = defaultOverflow ?? Overflow.truncate,
