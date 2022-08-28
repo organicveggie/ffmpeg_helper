@@ -252,6 +252,7 @@ class AudioTrack extends Track {
   }
 
   int? get bitRateLimit => bitRate ?? bitRateMax;
+  int? get bitRateMaxAsKbps => (bitRateMax == null) ? null : bitRateMax! ~/ 1000;
 }
 
 @JsonSerializable()

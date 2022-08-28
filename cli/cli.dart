@@ -22,12 +22,6 @@ void main(List<String> args) async {
   runner.argParser.addOption('mediainfo_bin',
       defaultsTo: Platform.isMacOS ? mediainfoBinMac : mediainfoBinLinux);
 
-  // runner.run(args).catchError((error) {
-  //   if (error is! UsageException) throw error;
-  //   print(error);
-  //   exit(64); // Exit code 64 indicates a usage error.
-  // });
-
   try {
     await runner.run(args);
   } on UsageException catch (error) {
