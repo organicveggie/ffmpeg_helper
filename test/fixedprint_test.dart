@@ -163,4 +163,25 @@ void main() {
       expect(output.toString(), '  abc  ');
     });
   });
+
+  group('RepeatWrite: ', () {
+    test('single group of a repeated character', () {
+      var output = StringBuffer();
+      var f = FixedPrinter(output);
+      f.repeatWrite('-', '|', const <int>[5]);
+      expect(output.toString(), '-----');
+    });
+    test('two groups of a repeated character', () {
+      var output = StringBuffer();
+      var f = FixedPrinter(output);
+      f.repeatWrite('-', '|', const <int>[5, 2]);
+      expect(output.toString(), '-----|--');
+    });
+    test('four groups of a repeated character', () {
+      var output = StringBuffer();
+      var f = FixedPrinter(output);
+      f.repeatWrite('-', '|', const <int>[5, 1, 1, 2]);
+      expect(output.toString(), '-----|-|-|--');
+    });
+  });
 }

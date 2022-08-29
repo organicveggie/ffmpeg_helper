@@ -9,6 +9,16 @@ enum Overflow {
   ellipsis;
 }
 
+class Item {
+  final String? s;
+  final int? width;
+  final Alignment? align;
+  final Overflow? overflow;
+  final String? padding;
+
+  const Item(String? s, {this.width, this.align, this.overflow, this.padding}) : s = s ?? '';
+}
+
 class FixedPrinter {
   final StringSink out;
   final Alignment defaultAlign;
@@ -73,5 +83,30 @@ class FixedPrinter {
         customOverflow: customOverflow,
         customPadding: customPadding);
     out.writeln();
+  }
+
+  void writeAll(List<Item> items, {String? separator}) {
+    var lastItem = items.length - 1;
+    for (var i = 0; i < items.length; i++) {
+      var item = items[i];
+      write(item.s ?? '',
+          width: item.width,
+          customAlign: item.align,
+          customOverflow: item.overflow,
+          customPadding: item.padding);
+      if ((separator != null) && (i != lastItem)) {
+        write(separator);
+      }
+    }
+  }
+
+  void repeatWrite(String s, String separator, List<int> widths) {
+    var lastItem = widths.length - 1;
+    for (var i = 0; i < widths.length; i++) {
+      write(s, width: widths[i], customPadding: s);
+      if (i != lastItem) {
+        write(separator);
+      }
+    }
   }
 }

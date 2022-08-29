@@ -91,8 +91,21 @@ class SummaryCommand extends Command {
       buffer.writeln('VIDEO');
       buffer.writeln('-----');
     } else {
-      fp.writeln(
-          '--|-|--|-|-|---|-----------|-|-----|----|-------------|--------------------------------------------|');
+      fp.writeAll(const <Item>[
+        Item('SO', width: 2),
+        Item('T'),
+        Item('#', width: 2),
+        Item('D'),
+        Item('F'),
+        Item('Lng', width: 3),
+        Item('Format', width: 11),
+        Item('H'),
+        Item('Width', width: 5),
+        Item('Hght', width: 4)
+      ], separator: '|');
+      fp.writeln('');
+      fp.repeatWrite('-', '|', const <int>[2, 1, 2, 1, 1, 3, 11, 1, 5, 4]);
+      fp.writeln('');
     }
     List<VideoTrack> videos = tl.videoTracks.toList();
     videos.sort((a, b) {
@@ -108,16 +121,18 @@ class SummaryCommand extends Command {
         buffer.writeln('Codec: ${v.codecId}');
         buffer.writeln('');
       } else {
-        fp.write(v.streamOrder, width: 2);
-        fp.write('V', width: 2);
-        fp.write(i.toString(), width: 3);
-        fp.write('?', width: 2);
-        fp.write('?', width: 2);
-        fp.write('-', width: 4);
-        fp.write(v.format, width: 12);
-        fp.write(v.isHDR ? 'Y' : 'N', width: 2);
-        fp.write(v.width.toString(), width: 6);
-        fp.write(v.height.toString(), width: 5);
+        fp.writeAll(<Item>[
+          Item(v.streamOrder, width: 2),
+          Item('V'),
+          Item(i.toString(), width: 2),
+          Item('?'),
+          Item('?'),
+          Item('-', width: 3),
+          Item(v.format, width: 11),
+          Item(v.isHDR ? 'Y' : 'N'),
+          Item(v.width.toString(), width: 5),
+          Item(v.height.toString(), width: 4),
+        ], separator: '|');
         fp.writeln('');
       }
     }
@@ -127,11 +142,25 @@ class SummaryCommand extends Command {
       buffer.writeln('-----');
     } else {
       fp.writeln('');
+      fp.writeAll(const <Item>[
+        Item('SO', width: 2),
+        Item('T'),
+        Item('#', width: 2),
+        Item('D'),
+        Item('F'),
+        Item('Lng', width: 3),
+        Item('Codec', width: 11),
+        Item('C'),
+        Item('Kbps', width: 5),
+        Item('Format', width: 18),
+        Item('Title', width: 43),
+      ], separator: '|');
+      fp.writeln('');
+      fp.repeatWrite('-', '|', const <int>[2, 1, 2, 1, 1, 3, 11, 1, 5, 18, 43]);
+      fp.writeln('');
       //   |T| #|D|F|Lng|      Codec|C| Kbps|            Format| Title
       // --|-|--|-|-|---|-----------|-|-----|------------------|--------------------------------------------|
       //  1 A  0 Y N  en    A_TRUEHD 8  7794       Dolby TrueHD        Atmos 7.1
-      fp.writeln(
-          '--|-|--|-|-|---|-----------|-|-----|------------------|--------------------------------------------|');
     }
     List<AudioTrack> audios = tl.audioTracks.toList();
     audios.sort((a, b) {
@@ -154,18 +183,19 @@ class SummaryCommand extends Command {
         buffer.writeln('Title: ${a.title}');
         buffer.writeln('');
       } else {
-        fp.write(a.streamOrder, width: 2);
-        fp.write('A', width: 2);
-        fp.write(i.toString(), width: 3);
-        fp.write(a.isDefault ? 'Y' : 'N', width: 2);
-        fp.write(a.isForced ? 'Y' : 'N', width: 2);
-        fp.write(a.language ?? '-', width: 4);
-        fp.write(a.codecId ?? '-', width: 12);
-        fp.write(a.channels == null ? '-' : a.channels.toString(), width: 2);
-        fp.write(a.bitRateMaxAsKbps == null ? '-' : a.bitRateMaxAsKbps.toString(), width: 6);
-        fp.write(a.toAudioFormat().toString(), width: 19);
-        fp.write(' ');
-        fp.write(a.title ?? '-', width: 44);
+        fp.writeAll(<Item>[
+          Item(a.streamOrder, width: 2),
+          Item('T'),
+          Item(i.toString(), width: 2),
+          Item(a.isDefault ? 'Y' : 'N'),
+          Item(a.isForced ? 'Y' : 'N'),
+          Item(a.language ?? '-', width: 3),
+          Item(a.codecId ?? '-', width: 11),
+          Item(a.channels == null ? '-' : a.channels.toString()),
+          Item(a.bitRateMaxAsKbps == null ? '-' : a.bitRateMaxAsKbps.toString(), width: 5),
+          Item(a.toAudioFormat().toString(), width: 18),
+          Item(a.title ?? '-', width: 43)
+        ], separator: '|');
         fp.writeln('');
       }
     }
@@ -174,11 +204,23 @@ class SummaryCommand extends Command {
       buffer.writeln('TEXT');
       buffer.writeln('----');
     } else {
+      fp.writeln('');
+      fp.writeAll(const <Item>[
+        Item('SO', width: 2),
+        Item('T'),
+        Item('#', width: 2),
+        Item('D'),
+        Item('F'),
+        Item('Lng', width: 3),
+        Item('Format', width: 11),
+        Item('Title', width: 37),
+      ], separator: '|');
+      fp.writeln('');
+      fp.repeatWrite('-', '|', const <int>[2, 1, 2, 1, 1, 3, 11, 37]);
+      fp.writeln('');
       //   |T| #|D|F|Lng|     Format|                     Title|
       // --|-|--|-|-|---|-----------|--------------------------|
       // 10 T  1 N N  en       UTF-8               Stripped SRT
-      fp.writeln('');
-      fp.writeln('--|-|--|-|-|---|-----------|--------------------------|');
     }
     List<TextTrack> texts = tl.textTracks.toList();
     texts.sort((a, b) {
@@ -198,15 +240,16 @@ class SummaryCommand extends Command {
         buffer.writeln('Forced: ${t.isForced}');
         buffer.writeln('');
       } else {
-        fp.write('?', width: 2);
-        fp.write('T', width: 2);
-        fp.write(i.toString(), width: 3);
-        fp.write(t.isDefault ? 'Y' : 'N', width: 2);
-        fp.write(t.isForced ? 'Y' : 'N', width: 2);
-        fp.write(t.language ?? '-', width: 4);
-        fp.write(t.format ?? '-', width: 12);
-        fp.write('');
-        fp.write(t.title ?? '-', width: 71);
+        fp.writeAll(<Item>[
+          Item('?', width: 2),
+          Item('T'),
+          Item(i.toString(), width: 2),
+          Item(t.isDefault ? 'Y' : 'N'),
+          Item(t.isForced ? 'Y' : 'N'),
+          Item(t.language, width: 3),
+          Item(t.format ?? '-', width: 11),
+          Item(t.title ?? '-', width: 37),
+        ], separator: '|');
         fp.writeln('');
       }
     }
