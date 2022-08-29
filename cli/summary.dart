@@ -125,8 +125,8 @@ class SummaryCommand extends Command {
           Item(v.streamOrder, width: 2),
           Item('V'),
           Item(i.toString(), width: 2),
-          Item('?'),
-          Item('?'),
+          Item('-'),
+          Item('-'),
           Item('-', width: 3),
           Item(v.format, width: 11),
           Item(v.isHDR ? 'Y' : 'N'),
@@ -241,7 +241,7 @@ class SummaryCommand extends Command {
         buffer.writeln('');
       } else {
         fp.writeAll(<Item>[
-          Item('?', width: 2),
+          Item('-', width: 2),
           Item('T'),
           Item(i.toString(), width: 2),
           Item(t.isDefault ? 'Y' : 'N'),
