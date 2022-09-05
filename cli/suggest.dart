@@ -98,7 +98,7 @@ class SuggestCommand extends Command {
     }
     for (int i = 0; i < subtitleTracks.length; i++) {
       wrappers.TextTrack tt = subtitleTracks[i];
-      buffer.writeln('-map 0:s:${tt.orderId} -c:0:s:$i copy \\');
+      buffer.writeln('-map 0:s:${tt.orderId} -c:s:$i copy \\');
       if (tt.track.language != null) {
         buffer.write('-metadata:s:s:$i language=${langToISO639_2(tt.track.language!)}');
       }
