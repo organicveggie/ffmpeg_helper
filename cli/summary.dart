@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:ffmpeg_helper/fixedprint.dart';
 
 import 'exceptions.dart';
-import 'mediainfo_exec.dart';
+import '../lib/mediainfo_exec.dart';
 
 import 'package:args/command_runner.dart';
 import 'package:ffmpeg_helper/models/mediainfo.dart';

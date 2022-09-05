@@ -3,7 +3,7 @@
 import 'dart:io';
 
 import 'exceptions.dart';
-import 'mediainfo_exec.dart';
+import '../lib/mediainfo_exec.dart';
 import 'suggest.dart';
 import 'summary.dart';
 

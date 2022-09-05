@@ -106,6 +106,9 @@ class Track {
 
   factory Track.fromJson(Map<String, dynamic> json) => _$TrackFromJson(json);
   Map<String, dynamic> toJson() => _$TrackToJson(this);
+
+  @override
+  String toString() => 'Track';
 }
 
 @JsonSerializable(fieldRename: FieldRename.pascal)
@@ -136,6 +139,9 @@ class GeneralTrack extends Track {
 
   @override
   Map<String, dynamic> toJson() => _$GeneralTrackToJson(this);
+
+  @override
+  String toString() => 'General: $format';
 }
 
 @JsonSerializable(fieldRename: FieldRename.pascal)
@@ -253,6 +259,9 @@ class AudioTrack extends Track {
 
   int? get bitRateLimit => bitRate ?? bitRateMax;
   int? get bitRateMaxAsKbps => (bitRateMax == null) ? null : bitRateMax! ~/ 1000;
+
+  @override
+  String toString() => 'Audio: ${toAudioFormat().toString()}, $channels channels, $title';
 }
 
 @JsonSerializable()
@@ -265,6 +274,9 @@ class MenuTrack extends Track {
 
   @override
   Map<String, dynamic> toJson() => _$MenuTrackToJson(this);
+
+  @override
+  String toString() => 'Menu: ${extra?.toString()}';
 }
 
 @JsonSerializable(fieldRename: FieldRename.pascal)
@@ -335,6 +347,9 @@ class TextTrack extends Track {
     }
     return buffer.toString();
   }
+
+  @override
+  String toString() => 'Text: $handler';
 }
 
 @JsonSerializable(fieldRename: FieldRename.pascal)
@@ -379,6 +394,9 @@ class VideoTrack extends Track {
     }
     return "unknown";
   }
+
+  @override
+  String toString() => 'Video: $format, $hdrName, $sizeName';
 }
 
 class UnknownTrack implements Track {
@@ -390,6 +408,9 @@ class UnknownTrack implements Track {
   Map<String, dynamic> toJson() {
     throw UnimplementedError();
   }
+
+  @override
+  String toString() => 'Unknown track type';
 }
 
 int _stringToInt(String? s) => (s == null) ? 0 : int.parse(s);
