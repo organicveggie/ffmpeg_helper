@@ -20,33 +20,6 @@ class MediainfoException implements Exception {
   String toString() => '$message. Exit code: $exitCode.';
 }
 
-Future<MediaRoot> parseMediainfo(String filename, {String? mediainfoBinary}) async {
-  final log = Logger('parseMediainfo');
-
-  String mediainfo = mediainfoBinary ?? (Platform.isMacOS ? mediainfoBinMac : mediainfoBinLinux);
-  var mediainfoCmdArgs = ['--Output=JSON', '"$filename"'];
-
-  String cmdMsg = '$mediainfo ${mediainfoCmdArgs.join(" ")}';
-  log.fine('Running $cmdMsg');
-  ProcessResult result = await Process.run(mediainfo, mediainfoCmdArgs);
-  if (result.exitCode > 0) {
-    throw MediainfoException(
-        'mediainfo execution failed with code ${result.exitCode}.'
-        'Command: $cmdMsg.',
-        result.exitCode,
-        result.stdout,
-        result.stderr);
-  }
-
-  log.fine('Successfully executed: $cmdMsg');
-  log.fine('Result: ${result.exitCode}');
-  log.fine('STDOUT: ${result.stdout.toString()}');
-  log.fine('STDERR: ${result.stderr.toString()}');
-
-  Map<String, dynamic> mediaMap = jsonDecode(result.stdout.toString());
-  return MediaRoot.fromJson(mediaMap);
-}
-
 Future<MediaRoot> runMediainfo(String filename, {String? mediainfoBinary}) async {
   final log = Logger('runMediainfo');
 

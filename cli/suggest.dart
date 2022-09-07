@@ -52,7 +52,7 @@ class SuggestCommand extends Command {
 
   void runMediaInfo(String filename) async {
     log.info('Running mediainfo...');
-    MediaRoot root = await parseMediainfo(filename);
+    MediaRoot root = await runMediainfo(filename);
     if (root.media.trackList.tracks.isEmpty) {
       throw InvalidMetadataException('no tracks found', filename);
     }
