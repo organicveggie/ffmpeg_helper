@@ -1,10 +1,14 @@
+import 'dart:io';
+
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
+import 'package:path/path.dart' as p;
 import 'package:provider/provider.dart';
 
 import 'mediainfo_exec.dart';
 import 'models/mediainfo.dart';
+import 'models/media_file.dart';
 
 void main() {
   Logger.root.onRecord.listen((record) {
@@ -25,8 +29,7 @@ enum MediaLoadingState {
 
 class MediaModel extends ChangeNotifier {
   MediaLoadingState _loadingState = MediaLoadingState.none;
-  String? _filename;
-
+  MediaFile? _file;
   MediaRoot? _mediaRoot;
 
   MediaLoadingState get loadingState => _loadingState;
@@ -35,11 +38,31 @@ class MediaModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  String? get filename => _filename;
-  set filename(String? filename) {
-    _filename = filename;
+  String? get fileName => _file?.filename;
+  String? get filePath => _file?.path;
+  int? get fileSize => _file?.sizeInBytes;
+  String? get fileSizeString => _file?.getFileSizeAsString(decimals: 1);
+
+  String? get pathname => (_file == null) ? null : p.join(_file!.path, _file!.filename);
+  set pathname(String? pathname) {
+    if (pathname == null) {
+      _file = null;
+      return;
+    }
+
+    _setMediaFileFromPathname(pathname);
     _loadingState = MediaLoadingState.loading;
     notifyListeners();
+  }
+
+  void _setMediaFileFromPathname(String pathname) async {
+    var f = File(pathname);
+    var sizeInBytes = await f.length();
+    _file = (MediaFileBuilder()
+          ..path = p.dirname(pathname)
+          ..filename = p.basename(pathname)
+          ..sizeInBytes = sizeInBytes)
+        .build();
   }
 
   Media? get media => _mediaRoot?.media;
@@ -49,11 +72,11 @@ class MediaModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<MediaRoot> loadFile(String filename) {
-    _filename = filename;
+  Future<MediaRoot> loadFile(String pathname) {
+    _setMediaFileFromPathname(pathname);
     loadingState = MediaLoadingState.loading;
 
-    return runMediainfo(filename).then((mediaRoot) {
+    return runMediainfo(pathname).then((mediaRoot) {
       _mediaRoot = mediaRoot;
       loadingState = MediaLoadingState.loaded;
       return mediaRoot;
@@ -129,7 +152,7 @@ class _HelperHomePageState extends State<HelperHomePage> {
                     child: Container(
                   padding: const EdgeInsets.all(5.0),
                   child: Column(children: <Widget>[
-                    Text('loading ${model.filename}'),
+                    Text('loading ${model.fileName}'),
                     const CircularProgressIndicator(),
                   ]),
                 ))
@@ -169,7 +192,14 @@ class MediaInfoPanel extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Filename: ${model.filename}'),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Text('File: ${model.fileName}'),
+            Text('Directory: ${model.filePath}'),
+            Text('Size: ${model.fileSizeString}'),
+          ],
+        ),
         Expanded(
             child: DataTable(columns: const <DataColumn>[
           DataColumn(label: Expanded(child: Text('Type'))),
@@ -178,25 +208,31 @@ class MediaInfoPanel extends StatelessWidget {
           DataColumn(label: Expanded(child: Text('Notes'))),
         ], rows: <DataRow>[
           ...List<DataRow>.generate(
-              videoTracklist.length,
-              (index) => DataRow(cells: <DataCell>[
-                    const DataCell(Text('Video')),
-                    DataCell(Text(videoTracklist[index].format)),
-                    const DataCell(Text('n/a')),
-                    DataCell(
-                        Text('${videoTracklist[index].sizeName} ${videoTracklist[index].hdrName}'))
-                  ])),
+              videoTracklist.length, (index) => _videoTrackAsDataRow(videoTracklist[index])),
           ...List<DataRow>.generate(
-              audioTracklist.length,
-              (index) => DataRow(cells: <DataCell>[
-                    const DataCell(Text('Audio')),
-                    DataCell(Text(audioTracklist[index].format)),
-                    DataCell(Text(audioTracklist[index].language ?? 'unknown')),
-                    DataCell(Text(
-                        '${audioTracklist[index].channels} channels, ${audioTracklist[index].bitRateMaxAsKbps} kbps'))
-                  ]))
+              audioTracklist.length, (index) => _audioTrackAsDataRow(audioTracklist[index]))
         ]))
       ],
     );
+  }
+
+  DataRow _videoTrackAsDataRow(VideoTrack t) {
+    return DataRow(cells: <DataCell>[
+      const DataCell(Text('Video')),
+      DataCell(Text(t.format)),
+      const DataCell(Text('n/a')),
+      DataCell(Text('${t.sizeName}, ${t.hdrName}'))
+    ]);
+  }
+
+  DataRow _audioTrackAsDataRow(AudioTrack t) {
+    var bitRateMax = t.bitRateMaxAsKbps;
+    var bitRate = (bitRateMax != null && bitRateMax > 0) ? bitRateMax : t.bitRate;
+    return DataRow(cells: <DataCell>[
+      const DataCell(Text('Audio')),
+      DataCell(Text(t.format)),
+      DataCell(Text(t.language ?? 'unknown')),
+      DataCell(Text('${t.channels} channels, $bitRate kbps'))
+    ]);
   }
 }
