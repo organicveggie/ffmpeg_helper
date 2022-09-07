@@ -50,7 +50,7 @@ class SummaryCommand extends Command {
       throw FileNotFoundException(filename);
     }
 
-    MediaRoot root = await parseMediainfo(filename);
+    MediaRoot root = await runMediainfo(filename);
     if (root.media.trackList.tracks.isEmpty) {
       throw InvalidMetadataException('no tracks found', filename);
     }

@@ -88,5 +88,12 @@ Future<MediaRoot> runMediainfo(String filename, {String? mediainfoBinary}) async
   }
 
   Map<String, dynamic> mediaMap = jsonDecode(stdout.toString());
-  return MediaRoot.fromJson(mediaMap);
+  try {
+    return MediaRoot.fromJson(mediaMap);
+  } catch (e) {
+    log.severe('Error loading MediaRoot from JSON for $filename');
+    log.severe('mediainfo stdout: ${stdout.toString()}');
+    log.severe('mediainfo stderr: ${stderr.toString()}');
+    rethrow;
+  }
 }
