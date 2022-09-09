@@ -257,6 +257,7 @@ class AudioTrack extends Track {
     return AudioFormat.unknown;
   }
 
+  int? get bitRateAsKbps => (bitRate == null) ? null : bitRate! ~/ 1000;
   int? get bitRateLimit => bitRate ?? bitRateMax;
   int? get bitRateMaxAsKbps => (bitRateMax == null) ? null : bitRateMax! ~/ 1000;
 

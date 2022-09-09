@@ -184,41 +184,56 @@ class MediaInfoPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var model = context.read<MediaModel>();
-    var tracklist = model.media!.trackList;
-    var audioTracklist = tracklist.audioTracks;
-    var videoTracklist = tracklist.videoTracks;
+    var audioTracklist = model.media!.trackList.audioTracks;
+    var videoTracklist = model.media!.trackList.videoTracks;
+    var textTrackList = model.media!.trackList.textTracks;
 
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
+    return Container(
+        padding: const EdgeInsets.all(10.0),
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('File: ${model.fileName}'),
-            Text('Directory: ${model.filePath}'),
-            Text('Size: ${model.fileSizeString}'),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text('File: ${model.fileName}'),
+                    Text('Directory: ${model.filePath}'),
+                    Text('Size: ${model.fileSizeString}'),
+                  ]),
+                ),
+              ],
+            ),
+            Expanded(
+                child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(width: 1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: SingleChildScrollView(
+                        scrollDirection: Axis.vertical,
+                        child: DataTable(columns: const <DataColumn>[
+                          DataColumn(label: Expanded(child: Text('Type'))),
+                          DataColumn(label: Expanded(child: Text('Format'))),
+                          DataColumn(label: Expanded(child: Text('Language'))),
+                          DataColumn(label: Expanded(child: Text('Notes'))),
+                        ], rows: <DataRow>[
+                          ...List<DataRow>.generate(videoTracklist.length,
+                              (index) => _videoTrackAsDataRow(videoTracklist[index])),
+                          ...List<DataRow>.generate(audioTracklist.length,
+                              (index) => _audioTrackAsDataRow(audioTracklist[index])),
+                          ...List<DataRow>.generate(textTrackList.length,
+                              (index) => _textTrackAsDataRow(textTrackList[index])),
+                        ]))))
           ],
-        ),
-        Expanded(
-            child: DataTable(columns: const <DataColumn>[
-          DataColumn(label: Expanded(child: Text('Type'))),
-          DataColumn(label: Expanded(child: Text('Format'))),
-          DataColumn(label: Expanded(child: Text('Language'))),
-          DataColumn(label: Expanded(child: Text('Notes'))),
-        ], rows: <DataRow>[
-          ...List<DataRow>.generate(
-              videoTracklist.length, (index) => _videoTrackAsDataRow(videoTracklist[index])),
-          ...List<DataRow>.generate(
-              audioTracklist.length, (index) => _audioTrackAsDataRow(audioTracklist[index]))
-        ]))
-      ],
-    );
+        ));
   }
 
   DataRow _videoTrackAsDataRow(VideoTrack t) {
     return DataRow(cells: <DataCell>[
-      const DataCell(Text('Video')),
+      DataCell(Row(children: const <Widget>[Icon(Icons.videocam), Text('Video')])),
       DataCell(Text(t.format)),
       const DataCell(Text('n/a')),
       DataCell(Text('${t.sizeName}, ${t.hdrName}'))
@@ -227,12 +242,32 @@ class MediaInfoPanel extends StatelessWidget {
 
   DataRow _audioTrackAsDataRow(AudioTrack t) {
     var bitRateMax = t.bitRateMaxAsKbps;
-    var bitRate = (bitRateMax != null && bitRateMax > 0) ? bitRateMax : t.bitRate;
+    var bitRate = (bitRateMax != null && bitRateMax > 0) ? bitRateMax : t.bitRateAsKbps;
     return DataRow(cells: <DataCell>[
-      const DataCell(Text('Audio')),
+      DataCell(Row(children: const <Widget>[Icon(Icons.audiotrack), Text('Audio')])),
       DataCell(Text(t.format)),
       DataCell(Text(t.language ?? 'unknown')),
       DataCell(Text('${t.channels} channels, $bitRate kbps'))
+    ]);
+  }
+
+  DataRow _textTrackAsDataRow(TextTrack t) {
+    var notes = <String>[];
+    if (t.isDefault) {
+      notes.add('Default');
+    }
+    if (t.isForced) {
+      notes.add('Forced');
+    }
+    if (t.title != null) {
+      notes.add(t.title!);
+    }
+
+    return DataRow(cells: <DataCell>[
+      DataCell(Row(children: const <Widget>[Icon(Icons.subtitles), Text('Subtitle')])),
+      DataCell(Text(t.format ?? 'unknown')),
+      DataCell(Text(t.language ?? 'unk')),
+      DataCell(Text(notes.join(', '))),
     ]);
   }
 }
