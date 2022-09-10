@@ -414,20 +414,6 @@ class VideoTrack extends Track {
   String toString() => 'Video: $format, $hdrName, $sizeName';
 }
 
-class UnknownTrack extends Track {
-  const UnknownTrack(
-    super.type,
-  );
-
-  @override
-  Map<String, dynamic> toJson() {
-    throw UnimplementedError();
-  }
-
-  @override
-  String toString() => 'Unknown track type';
-}
-
 int _stringToInt(String? s) => (s == null) ? 0 : int.parse(s);
 String _intToString(int? n) => (n == null) ? '' : n.toString();
 
