@@ -4,6 +4,9 @@ import 'audio_format.dart';
 
 part 'mediainfo.g.dart';
 
+@JsonEnum(fieldRename: FieldRename.pascal)
+enum TrackType { audio, general, menu, text, video }
+
 @JsonSerializable()
 class MediaRoot {
   const MediaRoot(this.media);
@@ -58,29 +61,36 @@ class TrackList {
     var textTracks = <TextTrack>[];
     var videoTracks = <VideoTrack>[];
 
-    var tracks = <Track>[];
     for (var e in jsonTracks) {
       var em = e as Map<String, dynamic>;
-      Track t;
-      if (em['@type'] == 'Audio') {
-        t = AudioTrack.fromJson(em);
-        audioTracks.add(t as AudioTrack);
-      } else if (em['@type'] == 'General') {
-        general = GeneralTrack.fromJson(em);
-        t = general;
-      } else if (em['@type'] == 'Menu') {
-        t = MenuTrack.fromJson(em);
-        menuTracks.add(t as MenuTrack);
-      } else if (em['@type'] == 'Text') {
-        t = TextTrack.fromJson(em);
-        textTracks.add(t as TextTrack);
-      } else if (em['@type'] == 'Video') {
-        t = VideoTrack.fromJson(em);
-        videoTracks.add(t as VideoTrack);
-      } else {
-        t = UnknownTrack(em['@type'] ?? 'Unknown');
+      var t = Track.fromJson(em);
+      switch (t.type) {
+        case TrackType.audio:
+          audioTracks.add(AudioTrack.fromJson(em));
+          break;
+        case TrackType.general:
+          general = GeneralTrack.fromJson(em);
+          break;
+        case TrackType.menu:
+          menuTracks.add(MenuTrack.fromJson(em));
+          break;
+        case TrackType.text:
+          textTracks.add(TextTrack.fromJson(em));
+          break;
+        case TrackType.video:
+          videoTracks.add(VideoTrack.fromJson(em));
+          break;
       }
-      tracks.add(t);
+    }
+
+    var tracks = <Track>[
+      ...videoTracks,
+      ...audioTracks,
+      ...textTracks,
+      ...menuTracks,
+    ];
+    if (general != null) {
+      tracks.add(general);
     }
 
     return TrackList(tracks,
@@ -102,7 +112,10 @@ class TrackList {
 
 @JsonSerializable()
 class Track {
-  const Track();
+  @JsonKey(name: '@type')
+  final TrackType type;
+
+  const Track(this.type);
 
   factory Track.fromJson(Map<String, dynamic> json) => _$TrackFromJson(json);
   Map<String, dynamic> toJson() => _$TrackToJson(this);
@@ -132,7 +145,7 @@ class GeneralTrack extends Track {
   @JsonKey(name: 'extra')
   final Map<String, dynamic>? extra;
 
-  const GeneralTrack(this.uniqueId, this.videoCount, this.audioCount, this.textCount,
+  const GeneralTrack(super.type, this.uniqueId, this.videoCount, this.audioCount, this.textCount,
       this.menuCount, this.fileExtension, this.title, this.movie, this.format, this.extra);
 
   factory GeneralTrack.fromJson(Map<String, dynamic> json) => _$GeneralTrackFromJson(json);
@@ -185,6 +198,7 @@ class AudioTrack extends Track {
   final int? bitRateMax;
 
   const AudioTrack(
+      super.type,
       this.typeOrder,
       this.streamOrder,
       this.id,
@@ -269,7 +283,7 @@ class AudioTrack extends Track {
 class MenuTrack extends Track {
   final Map<String, String>? extra;
 
-  const MenuTrack(this.extra);
+  const MenuTrack(super.type, this.extra);
 
   factory MenuTrack.fromJson(Map<String, dynamic> json) => _$MenuTrackFromJson(json);
 
@@ -302,8 +316,8 @@ class TextTrack extends Track {
   @JsonKey(name: 'Forced', fromJson: _stringToBool)
   final bool isForced;
 
-  const TextTrack(this.typeOrder, this.id, this.uniqueId, this.extra, this.title, this.language,
-      this.isDefault, this.isForced, this.format, this.codecId);
+  const TextTrack(super.type, this.typeOrder, this.id, this.uniqueId, this.extra, this.title,
+      this.language, this.isDefault, this.isForced, this.format, this.codecId);
 
   factory TextTrack.fromJson(Map<String, dynamic> json) => _$TextTrackFromJson(json);
 
@@ -376,8 +390,8 @@ class VideoTrack extends Track {
   @JsonKey(fromJson: _stringToInt, toJson: _intToString)
   final int width;
 
-  const VideoTrack(this.streamOrder, this.id, this.uniqueId, this.extra, this.codecId, this.format,
-      this.width, this.height, this.hdrFormat, this.hdrFormatCompatibility);
+  const VideoTrack(super.type, this.streamOrder, this.id, this.uniqueId, this.extra, this.codecId,
+      this.format, this.width, this.height, this.hdrFormat, this.hdrFormatCompatibility);
 
   factory VideoTrack.fromJson(Map<String, dynamic> json) => _$VideoTrackFromJson(json);
 
@@ -400,10 +414,10 @@ class VideoTrack extends Track {
   String toString() => 'Video: $format, $hdrName, $sizeName';
 }
 
-class UnknownTrack implements Track {
-  final String trackType;
-
-  const UnknownTrack(this.trackType);
+class UnknownTrack extends Track {
+  const UnknownTrack(
+    super.type,
+  );
 
   @override
   Map<String, dynamic> toJson() {
