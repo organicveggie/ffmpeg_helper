@@ -157,22 +157,32 @@ class GeneralTrack extends Track {
   String toString() => 'General: $format';
 }
 
-@JsonSerializable(fieldRename: FieldRename.pascal)
-class AudioTrack extends Track {
+@JsonSerializable()
+class CodecIdTrack extends Track {
+  @JsonKey(name: 'ID')
+  final String id;
   @JsonKey(name: 'CodecID')
-  final String? codecId;
+  final String codecId;
+  @JsonKey(name: "UniqueID")
+  final String uniqueId;
+
+  const CodecIdTrack(super.type, this.id, this.codecId, this.uniqueId);
+
+  factory CodecIdTrack.fromJson(Map<String, dynamic> json) => _$CodecIdTrackFromJson(json);
+  @override
+  Map<String, dynamic> toJson() => _$CodecIdTrackToJson(this);
+}
+
+@JsonSerializable(fieldRename: FieldRename.pascal)
+class AudioTrack extends CodecIdTrack {
   @JsonKey(name: 'extra')
   final Map<String, String>? extra;
   @JsonKey(name: 'Format_AdditionalFeatures')
   final String? formatAdditionalFeatures;
   @JsonKey(name: 'Format_Commercial_IfAny')
   final String? formatCommercialName;
-  @JsonKey(name: 'ID')
-  final String id;
   @JsonKey(name: '@typeorder', fromJson: _stringToInt, toJson: _intToString)
   final int typeOrder;
-  @JsonKey(name: "UniqueID")
-  final String? uniqueId;
 
   @JsonKey(fromJson: _stringToInt, toJson: _intToString)
   final int? channels;
@@ -199,12 +209,12 @@ class AudioTrack extends Track {
 
   const AudioTrack(
       super.type,
+      super.id,
+      super.codecId,
+      super.uniqueId,
       this.typeOrder,
       this.streamOrder,
-      this.id,
-      this.uniqueId,
       this.extra,
-      this.codecId,
       this.format,
       this.formatCommercialName,
       this.formatAdditionalFeatures,
@@ -240,21 +250,18 @@ class AudioTrack extends Track {
       return AudioFormat.fromAacSubType(channels);
     }
 
-    if (codecId != null) {
-      String codecId = this.codecId!;
-      switch (codecId) {
-        case 'A_TRUEHD':
-          return AudioFormat.trueHD;
-        case 'A_AC3':
-          return AudioFormat.dolbyDigital;
-        case 'A_EAC3':
-          return AudioFormat.dolbyDigitalPlus;
-        // TODO: DTS, DTS:X, DTS-HD MA
-      }
+    switch (codecId) {
+      case 'A_TRUEHD':
+        return AudioFormat.trueHD;
+      case 'A_AC3':
+        return AudioFormat.dolbyDigital;
+      case 'A_EAC3':
+        return AudioFormat.dolbyDigitalPlus;
+      // TODO: DTS, DTS:X, DTS-HD MA
+    }
 
-      if (codecId == 'A_AAC-2') {
-        return AudioFormat.fromAacSubType(channels);
-      }
+    if (codecId == 'A_AAC-2') {
+      return AudioFormat.fromAacSubType(channels);
     }
 
     if (formatCommercialName != null) {
@@ -368,19 +375,13 @@ class TextTrack extends Track {
 }
 
 @JsonSerializable(fieldRename: FieldRename.pascal)
-class VideoTrack extends Track {
-  @JsonKey(name: 'CodecID')
-  final String? codecId;
+class VideoTrack extends CodecIdTrack {
   @JsonKey(name: 'extra')
   final Map<String, String>? extra;
   @JsonKey(name: 'HDR_Format')
   final String? hdrFormat;
   @JsonKey(name: 'HDR_Format_Compatibility')
   final String? hdrFormatCompatibility;
-  @JsonKey(name: "ID")
-  final String id;
-  @JsonKey(name: "UniqueID")
-  final String? uniqueId;
 
   final String format;
   final String streamOrder;
@@ -390,8 +391,18 @@ class VideoTrack extends Track {
   @JsonKey(fromJson: _stringToInt, toJson: _intToString)
   final int width;
 
-  const VideoTrack(super.type, this.streamOrder, this.id, this.uniqueId, this.extra, this.codecId,
-      this.format, this.width, this.height, this.hdrFormat, this.hdrFormatCompatibility);
+  const VideoTrack(
+      super.type,
+      super.id,
+      super.codecId,
+      super.uniqueId,
+      this.streamOrder,
+      this.extra,
+      this.format,
+      this.width,
+      this.height,
+      this.hdrFormat,
+      this.hdrFormatCompatibility);
 
   factory VideoTrack.fromJson(Map<String, dynamic> json) => _$VideoTrackFromJson(json);
 

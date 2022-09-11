@@ -18,7 +18,10 @@
                 "StreamOrder": "0",
                 "ID": "1",
                 "UniqueID": "6d86c4300aca4e9682e263cd7f89a4c4",
-                "Format": "AVC"
+                "CodecID": "V_MPEGH/ISO/HEVC",
+                "Format": "AVC",
+                "Width": "1920",
+                "Height": "800"        
             },
             {
                 "@type": "Audio",
@@ -26,13 +29,15 @@
                 "StreamOrder": "1",
                 "ID": "2",
                 "UniqueID": "5caa9c9bf83244df93ee9f91d69686bc",
-                "Format": "AC-3"
+                "Format": "AC-3",
+                "CodecID": "A_AC3"
             },
             {
                 "@type": "Text",
                 "@typeorder": "1",
                 "ID": "3",
-                "UniqueID": "0992ad7a97924e198c9027351a1943e4"
+                "UniqueID": "0992ad7a97924e198c9027351a1943e4",
+                "CodecID": "S_TEXT/UTF8"
             },
             {
                 "@type": "Menu"

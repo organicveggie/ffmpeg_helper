@@ -33,6 +33,27 @@ void main() {
     expect(gt, isNotNull);
     expect(gt!.title, isNotNull);
     expect(gt.title, 'Media Minimal');
+
+    const wantVideo = VideoTrack(
+        TrackType.video,
+        '6d86c4300aca4e9682e263cd7f89a4c4',
+        'V_MPEGH/ISO/HEVC',
+        '6d86c4300aca4e9682e263cd7f89a4c4',
+        '0',
+        null,
+        'AVC',
+        1920,
+        800,
+        null,
+        null);
+
+    var vt = mediaRoot.media.trackList.videoTracks[0];
+    expect(vt, isNotNull);
+    expect(vt, wantVideo);
+
+    var at = mediaRoot.media.trackList.videoTracks[0];
+    expect(at, isNotNull);
+    expect(at.id, 2);
   });
   test('Media model can parse JSON from non-linear video editor', () async {
     final file = File('test_resources/media_editor.json');
