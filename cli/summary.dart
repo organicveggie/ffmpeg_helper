@@ -122,11 +122,11 @@ class SummaryCommand extends Command {
       } else {
         fp.writeAll(<Item>[
           Item(v.streamOrder, width: 2),
-          Item('V'),
+          const Item('V'),
           Item(i.toString(), width: 2),
-          Item('-'),
-          Item('-'),
-          Item('-', width: 3),
+          const Item('-'),
+          const Item('-'),
+          const Item('-', width: 3),
           Item(v.format, width: 11),
           Item(v.isHDR ? 'Y' : 'N'),
           Item(v.width.toString(), width: 5),
@@ -184,12 +184,12 @@ class SummaryCommand extends Command {
       } else {
         fp.writeAll(<Item>[
           Item(a.streamOrder, width: 2),
-          Item('T'),
+          const Item('T'),
           Item(i.toString(), width: 2),
           Item(a.isDefault ? 'Y' : 'N'),
           Item(a.isForced ? 'Y' : 'N'),
           Item(a.language ?? '-', width: 3),
-          Item(a.codecId ?? '-', width: 11),
+          Item(a.codecId, width: 11),
           Item(a.channels == null ? '-' : a.channels.toString()),
           Item(a.bitRateMaxAsKbps == null ? '-' : a.bitRateMaxAsKbps.toString(), width: 5),
           Item(a.toAudioFormat().toString(), width: 18),
@@ -240,8 +240,8 @@ class SummaryCommand extends Command {
         buffer.writeln('');
       } else {
         fp.writeAll(<Item>[
-          Item('-', width: 2),
-          Item('T'),
+          const Item('-', width: 2),
+          const Item('T'),
           Item(i.toString(), width: 2),
           Item(t.isDefault ? 'Y' : 'N'),
           Item(t.isForced ? 'Y' : 'N'),
