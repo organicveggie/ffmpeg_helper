@@ -1,13 +1,12 @@
 import 'dart:io';
 
-import 'package:ffmpeg_helper/fixedprint.dart';
-
-import 'exceptions.dart';
-import '../lib/mediainfo_exec.dart';
-
 import 'package:args/command_runner.dart';
+import 'package:ffmpeg_helper/fixedprint.dart';
+import 'package:ffmpeg_helper/mediainfo_exec.dart';
 import 'package:ffmpeg_helper/models/mediainfo.dart';
 import 'package:logging/logging.dart';
+
+import 'exceptions.dart';
 
 class SummaryCommand extends Command {
   // The [name] and [description] properties must be defined by every
