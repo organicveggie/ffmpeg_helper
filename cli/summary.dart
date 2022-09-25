@@ -62,7 +62,7 @@ class SummaryCommand extends Command {
     // ===Normal Output===
     // All: StreamOrder Type TypeOrder Default Forced Language
     // VideoSummary: Format HDR Width Height
-    // AudioSummary: CodecId Channels MaxBitRate(Kbps) AudioFormat Title
+    // AudioSummary: CodecId Channels MaxBitRate(Kbps)/VBR AudioFormat Title
     // TextSummary: Formart Title
 
     //           1         2         3         4         5         6         7         8         9
@@ -191,7 +191,7 @@ class SummaryCommand extends Command {
           Item(a.language ?? '-', width: 3),
           Item(a.codecId, width: 11),
           Item(a.channels == null ? '-' : a.channels.toString()),
-          Item(a.bitRateMaxAsKbps == null ? '-' : a.bitRateMaxAsKbps.toString(), width: 5),
+          Item(getMaxBitRate(a), width: 5),
           Item(a.toAudioFormat().toString(), width: 18),
           Item(a.title ?? '-', width: 43)
         ], separator: '|');
@@ -253,5 +253,15 @@ class SummaryCommand extends Command {
       }
     }
     print(buffer.toString());
+  }
+
+  String getMaxBitRate(AudioTrack t) {
+    if (t.bitRateMaxAsKbps != null) {
+      return t.bitRateMaxAsKbps.toString();
+    }
+    if (t.bitRateMode == BitRateMode.variable) {
+      return 'VBR';
+    }
+    return '-';
   }
 }

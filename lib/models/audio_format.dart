@@ -1,7 +1,7 @@
 enum AudioFormat {
   unknown(name: 'unknown'),
   trueHD(name: 'Dolby TrueHD'),
-  dtsHDMA(name: 'DTS-HD Master Audio'),
+  dtsHDMA(name: 'DTS-HD MA'),
   dolbyDigitalPlus(name: 'Dolby Digital Plus'),
   dolbyDigital(name: 'Dolby Digital'),
   dtsX(name: 'DTS:X'),

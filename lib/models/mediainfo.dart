@@ -4,6 +4,19 @@ import 'audio_format.dart';
 
 part 'mediainfo.g.dart';
 
+enum BitRateMode {
+  constant('CBR'),
+  variable('VBR'),
+  unknown('unknown');
+
+  const BitRateMode(this.name);
+
+  final String name;
+
+  @override
+  String toString() => name;
+}
+
 @JsonEnum(fieldRename: FieldRename.pascal)
 enum TrackType { audio, general, menu, text, video }
 
@@ -164,7 +177,7 @@ class CodecIdTrack extends Track {
   @JsonKey(name: 'CodecID')
   final String codecId;
   @JsonKey(name: "UniqueID")
-  final String uniqueId;
+  final String? uniqueId;
 
   const CodecIdTrack(super.type, this.id, this.codecId, this.uniqueId);
 
@@ -202,10 +215,12 @@ class AudioTrack extends CodecIdTrack {
 
   @JsonKey(fromJson: _stringToInt, toJson: _intToString)
   final int? bitRate;
-  @JsonKey(name: 'BitRate_Mode')
-  final String? bitRateMode;
+  @JsonKey(name: 'BitRate_Mode', fromJson: _stringToBitRateMode, toJson: _bitRateModeToString)
+  final BitRateMode? bitRateMode;
   @JsonKey(name: 'BitRate_Maximum', fromJson: _stringToInt, toJson: _intToString)
   final int? bitRateMax;
+
+  final String? compressionMode;
 
   const AudioTrack(
       super.type,
@@ -227,7 +242,8 @@ class AudioTrack extends CodecIdTrack {
       this.language,
       this.bitRate,
       this.bitRateMode,
-      this.bitRateMax);
+      this.bitRateMax,
+      this.compressionMode);
 
   factory AudioTrack.fromJson(Map<String, dynamic> json) => _$AudioTrackFromJson(json);
 
@@ -243,11 +259,8 @@ class AudioTrack extends CodecIdTrack {
         return AudioFormat.dolbyDigitalPlus;
       case 'AC-3':
         return AudioFormat.dolbyDigital;
-      // TODO: DTS, DTS:X, DTS-HD MA
-    }
-
-    if (format == 'AAC') {
-      return AudioFormat.fromAacSubType(channels);
+      case 'AAC':
+        return AudioFormat.fromAacSubType(channels);
     }
 
     switch (codecId) {
@@ -257,11 +270,15 @@ class AudioTrack extends CodecIdTrack {
         return AudioFormat.dolbyDigital;
       case 'A_EAC3':
         return AudioFormat.dolbyDigitalPlus;
-      // TODO: DTS, DTS:X, DTS-HD MA
+      case 'A_AAC-2':
+        return AudioFormat.fromAacSubType(channels);
     }
 
-    if (codecId == 'A_AAC-2') {
-      return AudioFormat.fromAacSubType(channels);
+    if ((format == 'DTS') || (codecId == 'A_DTS')) {
+      if ((formatCommercialName == 'DTS-HD Master Audio') || (isLossless != null && isLossless!)) {
+        return AudioFormat.dtsHDMA;
+      }
+      // TODO: DTS, DTS:X
     }
 
     if (formatCommercialName != null) {
@@ -272,15 +289,28 @@ class AudioTrack extends CodecIdTrack {
         return AudioFormat.dolbyDigitalPlus;
       } else if (formatCommercialName == 'Dolby Digital') {
         return AudioFormat.dolbyDigital;
+      } else if (formatCommercialName == 'DTS-HD Master Audio') {
+        return AudioFormat.dtsHDMA;
       }
     }
 
     return AudioFormat.unknown;
   }
 
+  String? get bitRateAsKbpsOrMode => (bitRateMode == 'VBR') ? 'VBR' : bitRateAsKbps?.toString();
   int? get bitRateAsKbps => (bitRate == null) ? null : bitRate! ~/ 1000;
   int? get bitRateLimit => bitRate ?? bitRateMax;
   int? get bitRateMaxAsKbps => (bitRateMax == null) ? null : bitRateMax! ~/ 1000;
+
+  bool? get isLossless {
+    if (compressionMode == null) {
+      return null;
+    }
+    if (compressionMode?.toLowerCase() == 'lossless') {
+      return true;
+    }
+    return false;
+  }
 
   @override
   String toString() => 'Audio: ${toAudioFormat().toString()}, $channels channels, $title';
@@ -431,3 +461,16 @@ String _intToString(int? n) => (n == null) ? '' : n.toString();
 final RegExp _truthyRegEx = RegExp(r'^\s*(yes|true)\s*$', multiLine: true, caseSensitive: false);
 
 bool _stringToBool(String? s) => (s == null) ? false : _truthyRegEx.hasMatch(s);
+
+BitRateMode? _stringToBitRateMode(String? s) {
+  if (s == null) {
+    return null;
+  } else if (s.toUpperCase() == 'CBR') {
+    return BitRateMode.constant;
+  } else if (s.toUpperCase() == 'VBR') {
+    return BitRateMode.variable;
+  }
+  return BitRateMode.unknown;
+}
+
+String? _bitRateModeToString(BitRateMode? mode) => mode?.toString();
