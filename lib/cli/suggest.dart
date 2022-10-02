@@ -155,14 +155,15 @@ resolution of the input file. Will warn when trying to upconvert.''',
     }
 
     // Find the best audio source track for the main multichannel audio track.
-    wrappers.AudioTrack audioSource = findBestMultiChannelSource(tracksByFormat);
+    var audioFinder = AudioFinder((af) => af..tracksByFormat.addAll(tracksByFormat));
+    var audioSource = audioFinder.bestForEAC3();
 
     if (audioSource.format == AudioFormat.mono || audioSource.format == AudioFormat.stereo) {
       // Skip dealing with multichannel audio and include only this track.
       buffer.write(processMonoStereoAudio(audioSource));
     } else {
       // Multichannel audio tracks.
-      buffer.write(processMultiChannelAudio(tracksByFormat, audioSource));
+      buffer.write(processMultiChannelAudio(audioFinder, audioSource));
     }
 
     // Additional metadata
@@ -183,8 +184,7 @@ resolution of the input file. Will warn when trying to upconvert.''',
     return buffer.toString();
   }
 
-  String processMultiChannelAudio(
-      Map<AudioFormat, wrappers.AudioTrack> tracksByFormat, wrappers.AudioTrack source) {
+  String processMultiChannelAudio(AudioFinder finder, wrappers.AudioTrack source) {
     var buffer = StringBuffer();
     AudioFormat firstTrackFormat;
     if (source.format == AudioFormat.dolbyDigitalPlus ||
@@ -202,7 +202,7 @@ resolution of the input file. Will warn when trying to upconvert.''',
     }
 
     // Find the best audio source track for the multichannel AAC track.
-    var audioSource = findBestSourceForAAC(tracksByFormat);
+    var audioSource = finder.bestForMultiChannelAAC();
     if (audioSource.format == AudioFormat.aacMulti) {
       log.fine('Copying ${audioSource.format.name} (track #${audioSource.orderId}) to track #1.');
       buffer.writeln(copyAudio(audioSource.orderId, 1));
@@ -215,7 +215,7 @@ resolution of the input file. Will warn when trying to upconvert.''',
     }
 
     // Find the best audio source track for the Dolby Pro Logic II AAC track.
-    audioSource = findBestSourceForDPL2(tracksByFormat);
+    audioSource = finder.bestForDolbyProLogic2();
     int kbRate = maxAudioKbRate(audioSource.track, 256);
     log.fine('Transcoding ${audioSource.format.name} (track #${audioSource.orderId}) to '
         'AAC (Dolby Pro Logic II) as track #2.');
@@ -231,107 +231,6 @@ resolution of the input file. Will warn when trying to upconvert.''',
     buffer.writeln('-metadata:s:a:2 title="AAC (Dolby Pro Logic II)" \\');
 
     return buffer.toString();
-  }
-
-  wrappers.AudioTrack findBestMultiChannelSource(
-      Map<AudioFormat, wrappers.AudioTrack> tracksByFormat) {
-    if (tracksByFormat.containsKey(AudioFormat.dolbyDigitalPlus)) {
-      return tracksByFormat[AudioFormat.dolbyDigitalPlus]!;
-    }
-    if (tracksByFormat.containsKey(AudioFormat.dolbyDigital)) {
-      return tracksByFormat[AudioFormat.dolbyDigital]!;
-    }
-
-    if (tracksByFormat.containsKey(AudioFormat.aacMulti)) {
-      // If there is no lossless or DTS formats present, then this is the
-      // best we have.
-      if (!tracksByFormat.containsKey(AudioFormat.trueHD) &&
-          !tracksByFormat.containsKey(AudioFormat.dtsHDMA) &&
-          !tracksByFormat.containsKey(AudioFormat.dtsX) &&
-          !tracksByFormat.containsKey(AudioFormat.dts)) {
-        return tracksByFormat[AudioFormat.aacMulti]!;
-      }
-
-      if (tracksByFormat.containsKey(AudioFormat.trueHD)) {
-        return tracksByFormat[AudioFormat.trueHD]!;
-      }
-      if (tracksByFormat.containsKey(AudioFormat.dtsHDMA)) {
-        return tracksByFormat[AudioFormat.dtsHDMA]!;
-      }
-      if (tracksByFormat.containsKey(AudioFormat.dtsX)) {
-        return tracksByFormat[AudioFormat.dtsX]!;
-      }
-      return tracksByFormat[AudioFormat.dts]!;
-    }
-
-    if (tracksByFormat.containsKey(AudioFormat.stereo)) {
-      return tracksByFormat[AudioFormat.stereo]!;
-    }
-    if (tracksByFormat.containsKey(AudioFormat.mono)) {
-      return tracksByFormat[AudioFormat.mono]!;
-    }
-
-    throw MissingAudioSourceException('primary multichannel', tracksByFormat.keys.toList());
-  }
-
-  wrappers.AudioTrack findBestSourceForAAC(Map<AudioFormat, wrappers.AudioTrack> tracksByFormat) {
-    // If we already have multichannel AAC, use that.
-    if (tracksByFormat.containsKey(AudioFormat.aacMulti)) {
-      return tracksByFormat[AudioFormat.aacMulti]!;
-    }
-
-    // If we have a lossless format, use that.
-    if (tracksByFormat.containsKey(AudioFormat.trueHD)) {
-      return tracksByFormat[AudioFormat.trueHD]!;
-    }
-    if (tracksByFormat.containsKey(AudioFormat.dtsHDMA)) {
-      return tracksByFormat[AudioFormat.dtsHDMA]!;
-    }
-
-    // If we don't have multichannel AAC or lossless, fall back on DD+, DD, DTS:X, or DTS.
-    if (tracksByFormat.containsKey(AudioFormat.dolbyDigitalPlus)) {
-      return tracksByFormat[AudioFormat.dolbyDigitalPlus]!;
-    }
-    if (tracksByFormat.containsKey(AudioFormat.dolbyDigital)) {
-      return tracksByFormat[AudioFormat.dolbyDigital]!;
-    }
-    if (tracksByFormat.containsKey(AudioFormat.dtsX)) {
-      return tracksByFormat[AudioFormat.dtsX]!;
-    }
-    if (tracksByFormat.containsKey(AudioFormat.dts)) {
-      return tracksByFormat[AudioFormat.dts]!;
-    }
-
-    throw MissingAudioSourceException('AAC (5.1)', tracksByFormat.keys.toList());
-  }
-
-  wrappers.AudioTrack findBestSourceForDPL2(Map<AudioFormat, wrappers.AudioTrack> tracksByFormat) {
-    // If we have a lossless format, use that.
-    if (tracksByFormat.containsKey(AudioFormat.trueHD)) {
-      return tracksByFormat[AudioFormat.trueHD]!;
-    }
-    if (tracksByFormat.containsKey(AudioFormat.dtsHDMA)) {
-      return tracksByFormat[AudioFormat.dtsHDMA]!;
-    }
-
-    // If we don't have lossless, use DD+, DD, DTS:X, DTS, or multichannel AAC.
-    if (tracksByFormat.containsKey(AudioFormat.dolbyDigitalPlus)) {
-      return tracksByFormat[AudioFormat.dolbyDigitalPlus]!;
-    }
-    if (tracksByFormat.containsKey(AudioFormat.dolbyDigital)) {
-      return tracksByFormat[AudioFormat.dolbyDigital]!;
-    }
-    if (tracksByFormat.containsKey(AudioFormat.dtsX)) {
-      return tracksByFormat[AudioFormat.dtsX]!;
-    }
-    if (tracksByFormat.containsKey(AudioFormat.dts)) {
-      return tracksByFormat[AudioFormat.dts]!;
-    }
-    if (tracksByFormat.containsKey(AudioFormat.aacMulti)) {
-      return tracksByFormat[AudioFormat.aacMulti]!;
-    }
-
-    throw MissingAudioSourceException('AAC (Dolby Pro Logic II)', tracksByFormat.keys.toList());
   }
 
   int maxAudioKbRate(AudioTrack track, int defaultMaxKbRate) {
