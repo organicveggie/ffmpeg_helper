@@ -298,7 +298,8 @@ class AudioTrack extends CodecIdTrack {
     return AudioFormat.unknown;
   }
 
-  String? get bitRateAsKbpsOrMode => (bitRateMode == 'VBR') ? 'VBR' : bitRateAsKbps?.toString();
+  String? get bitRateAsKbpsOrMode =>
+      (bitRateMode == BitRateMode.variable) ? 'VBR' : bitRateAsKbps?.toString();
   int? get bitRateAsKbps => (bitRate == null) ? null : bitRate! ~/ 1000;
   int? get bitRateLimit => bitRate ?? bitRateMax;
   int? get bitRateMaxAsKbps => (bitRateMax == null) ? null : bitRateMax! ~/ 1000;
