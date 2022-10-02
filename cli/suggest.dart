@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
+import 'package:ffmpeg_helper/cli/suggest.dart';
 import 'package:ffmpeg_helper/mediainfo_exec.dart';
 import 'package:ffmpeg_helper/models/audio_format.dart';
 import 'package:ffmpeg_helper/models/mediainfo.dart';
@@ -11,8 +12,9 @@ import 'package:path/path.dart' as p;
 import 'exceptions.dart';
 
 class SuggestCommand extends Command {
-  // The [name] and [description] properties must be defined by every
-  // subclass.
+  static const String defaultOutputMovies = r'$MOVIES';
+  static const String defaultOutputTV = r'$TV';
+
   @override
   final name = "suggest";
   @override
@@ -21,7 +23,31 @@ class SuggestCommand extends Command {
   final log = Logger('SuggestComment');
 
   SuggestCommand() {
-    // Set command specific arguments and flags.
+    argParser.addOption('media_type',
+        abbr: 'm',
+        help: 'Type of media file. Controls output naming behavior.',
+        allowed: MediaType.names(),
+        defaultsTo: MediaType.movie.name);
+
+    argParser.addOption('output_folder',
+        abbr: 'o',
+        help: '''Base output folder. Defaults to "$defaultOutputMovies" when --media_type is
+${MediaType.movie.name} and "$defaultOutputTV" when --media_type is ${MediaType.tv.name}.''');
+
+    argParser.addOption('target_resolution',
+        abbr: 't',
+        help: '''Target video resolution for the output file. Defaults to matching the
+resolution of the input file. Will warn when trying to upconvert.''',
+        allowed: VideoResolution.allNames());
+
+    argParser.addFlag('force',
+        abbr: 'f', help: 'Force upconversion.', defaultsTo: false, negatable: true);
+
+    argParser.addFlag('dpl2',
+        help: 'Generate Dolby Pro Logic II audio track.',
+        defaultsTo: true,
+        negatable: true,
+        aliases: ['dolbyprologic2', 'dplii', 'dolbyprologicii']);
   }
 
   // [run] may also return a Future.
@@ -46,11 +72,12 @@ class SuggestCommand extends Command {
         throw FileNotFoundException(filename);
       }
 
-      runMediaInfo(filename);
+      TrackList tracks = await getTrackList(filename);
+      processFile(filename, tracks);
     }
   }
 
-  void runMediaInfo(String filename) async {
+  Future<TrackList> getTrackList(String filename) async {
     log.info('Running mediainfo...');
     MediaRoot root = await runMediainfo(filename);
     if (root.media.trackList.tracks.isEmpty) {
@@ -68,11 +95,15 @@ class SuggestCommand extends Command {
       throw InvalidMetadataException('no video tracks found', filename);
     }
 
+    return tl;
+  }
+
+  void processFile(String filename, TrackList tracks) async {
     StringBuffer buffer = StringBuffer();
     buffer.writeln('ffmpeg -i $filename \\');
     buffer.writeln('-filter_complex "[0:a]aresample=matrix_encoding=dplii[a]" \\');
 
-    VideoTrack video = tl.videoTracks.first;
+    VideoTrack video = tracks.videoTracks.first;
     String movieTitle = extractMovieTitle(filename);
     String outputFilename = makeOutputName(filename, movieTitle, video.sizeName, video.isHDR);
 
@@ -86,11 +117,11 @@ class SuggestCommand extends Command {
     }
 
     // Subtitles
-    log.info('Analyzing ${tl.textTracks.length} subtitle tracks...');
+    log.info('Analyzing ${tracks.textTracks.length} subtitle tracks...');
     var subLangs = Set.unmodifiable(['en', 'eng', 'es', 'esp', 'fr', 'fra', 'de', 'deu']);
     var subtitleTracks = <wrappers.TextTrack>[];
-    for (int i = 0; i < tl.textTracks.length; i++) {
-      TextTrack tt = tl.textTracks[i];
+    for (int i = 0; i < tracks.textTracks.length; i++) {
+      TextTrack tt = tracks.textTracks[i];
       if (!subLangs.contains(tt.language)) {
         continue;
       }
@@ -106,7 +137,7 @@ class SuggestCommand extends Command {
     }
 
     // Sort audio tracks by streamOrder.
-    List<AudioTrack> audios = tl.audioTracks.toList();
+    List<AudioTrack> audios = tracks.audioTracks.toList();
     audios.sort((a, b) {
       int cmp = a.streamOrder.compareTo(b.streamOrder);
       return (cmp == 0) ? a.id.compareTo(b.id) : cmp;
