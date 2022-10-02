@@ -278,7 +278,8 @@ class AudioTrack extends CodecIdTrack {
       if ((formatCommercialName == 'DTS-HD Master Audio') || (isLossless != null && isLossless!)) {
         return AudioFormat.dtsHDMA;
       }
-      // TODO: DTS, DTS:X
+      // TODO: DTS-X vs DTS
+      return AudioFormat.dts;
     }
 
     if (formatCommercialName != null) {
