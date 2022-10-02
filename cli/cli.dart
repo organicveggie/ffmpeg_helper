@@ -2,12 +2,11 @@
 
 import 'dart:io';
 
-import 'exceptions.dart';
-import '../lib/mediainfo_exec.dart';
-import 'suggest.dart';
-import 'summary.dart';
-
 import 'package:args/command_runner.dart';
+import 'package:ffmpeg_helper/cli/exceptions.dart';
+import 'package:ffmpeg_helper/cli/suggest.dart';
+import 'package:ffmpeg_helper/cli/summary.dart';
+import 'package:ffmpeg_helper/mediainfo_exec.dart';
 import 'package:logging/logging.dart';
 
 void main(List<String> args) async {

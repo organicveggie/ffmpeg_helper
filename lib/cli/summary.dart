@@ -6,7 +6,7 @@ import 'package:ffmpeg_helper/mediainfo_exec.dart';
 import 'package:ffmpeg_helper/models/mediainfo.dart';
 import 'package:logging/logging.dart';
 
-import 'exceptions.dart';
+import '../src/cli/exceptions.dart';
 
 class SummaryCommand extends Command {
   // The [name] and [description] properties must be defined by every
