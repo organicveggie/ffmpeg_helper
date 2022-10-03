@@ -1,9 +1,30 @@
 import 'package:built_collection/built_collection.dart';
+import 'package:collection/collection.dart';
 import 'package:ffmpeg_helper/models/audio_format.dart';
 import 'package:ffmpeg_helper/models/mediainfo.dart';
 import 'package:ffmpeg_helper/models/wrappers.dart' as wrappers;
 import 'package:ffmpeg_helper/src/cli/suggest.dart';
 import 'package:test/test.dart';
+
+class SuggestTest {
+  final String name;
+  final BuiltMap<AudioFormat, wrappers.AudioTrack> trackMap;
+  final AudioFormat expectedFormat;
+
+  SuggestTest(this.name, this.expectedFormat, this.trackMap);
+
+  factory SuggestTest.fromTracks(
+      {required String name,
+      required AudioFormat expected,
+      required BuiltList<AudioTrack> tracks}) {
+    var trackMap = <AudioFormat, wrappers.AudioTrack>{};
+    tracks.forEachIndexed((i, t) {
+      trackMap[t.toAudioFormat()] = wrappers.AudioTrack(i, t);
+    });
+
+    return SuggestTest(name, expected, trackMap.build());
+  }
+}
 
 void main() {
   final ddPlus = AudioTrack.fromParams(
@@ -81,218 +102,119 @@ void main() {
       isForced: false);
 
   group('E-AC3', () {
-    test('DD+ over TrueHD', () async {
-      var finder = AudioFinder((af) => af
-        ..tracksByFormat.addAll({
-          AudioFormat.dolbyDigitalPlus: wrappers.AudioTrack(1, ddPlus),
-          AudioFormat.dolbyDigital: wrappers.AudioTrack(2, dolbyDigital),
-          AudioFormat.trueHD: wrappers.AudioTrack(3, trueHd)
-        }));
-      var got = finder.bestForEAC3();
-      expect(got.format, equals(AudioFormat.dolbyDigitalPlus));
-    });
+    var tests = <SuggestTest>[
+      SuggestTest.fromTracks(
+          name: 'DD+ over TrueHD',
+          expected: AudioFormat.dolbyDigitalPlus,
+          tracks: [ddPlus, dolbyDigital, trueHd].build()),
+      SuggestTest.fromTracks(
+          name: 'TrueHD over Multi-Channel AAC, DTS, and DTS HD-MA',
+          expected: AudioFormat.trueHD,
+          tracks: [dts, trueHd, dtsHDMA, aacMC].build()),
+      SuggestTest.fromTracks(
+          name: 'Multi-Channel AAC over Stereo and Mono',
+          expected: AudioFormat.aacMulti,
+          tracks: [aacMC, aacStereo, aacMono].build()),
+      SuggestTest.fromTracks(
+          name: 'Stereo over Mono',
+          expected: AudioFormat.stereo,
+          tracks: [aacStereo, aacMono].build()),
+    ];
 
-    test('TrueHD over Multi-Channel AAC, DTS, and DTS HD-MA', () {
-      var finder = AudioFinder((af) => af
-        ..tracksByFormat.addAll({
-          AudioFormat.dts: wrappers.AudioTrack(1, dts),
-          AudioFormat.trueHD: wrappers.AudioTrack(2, trueHd),
-          AudioFormat.dtsHDMA: wrappers.AudioTrack(3, dtsHDMA),
-          AudioFormat.aacMulti: wrappers.AudioTrack(4, aacMC),
-        }));
-      var got = finder.bestForEAC3();
-      expect(got.format, equals(AudioFormat.trueHD));
-    });
-
-    test('Multi-Channel AAC over Stereo and Mono', () {
-      var finder = AudioFinder((af) => af
-        ..tracksByFormat.addAll({
-          AudioFormat.aacMulti: wrappers.AudioTrack(1, aacMC),
-          AudioFormat.stereo: wrappers.AudioTrack(2, aacStereo),
-          AudioFormat.mono: wrappers.AudioTrack(3, aacMono),
-        }));
-      var got = finder.bestForEAC3();
-      expect(got.format, equals(AudioFormat.aacMulti));
-    });
-
-    test('Stereo over Mono', () {
-      var finder = AudioFinder((af) => af
-        ..tracksByFormat.addAll({
-          AudioFormat.stereo: wrappers.AudioTrack(1, aacStereo),
-          AudioFormat.mono: wrappers.AudioTrack(2, aacMono),
-        }));
-      var got = finder.bestForEAC3();
-      expect(got.format, equals(AudioFormat.stereo));
-    });
+    for (var t in tests) {
+      test(t.name, () {
+        var finder = AudioFinder((af) => af..tracksByFormat = t.trackMap.toBuilder());
+        var got = finder.bestForEAC3();
+        expect(got.format, equals(t.expectedFormat));
+      });
+    }
 
     // TODO: MissingAudioSourceException
   });
 
   group('Multi-Channel AAC', () {
-    test('Multi-Channel AAC over everything else', () {
-      var finder = AudioFinder((af) => af
-        ..tracksByFormat.addAll({
-          AudioFormat.dts: wrappers.AudioTrack(1, dts),
-          AudioFormat.trueHD: wrappers.AudioTrack(2, trueHd),
-          AudioFormat.dtsHDMA: wrappers.AudioTrack(3, dtsHDMA),
-          AudioFormat.aacMulti: wrappers.AudioTrack(4, aacMC),
-          AudioFormat.stereo: wrappers.AudioTrack(5, aacStereo),
-          AudioFormat.mono: wrappers.AudioTrack(6, aacMono),
-          AudioFormat.dolbyDigital: wrappers.AudioTrack(7, dolbyDigital),
-          AudioFormat.dolbyDigitalPlus: wrappers.AudioTrack(8, ddPlus),
-        }));
-      var got = finder.bestForMultiChannelAAC();
-      expect(got.format, equals(AudioFormat.aacMulti));
-    });
+    var tests = <SuggestTest>[
+      SuggestTest.fromTracks(
+          name: 'Multi-Channel AAC over everything else',
+          expected: AudioFormat.aacMulti,
+          tracks: [dts, trueHd, dtsHDMA, aacMC, aacStereo, aacMono, ddPlus, dolbyDigital].build()),
+      SuggestTest.fromTracks(
+          name: 'TrueHD over DTS HD-MA and Lossy',
+          expected: AudioFormat.trueHD,
+          tracks: [dts, trueHd, dtsHDMA, aacStereo, aacMono, ddPlus, dolbyDigital].build()),
+      SuggestTest.fromTracks(
+          name: 'DTS HD-MA over Lossy',
+          expected: AudioFormat.dtsHDMA,
+          tracks: [dts, dtsHDMA, aacStereo, aacMono, ddPlus, dolbyDigital].build()),
+      SuggestTest.fromTracks(
+          name: 'Dolby Digital Plus over others',
+          expected: AudioFormat.dolbyDigitalPlus,
+          tracks: [dts, aacStereo, aacMono, ddPlus, dolbyDigital].build()),
+      SuggestTest.fromTracks(
+          name: 'Dolby Digital over others',
+          expected: AudioFormat.dolbyDigital,
+          tracks: [dts, aacStereo, aacMono, dolbyDigital].build()),
+      SuggestTest.fromTracks(
+          name: 'DTS over stereo and mono',
+          expected: AudioFormat.dts,
+          tracks: [dts, aacStereo, aacMono].build()),
+      SuggestTest.fromTracks(
+          name: 'Stereo over mono',
+          expected: AudioFormat.stereo,
+          tracks: [aacStereo, aacMono].build()),
+    ];
 
-    test('Lossless over lossy', () {
-      var finder = AudioFinder((af) => af
-        ..tracksByFormat.addAll({
-          AudioFormat.dts: wrappers.AudioTrack(1, dts),
-          AudioFormat.trueHD: wrappers.AudioTrack(2, trueHd),
-          AudioFormat.dtsHDMA: wrappers.AudioTrack(3, dtsHDMA),
-          AudioFormat.stereo: wrappers.AudioTrack(4, aacStereo),
-          AudioFormat.mono: wrappers.AudioTrack(5, aacMono),
-          AudioFormat.dolbyDigital: wrappers.AudioTrack(6, dolbyDigital),
-          AudioFormat.dolbyDigitalPlus: wrappers.AudioTrack(7, ddPlus),
-        }));
-      var got = finder.bestForMultiChannelAAC();
-      expect(got.format, equals(AudioFormat.trueHD));
-
-      finder = AudioFinder((af) => af
-        ..tracksByFormat.addAll({
-          AudioFormat.dts: wrappers.AudioTrack(1, dts),
-          AudioFormat.dtsHDMA: wrappers.AudioTrack(3, dtsHDMA),
-          AudioFormat.stereo: wrappers.AudioTrack(4, aacStereo),
-          AudioFormat.mono: wrappers.AudioTrack(5, aacMono),
-        }));
-      got = finder.bestForMultiChannelAAC();
-      expect(got.format, equals(AudioFormat.dtsHDMA));
-    });
-
-    test('Dolby Digital Plus over others', () {
-      var finder = AudioFinder((af) => af
-        ..tracksByFormat.addAll({
-          AudioFormat.dolbyDigitalPlus: wrappers.AudioTrack(1, ddPlus),
-          AudioFormat.dolbyDigital: wrappers.AudioTrack(2, dolbyDigital),
-          AudioFormat.dts: wrappers.AudioTrack(3, dts),
-          AudioFormat.stereo: wrappers.AudioTrack(4, aacStereo),
-          AudioFormat.mono: wrappers.AudioTrack(5, aacMono),
-        }));
-      var got = finder.bestForMultiChannelAAC();
-      expect(got.format, equals(AudioFormat.dolbyDigitalPlus));
-    });
-
-    test('Dolby Digital over others', () {
-      var finder = AudioFinder((af) => af
-        ..tracksByFormat.addAll({
-          AudioFormat.dolbyDigital: wrappers.AudioTrack(1, dolbyDigital),
-          AudioFormat.dts: wrappers.AudioTrack(2, dts),
-          AudioFormat.stereo: wrappers.AudioTrack(3, aacStereo),
-          AudioFormat.mono: wrappers.AudioTrack(4, aacMono),
-        }));
-      var got = finder.bestForMultiChannelAAC();
-      expect(got.format, equals(AudioFormat.dolbyDigital));
-    });
-
-    test('DTS over stereo and mono', () {
-      var finder = AudioFinder((af) => af
-        ..tracksByFormat.addAll({
-          AudioFormat.dts: wrappers.AudioTrack(2, dts),
-          AudioFormat.stereo: wrappers.AudioTrack(3, aacStereo),
-          AudioFormat.mono: wrappers.AudioTrack(4, aacMono),
-        }));
-      var got = finder.bestForMultiChannelAAC();
-      expect(got.format, equals(AudioFormat.dts));
-    });
-
-    test('Stereo over mono', () {
-      var finder = AudioFinder((af) => af
-        ..tracksByFormat.addAll({
-          AudioFormat.stereo: wrappers.AudioTrack(3, aacStereo),
-          AudioFormat.mono: wrappers.AudioTrack(4, aacMono),
-        }));
-      var got = finder.bestForMultiChannelAAC();
-      expect(got.format, equals(AudioFormat.stereo));
-    });
+    for (var t in tests) {
+      test(t.name, () {
+        var finder = AudioFinder((af) => af..tracksByFormat = t.trackMap.toBuilder());
+        var got = finder.bestForMultiChannelAAC();
+        expect(got.format, equals(t.expectedFormat));
+      });
+    }
 
     // TODO: MissingAudioSourceException
   });
 
   group('Dolby Pro Logic II', () {
-    test('Lossless over everything else', () {
-      var finder = AudioFinder((af) => af
-        ..tracksByFormat.addAll({
-          AudioFormat.dts: wrappers.AudioTrack(1, dts),
-          AudioFormat.trueHD: wrappers.AudioTrack(2, trueHd),
-          AudioFormat.dtsHDMA: wrappers.AudioTrack(3, dtsHDMA),
-          AudioFormat.aacMulti: wrappers.AudioTrack(4, aacMC),
-          AudioFormat.stereo: wrappers.AudioTrack(5, aacStereo),
-          AudioFormat.mono: wrappers.AudioTrack(6, aacMono),
-          AudioFormat.dolbyDigital: wrappers.AudioTrack(7, dolbyDigital),
-          AudioFormat.dolbyDigitalPlus: wrappers.AudioTrack(8, ddPlus),
-        }));
-      var got = finder.bestForDolbyProLogic2();
-      expect(got.format, equals(AudioFormat.trueHD));
+    var tests = <SuggestTest>[
+      SuggestTest.fromTracks(
+          name: 'TrueHD lossless over everything else',
+          expected: AudioFormat.trueHD,
+          tracks: [dts, trueHd, dtsHDMA, aacMC, aacStereo, aacMono, ddPlus, dolbyDigital].build()),
+      SuggestTest.fromTracks(
+          name: 'DTS HD-MA lossless over everything else except TrueHD',
+          expected: AudioFormat.dtsHDMA,
+          tracks: [dts, dtsHDMA, aacMC, aacStereo, aacMono, ddPlus, dolbyDigital].build()),
+      SuggestTest.fromTracks(
+          name: 'Dolby Digital Plus over others',
+          expected: AudioFormat.dolbyDigitalPlus,
+          tracks: [ddPlus, dolbyDigital, dts, aacMC, aacStereo, aacMono].build()),
+      SuggestTest.fromTracks(
+          name: 'Dolby Digital over others',
+          expected: AudioFormat.dolbyDigital,
+          tracks: [dolbyDigital, dts, aacMC, aacStereo, aacMono].build()),
+      SuggestTest.fromTracks(
+          name: 'DTS over multi-channel AAC, stereo, and mono',
+          expected: AudioFormat.dts,
+          tracks: [dts, aacMC, aacStereo, aacMono].build()),
+      SuggestTest.fromTracks(
+          name: 'Multi-channel AAC over stereo and mono',
+          expected: AudioFormat.aacMulti,
+          tracks: [aacMC, aacStereo, aacMono].build()),
+      SuggestTest.fromTracks(
+          name: 'Stereo over mono',
+          expected: AudioFormat.stereo,
+          tracks: [aacStereo, aacMono].build()),
+    ];
 
-      finder = AudioFinder((af) => af
-        ..tracksByFormat.addAll({
-          AudioFormat.dts: wrappers.AudioTrack(1, dts),
-          AudioFormat.dtsHDMA: wrappers.AudioTrack(3, dtsHDMA),
-          AudioFormat.aacMulti: wrappers.AudioTrack(4, aacMC),
-          AudioFormat.stereo: wrappers.AudioTrack(5, aacStereo),
-          AudioFormat.mono: wrappers.AudioTrack(6, aacMono),
-          AudioFormat.dolbyDigital: wrappers.AudioTrack(7, dolbyDigital),
-          AudioFormat.dolbyDigitalPlus: wrappers.AudioTrack(8, ddPlus),
-        }));
-      got = finder.bestForDolbyProLogic2();
-      expect(got.format, equals(AudioFormat.dtsHDMA));
-    });
+    for (var t in tests) {
+      test(t.name, () {
+        var finder = AudioFinder((af) => af..tracksByFormat = t.trackMap.toBuilder());
+        var got = finder.bestForDolbyProLogic2();
+        expect(got.format, equals(t.expectedFormat));
+      });
+    }
 
-    test('Dolby Digital Plus over others', () {
-      var finder = AudioFinder((af) => af
-        ..tracksByFormat.addAll({
-          AudioFormat.dolbyDigitalPlus: wrappers.AudioTrack(1, ddPlus),
-          AudioFormat.dolbyDigital: wrappers.AudioTrack(2, dolbyDigital),
-          AudioFormat.dts: wrappers.AudioTrack(3, dts),
-          AudioFormat.stereo: wrappers.AudioTrack(4, aacStereo),
-          AudioFormat.mono: wrappers.AudioTrack(5, aacMono),
-        }));
-      var got = finder.bestForDolbyProLogic2();
-      expect(got.format, equals(AudioFormat.dolbyDigitalPlus));
-    });
-
-    test('Dolby Digital over others', () {
-      var finder = AudioFinder((af) => af
-        ..tracksByFormat.addAll({
-          AudioFormat.dolbyDigital: wrappers.AudioTrack(1, dolbyDigital),
-          AudioFormat.dts: wrappers.AudioTrack(2, dts),
-          AudioFormat.stereo: wrappers.AudioTrack(3, aacStereo),
-          AudioFormat.mono: wrappers.AudioTrack(4, aacMono),
-        }));
-      var got = finder.bestForDolbyProLogic2();
-      expect(got.format, equals(AudioFormat.dolbyDigital));
-    });
-
-    test('DTS over stereo and mono', () {
-      var finder = AudioFinder((af) => af
-        ..tracksByFormat.addAll({
-          AudioFormat.dts: wrappers.AudioTrack(2, dts),
-          AudioFormat.stereo: wrappers.AudioTrack(3, aacStereo),
-          AudioFormat.mono: wrappers.AudioTrack(4, aacMono),
-        }));
-      var got = finder.bestForDolbyProLogic2();
-      expect(got.format, equals(AudioFormat.dts));
-    });
-
-    test('Stereo over mono', () {
-      var finder = AudioFinder((af) => af
-        ..tracksByFormat.addAll({
-          AudioFormat.stereo: wrappers.AudioTrack(3, aacStereo),
-          AudioFormat.mono: wrappers.AudioTrack(4, aacMono),
-        }));
-      var got = finder.bestForDolbyProLogic2();
-      expect(got.format, equals(AudioFormat.stereo));
-    });
+    // TODO: MissingAudioSourceException
   });
 }
