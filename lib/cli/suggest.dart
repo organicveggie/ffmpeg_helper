@@ -8,8 +8,9 @@ import 'package:ffmpeg_helper/models/wrappers.dart' as wrappers;
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 
-import '../src/cli/suggest.dart';
+import '../src/cli/audio_finder.dart';
 import '../src/cli/exceptions.dart';
+import '../src/cli/suggest.dart';
 
 class SuggestCommand extends Command {
   static const String defaultOutputMovies = r'$MOVIES';

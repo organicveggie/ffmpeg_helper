@@ -3,17 +3,17 @@ import 'package:collection/collection.dart';
 import 'package:ffmpeg_helper/models/audio_format.dart';
 import 'package:ffmpeg_helper/models/mediainfo.dart';
 import 'package:ffmpeg_helper/models/wrappers.dart' as wrappers;
-import 'package:ffmpeg_helper/src/cli/suggest.dart';
+import 'package:ffmpeg_helper/src/cli/audio_finder.dart';
 import 'package:test/test.dart';
 
-class SuggestTest {
+class AudioFinderTest {
   final String name;
   final BuiltMap<AudioFormat, wrappers.AudioTrack> trackMap;
   final AudioFormat expectedFormat;
 
-  SuggestTest(this.name, this.expectedFormat, this.trackMap);
+  AudioFinderTest(this.name, this.expectedFormat, this.trackMap);
 
-  factory SuggestTest.fromTracks(
+  factory AudioFinderTest.fromTracks(
       {required String name,
       required AudioFormat expected,
       required BuiltList<AudioTrack> tracks}) {
@@ -22,7 +22,7 @@ class SuggestTest {
       trackMap[t.toAudioFormat()] = wrappers.AudioTrack(i, t);
     });
 
-    return SuggestTest(name, expected, trackMap.build());
+    return AudioFinderTest(name, expected, trackMap.build());
   }
 }
 
@@ -102,20 +102,20 @@ void main() {
       isForced: false);
 
   group('E-AC3', () {
-    var tests = <SuggestTest>[
-      SuggestTest.fromTracks(
+    var tests = <AudioFinderTest>[
+      AudioFinderTest.fromTracks(
           name: 'DD+ over TrueHD',
           expected: AudioFormat.dolbyDigitalPlus,
           tracks: [ddPlus, dolbyDigital, trueHd].build()),
-      SuggestTest.fromTracks(
+      AudioFinderTest.fromTracks(
           name: 'TrueHD over Multi-Channel AAC, DTS, and DTS HD-MA',
           expected: AudioFormat.trueHD,
           tracks: [dts, trueHd, dtsHDMA, aacMC].build()),
-      SuggestTest.fromTracks(
+      AudioFinderTest.fromTracks(
           name: 'Multi-Channel AAC over Stereo and Mono',
           expected: AudioFormat.aacMulti,
           tracks: [aacMC, aacStereo, aacMono].build()),
-      SuggestTest.fromTracks(
+      AudioFinderTest.fromTracks(
           name: 'Stereo over Mono',
           expected: AudioFormat.stereo,
           tracks: [aacStereo, aacMono].build()),
@@ -133,32 +133,32 @@ void main() {
   });
 
   group('Multi-Channel AAC', () {
-    var tests = <SuggestTest>[
-      SuggestTest.fromTracks(
+    var tests = <AudioFinderTest>[
+      AudioFinderTest.fromTracks(
           name: 'Multi-Channel AAC over everything else',
           expected: AudioFormat.aacMulti,
           tracks: [dts, trueHd, dtsHDMA, aacMC, aacStereo, aacMono, ddPlus, dolbyDigital].build()),
-      SuggestTest.fromTracks(
+      AudioFinderTest.fromTracks(
           name: 'TrueHD over DTS HD-MA and Lossy',
           expected: AudioFormat.trueHD,
           tracks: [dts, trueHd, dtsHDMA, aacStereo, aacMono, ddPlus, dolbyDigital].build()),
-      SuggestTest.fromTracks(
+      AudioFinderTest.fromTracks(
           name: 'DTS HD-MA over Lossy',
           expected: AudioFormat.dtsHDMA,
           tracks: [dts, dtsHDMA, aacStereo, aacMono, ddPlus, dolbyDigital].build()),
-      SuggestTest.fromTracks(
+      AudioFinderTest.fromTracks(
           name: 'Dolby Digital Plus over others',
           expected: AudioFormat.dolbyDigitalPlus,
           tracks: [dts, aacStereo, aacMono, ddPlus, dolbyDigital].build()),
-      SuggestTest.fromTracks(
+      AudioFinderTest.fromTracks(
           name: 'Dolby Digital over others',
           expected: AudioFormat.dolbyDigital,
           tracks: [dts, aacStereo, aacMono, dolbyDigital].build()),
-      SuggestTest.fromTracks(
+      AudioFinderTest.fromTracks(
           name: 'DTS over stereo and mono',
           expected: AudioFormat.dts,
           tracks: [dts, aacStereo, aacMono].build()),
-      SuggestTest.fromTracks(
+      AudioFinderTest.fromTracks(
           name: 'Stereo over mono',
           expected: AudioFormat.stereo,
           tracks: [aacStereo, aacMono].build()),
@@ -176,32 +176,32 @@ void main() {
   });
 
   group('Dolby Pro Logic II', () {
-    var tests = <SuggestTest>[
-      SuggestTest.fromTracks(
+    var tests = <AudioFinderTest>[
+      AudioFinderTest.fromTracks(
           name: 'TrueHD lossless over everything else',
           expected: AudioFormat.trueHD,
           tracks: [dts, trueHd, dtsHDMA, aacMC, aacStereo, aacMono, ddPlus, dolbyDigital].build()),
-      SuggestTest.fromTracks(
+      AudioFinderTest.fromTracks(
           name: 'DTS HD-MA lossless over everything else except TrueHD',
           expected: AudioFormat.dtsHDMA,
           tracks: [dts, dtsHDMA, aacMC, aacStereo, aacMono, ddPlus, dolbyDigital].build()),
-      SuggestTest.fromTracks(
+      AudioFinderTest.fromTracks(
           name: 'Dolby Digital Plus over others',
           expected: AudioFormat.dolbyDigitalPlus,
           tracks: [ddPlus, dolbyDigital, dts, aacMC, aacStereo, aacMono].build()),
-      SuggestTest.fromTracks(
+      AudioFinderTest.fromTracks(
           name: 'Dolby Digital over others',
           expected: AudioFormat.dolbyDigital,
           tracks: [dolbyDigital, dts, aacMC, aacStereo, aacMono].build()),
-      SuggestTest.fromTracks(
+      AudioFinderTest.fromTracks(
           name: 'DTS over multi-channel AAC, stereo, and mono',
           expected: AudioFormat.dts,
           tracks: [dts, aacMC, aacStereo, aacMono].build()),
-      SuggestTest.fromTracks(
+      AudioFinderTest.fromTracks(
           name: 'Multi-channel AAC over stereo and mono',
           expected: AudioFormat.aacMulti,
           tracks: [aacMC, aacStereo, aacMono].build()),
-      SuggestTest.fromTracks(
+      AudioFinderTest.fromTracks(
           name: 'Stereo over mono',
           expected: AudioFormat.stereo,
           tracks: [aacStereo, aacMono].build()),
