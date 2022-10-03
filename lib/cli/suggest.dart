@@ -16,6 +16,12 @@ class SuggestCommand extends Command {
   static const String defaultOutputMovies = r'$MOVIES';
   static const String defaultOutputTV = r'$TV';
 
+  static const String flagDPL2 = 'dpl2';
+  static const String flagForce = 'force';
+  static const String flagMediaType = 'media_type';
+  static const String flagOutputFolder = 'output_folder';
+  static const String flagTargetResolution = 'target_resolution';
+
   @override
   final name = "suggest";
   @override
@@ -24,27 +30,27 @@ class SuggestCommand extends Command {
   final log = Logger('SuggestComment');
 
   SuggestCommand() {
-    argParser.addOption('media_type',
+    argParser.addOption(flagMediaType,
         abbr: 'm',
         help: 'Type of media file. Controls output naming behavior.',
         allowed: MediaType.names(),
         defaultsTo: MediaType.movie.name);
 
-    argParser.addOption('output_folder',
+    argParser.addOption(flagOutputFolder,
         abbr: 'o',
         help: '''Base output folder. Defaults to "$defaultOutputMovies" when --media_type is
 ${MediaType.movie.name} and "$defaultOutputTV" when --media_type is ${MediaType.tv.name}.''');
 
-    argParser.addOption('target_resolution',
+    argParser.addOption(flagTargetResolution,
         abbr: 't',
         help: '''Target video resolution for the output file. Defaults to matching the
 resolution of the input file. Will warn when trying to upconvert.''',
         allowed: VideoResolution.allNames());
 
-    argParser.addFlag('force',
+    argParser.addFlag(flagForce,
         abbr: 'f', help: 'Force upconversion.', defaultsTo: false, negatable: true);
 
-    argParser.addFlag('dpl2',
+    argParser.addFlag(flagDPL2,
         help: 'Generate Dolby Pro Logic II audio track.',
         defaultsTo: true,
         negatable: true,
@@ -62,6 +68,13 @@ resolution of the input file. Will warn when trying to upconvert.''',
     if (argResults == null) {
       throw const MissingRequiredArgumentException('filename');
     }
+
+    var opts = SuggestOptions.fromStrings(
+        force: argResults[flagForce],
+        dpl2: argResults[flagDPL2],
+        mediaType: argResults[flagMediaType],
+        outputFolder: argResults[flagOutputFolder],
+        targetResolution: argResults[flagTargetResolution]);
 
     for (var filename in argResults.rest) {
       if (filename.isEmpty) {

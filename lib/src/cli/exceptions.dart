@@ -38,3 +38,13 @@ class MissingRequiredArgumentException extends CliException {
   @override
   String toString() => 'Missing required argument: $argument.';
 }
+
+class ArgParsingFailedException implements Exception {
+  final String targetType;
+  final String value;
+
+  ArgParsingFailedException(this.targetType, this.value);
+
+  @override
+  String toString() => '$value cannot be parsed to $targetType';
+}
