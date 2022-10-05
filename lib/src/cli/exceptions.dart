@@ -1,4 +1,5 @@
 import 'package:ffmpeg_helper/models/audio_format.dart';
+import 'package:ffmpeg_helper/src/cli/suggest.dart';
 
 abstract class CliException implements Exception {
   const CliException();
@@ -37,6 +38,16 @@ class MissingRequiredArgumentException extends CliException {
 
   @override
   String toString() => 'Missing required argument: $argument.';
+}
+
+class UpconversionRequiredException extends CliException {
+  final VideoResolution target;
+  final int width;
+  const UpconversionRequiredException(this.target, this.width);
+
+  @override
+  String toString() => 'Target resolution of ${target.name} requires upconversion from source '
+      'width of $width. Specify the --force flag to enable upconversion.';
 }
 
 class ArgParsingFailedException implements Exception {

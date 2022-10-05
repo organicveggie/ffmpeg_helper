@@ -87,7 +87,7 @@ resolution of the input file. Will warn when trying to upconvert.''',
       }
 
       TrackList tracks = await getTrackList(filename);
-      processFile(filename, tracks);
+      processFile(opts, filename, tracks);
     }
   }
 
@@ -112,12 +112,20 @@ resolution of the input file. Will warn when trying to upconvert.''',
     return tl;
   }
 
-  void processFile(String filename, TrackList tracks) async {
+  void processFile(SuggestOptions opts, String filename, TrackList tracks) async {
+    // Check for upconversion.
+    VideoTrack video = tracks.videoTracks.first;
+    if (video.width <= 1920 && opts.targetResolution == VideoResolution.uhd) {
+      if (!opts.forceUpconversion) {
+        throw UpconversionRequiredException(opts.targetResolution!, video.width);
+      }
+      log.info('Upconverting from width of ${video.width} to ${opts.targetResolution!.name}.');
+    }
+
     StringBuffer buffer = StringBuffer();
     buffer.writeln('ffmpeg -i $filename \\');
     buffer.writeln('-filter_complex "[0:a]aresample=matrix_encoding=dplii[a]" \\');
 
-    VideoTrack video = tracks.videoTracks.first;
     String movieTitle = extractMovieTitle(filename);
     String outputFilename = makeOutputName(filename, movieTitle, video.sizeName, video.isHDR);
 
