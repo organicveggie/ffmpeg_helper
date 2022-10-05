@@ -124,7 +124,6 @@ resolution of the input file. Will warn when trying to upconvert.''',
 
     StringBuffer buffer = StringBuffer();
     buffer.writeln('ffmpeg -i $filename \\');
-    buffer.writeln('-filter_complex "[0:a]aresample=matrix_encoding=dplii[a]" \\');
 
     String movieTitle = extractMovieTitle(filename);
     String outputFilename = makeOutputName(filename, movieTitle, video.sizeName, video.isHDR);
@@ -133,7 +132,7 @@ resolution of the input file. Will warn when trying to upconvert.''',
       log.fine('Video already encoded with H.265');
       buffer.writeln('-map 0:v -c:v copy \\');
     } else {
-      log.fine('Need to convert video to H.264');
+      log.fine('Need to convert video to H.265');
       buffer.writeln('-vf scale=1920:-1 \\');
       buffer.writeln('-map 0:v -c:v hevc -vtag hvc1 \\');
     }
@@ -185,7 +184,10 @@ resolution of the input file. Will warn when trying to upconvert.''',
       buffer.write(processMonoStereoAudio(audioSource));
     } else {
       // Multichannel audio tracks.
-      buffer.write(processMultiChannelAudio(audioFinder, audioSource));
+      if (opts.generateDPL2) {
+        buffer.writeln('-filter_complex "[0:a]aresample=matrix_encoding=dplii[a]" \\');
+      }
+      buffer.write(processMultiChannelAudio(opts, audioFinder, audioSource));
     }
 
     // Additional metadata
@@ -206,7 +208,8 @@ resolution of the input file. Will warn when trying to upconvert.''',
     return buffer.toString();
   }
 
-  String processMultiChannelAudio(AudioFinder finder, wrappers.AudioTrack source) {
+  String processMultiChannelAudio(
+      SuggestOptions opts, AudioFinder finder, wrappers.AudioTrack source) {
     var buffer = StringBuffer();
     AudioFormat firstTrackFormat;
     if (source.format == AudioFormat.dolbyDigitalPlus ||
@@ -222,6 +225,8 @@ resolution of the input file. Will warn when trying to upconvert.''',
           'to E-AC-3 as track #0.');
       buffer.writeln('-map 0:a:${source.orderId} -c:a:0 eac3 -b:a ${kbRate}k -ac:a:0 6 \\');
     }
+    buffer.writeln('-disposition:a:0 default \\');
+    buffer.writeln('-metadata:s:a:0 title="${firstTrackFormat.name}" \\');
 
     // Find the best audio source track for the multichannel AAC track.
     var audioSource = finder.bestForMultiChannelAAC();
@@ -235,22 +240,20 @@ resolution of the input file. Will warn when trying to upconvert.''',
           'to AAC (5.1) as track #1.');
       buffer.writeln('-map 0:a:${audioSource.orderId} -c:a:1 aac -b:a ${kbRate}k -ac:a:1 6 \\');
     }
-
-    // Find the best audio source track for the Dolby Pro Logic II AAC track.
-    audioSource = finder.bestForDolbyProLogic2();
-    int kbRate = maxAudioKbRate(audioSource.track, 256);
-    log.fine('Transcoding ${audioSource.format.name} (track #${audioSource.orderId}) to '
-        'AAC (Dolby Pro Logic II) as track #2.');
-    buffer.writeln(
-        '-map:a:${audioSource.orderId} "[a]" -c:a:2 aac -b:a ${kbRate}k -ac:a:2 2 -strict 2 \\');
-
-    buffer.writeln('-disposition:a:0 default \\');
     buffer.writeln('-disposition:a:1 0 \\');
-    buffer.writeln('-disposition:a:2 0 \\');
-
-    buffer.writeln('-metadata:s:a:0 title="${firstTrackFormat.name}" \\');
     buffer.writeln('-metadata:s:a:1 title="AAC (5.1)" \\');
-    buffer.writeln('-metadata:s:a:2 title="AAC (Dolby Pro Logic II)" \\');
+
+    if (opts.generateDPL2) {
+      // Find the best audio source track for the Dolby Pro Logic II AAC track.
+      audioSource = finder.bestForDolbyProLogic2();
+      int kbRate = maxAudioKbRate(audioSource.track, 256);
+      log.fine('Transcoding ${audioSource.format.name} (track #${audioSource.orderId}) to '
+          'AAC (Dolby Pro Logic II) as track #2.');
+      buffer.writeln(
+          '-map:a:${audioSource.orderId} "[a]" -c:a:2 aac -b:a ${kbRate}k -ac:a:2 2 -strict 2 \\');
+      buffer.writeln('-disposition:a:2 0 \\');
+      buffer.writeln('-metadata:s:a:2 title="AAC (Dolby Pro Logic II)" \\');
+    }
 
     return buffer.toString();
   }
