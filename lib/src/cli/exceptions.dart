@@ -40,13 +40,13 @@ class MissingRequiredArgumentException extends CliException {
   String toString() => 'Missing required argument: $argument.';
 }
 
-class UpconversionRequiredException extends CliException {
+class UpscalingRequiredException extends CliException {
   final VideoResolution target;
   final int width;
-  const UpconversionRequiredException(this.target, this.width);
+  const UpscalingRequiredException(this.target, this.width);
 
   @override
-  String toString() => 'Target resolution of ${target.name} requires upconversion from source '
+  String toString() => 'Target resolution of ${target.name} requires upscaling from source '
       'width of $width. Specify the --force flag to enable upconversion.';
 }
 
