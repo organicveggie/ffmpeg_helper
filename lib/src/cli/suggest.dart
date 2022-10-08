@@ -56,7 +56,7 @@ extension VideoResolutionParsing on String {
 }
 
 abstract class SuggestOptions implements Built<SuggestOptions, SuggestOptionsBuilder> {
-  bool get forceUpconversion;
+  bool get forceUpscaling;
   bool get generateDPL2;
   MediaType get mediaType;
   String? get outputFolder;
@@ -72,7 +72,7 @@ abstract class SuggestOptions implements Built<SuggestOptions, SuggestOptionsBui
       String? outputFolder,
       String? targetResolution}) {
     return SuggestOptions((o) => o
-      ..forceUpconversion = force
+      ..forceUpscaling = force
       ..generateDPL2 = dpl2
       ..mediaType = mediaType.parseMediaType()
       ..outputFolder = outputFolder
