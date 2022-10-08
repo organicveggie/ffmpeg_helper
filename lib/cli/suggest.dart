@@ -382,12 +382,15 @@ String extractMovieTitle(String sourcePathname) {
   var sourceFilename = p.basename(sourcePathname);
 
   // Try to identify the name of the movie.
-  var regex = RegExp(r'^(?<name>(\w+[.]?)+)[.](19\d\d|20\d\d).*[.](mkv|mp4|m4v)$');
+  var regex = RegExp(r'^(?<name>(\w+[.]?)+?)[.]?(?<year>(19\d\d|20\d\d))?[.].*[.](mkv|mp4|m4v)$');
+  // var regex = RegExp(r'^(?<name>(\w+[.]?)+?)[.](?<year>(19\d\d|20\d\d))?.*[.](mkv|mp4|m4v)$');
   var match = regex.firstMatch(sourceFilename);
   if (match != null) {
-    final name = match.namedGroup('name');
-    if (name != null) {
-      return name.replaceAll('.', ' ');
+    final rawName = match.namedGroup('name');
+    if (rawName != null) {
+      final name = rawName.replaceAll('.', ' ').trim();
+      final year = match.namedGroup('year');
+      return (year != null) ? '$name ($year)' : name;
     }
   }
 

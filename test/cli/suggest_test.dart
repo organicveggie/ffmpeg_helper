@@ -4,6 +4,7 @@ import 'package:ffmpeg_helper/src/cli/conversions.dart';
 import 'package:ffmpeg_helper/src/cli/exceptions.dart';
 import 'package:ffmpeg_helper/src/cli/suggest.dart';
 import 'package:test/test.dart';
+import 'package:tuple/tuple.dart';
 
 void main() {
   final VideoTrack vtH265HdSdr =
@@ -164,15 +165,26 @@ void main() {
   });
 
   group('Extract movie title', () {
-    test('from full pathname with periods', () {
+    test('from full pathname with periods but without year', () {
       var pathnames = <String>[
-        '/home/user/example/My.Fake.Movie.1977.1080p-SDR.mkv',
-        '/home/user/example/My.Fake.Movie.1977.1080p-SDR.mp4',
-        '/home/user/example/My.Fake.Movie.1977.1080p-SDR.m4v',
+        '/home/user/example/My.Fake.Movie.1080p-SDR.mkv',
+        '/home/user/example/My.Fake.Movie.1080p-SDR.mp4',
+        '/home/user/example/My.Fake.Movie.1080p-SDR.m4v',
       ];
       for (var p in pathnames) {
         var got = extractMovieTitle(p);
         expect(got, 'My Fake Movie');
+      }
+    });
+    test('from full pathname with year and periods', () {
+      const pathnames = <Tuple2<String, String>>[
+        Tuple2('/home/user/example/My.Fake.Movie.1977.1080p-SDR.mkv', 'My Fake Movie (1977)'),
+        Tuple2('/home/user/example/My.Fake.Movie.1978.1080p-SDR.mp4', 'My Fake Movie (1978)'),
+        Tuple2('/home/user/example/My.Fake.Movie.1979.1080p-SDR.m4v', 'My Fake Movie (1979)'),
+      ];
+      for (var p in pathnames) {
+        var got = extractMovieTitle(p.item1);
+        expect(got, p.item2);
       }
     });
     test('returns unknown for unsupported formats', () {
