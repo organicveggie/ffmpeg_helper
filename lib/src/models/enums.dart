@@ -1,19 +1,20 @@
 import 'package:json_annotation/json_annotation.dart';
 
 enum AudioFormat {
-  unknown(name: 'unknown'),
-  trueHD(name: 'Dolby TrueHD'),
-  dtsHDMA(name: 'DTS-HD MA'),
-  dolbyDigitalPlus(name: 'Dolby Digital Plus'),
-  dolbyDigital(name: 'Dolby Digital'),
-  dtsX(name: 'DTS:X'),
-  dts(name: 'DTS'),
-  aacMulti(name: 'AAC multichannel'),
-  stereo(name: 'stereo'),
-  mono(name: 'mono');
+  unknown(name: 'unknown', codec: 'unknown'),
+  trueHD(name: 'Dolby TrueHD', codec: 'unsupported'),
+  dtsHDMA(name: 'DTS-HD MA', codec: 'unsupported'),
+  dolbyDigitalPlus(name: 'Dolby Digital Plus', codec: 'eac3'),
+  dolbyDigital(name: 'Dolby Digital', codec: 'ac3'),
+  dtsX(name: 'DTS:X', codec: 'dts'),
+  dts(name: 'DTS', codec: 'dts'),
+  aacMulti(name: 'AAC multichannel', codec: 'aac'),
+  stereo(name: 'stereo', codec: 'aac'),
+  mono(name: 'mono', codec: 'aac');
 
-  const AudioFormat({required this.name});
+  const AudioFormat({required this.name, required this.codec});
 
+  final String codec;
   final String name;
 
   @override
@@ -54,7 +55,17 @@ enum MediaType {
 }
 
 @JsonEnum(fieldRename: FieldRename.pascal)
-enum TrackType { audio, general, menu, text, video }
+enum TrackType {
+  audio('a'),
+  general('g'),
+  menu('m'),
+  text('s'),
+  video('v');
+
+  final String abbrev;
+
+  const TrackType(this.abbrev);
+}
 
 enum VideoResolution {
   hd(['1080', '1080p']),

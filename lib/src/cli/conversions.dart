@@ -23,8 +23,8 @@ abstract class StreamCopy implements MapStreamSelection, Built<StreamCopy, Strea
 
   @override
   String toString() {
-    var ttAbbrev = _trackTypeAbbrev(trackType);
-    return '-map $inputFileId:$ttAbbrev:$srcStreamId -c:$ttAbbrev:$dstStreamId copy';
+    return '-map $inputFileId:${trackType.abbrev}:$srcStreamId '
+        '-c:${trackType.abbrev}:$dstStreamId copy';
   }
 }
 
@@ -40,35 +40,8 @@ abstract class AudioStreamConvert
 
   @override
   String toString() {
-    var codec = '';
-    switch (format) {
-      case AudioFormat.dolbyDigitalPlus:
-        codec = 'eac3';
-        break;
-      case AudioFormat.dolbyDigital:
-        codec = 'ac3';
-        break;
-      case AudioFormat.dtsX:
-        codec = 'dts';
-        break;
-      case AudioFormat.dts:
-        codec = 'dts';
-        break;
-      case AudioFormat.aacMulti:
-        codec = 'aac';
-        break;
-      case AudioFormat.stereo:
-        codec = 'aac';
-        break;
-      case AudioFormat.mono:
-        codec = 'aac';
-        break;
-      default:
-        codec = 'unknown';
-        break;
-    }
-
-    return '-map $inputFileId:a:$srcStreamId -c:a:$dstStreamId $codec -b:a ${kbRate}k -ac:a:$dstStreamId $channels';
+    return '-map $inputFileId:a:$srcStreamId -c:a:$dstStreamId ${format.codec} -b:a ${kbRate}k '
+        '-ac:a:$dstStreamId $channels';
   }
 }
 
