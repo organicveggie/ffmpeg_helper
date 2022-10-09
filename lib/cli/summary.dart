@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:args/command_runner.dart';
 import 'package:ffmpeg_helper/fixedprint.dart';
-import 'package:ffmpeg_helper/mediainfo_exec.dart';
+import 'package:ffmpeg_helper/mediainfo_runner.dart';
 import 'package:ffmpeg_helper/models/mediainfo.dart';
 import 'package:logging/logging.dart';
 
@@ -49,7 +49,8 @@ class SummaryCommand extends Command {
       throw FileNotFoundException(filename);
     }
 
-    MediaRoot root = await runMediainfo(filename);
+    var runner = MediainfoRunner(mediainfoBinary: globalResults?['mediainfo_bin']);
+    MediaRoot root = await runner.run(filename);
     if (root.media.trackList.tracks.isEmpty) {
       throw InvalidMetadataException('no tracks found', filename);
     }

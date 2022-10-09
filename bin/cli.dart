@@ -6,7 +6,7 @@ import 'package:args/command_runner.dart';
 import 'package:ffmpeg_helper/cli/exceptions.dart';
 import 'package:ffmpeg_helper/cli/suggest.dart';
 import 'package:ffmpeg_helper/cli/summary.dart';
-import 'package:ffmpeg_helper/mediainfo_exec.dart';
+import 'package:ffmpeg_helper/mediainfo_runner.dart';
 import 'package:logging/logging.dart';
 
 void main(List<String> args) async {
