@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:args/command_runner.dart';
 import 'package:built_collection/built_collection.dart';
+import 'package:built_value/built_value.dart';
 import 'package:ffmpeg_helper/mediainfo_exec.dart';
 import 'package:ffmpeg_helper/models/audio_format.dart';
 import 'package:ffmpeg_helper/models/mediainfo.dart';
@@ -15,6 +16,8 @@ import 'package:path/path.dart' as p;
 import '../src/cli/audio_finder.dart';
 import '../src/cli/exceptions.dart';
 import '../src/cli/suggest.dart';
+
+part 'suggest.g.dart';
 
 class SuggestCommand extends Command {
   static const String defaultOutputMovies = r'$MOVIES';
@@ -135,8 +138,8 @@ resolution of the input file. Will warn when trying to upconvert.''',
     StringBuffer buffer = StringBuffer();
     buffer.writeln('ffmpeg -i $filename \\');
 
-    String movieTitle = extractMovieTitle(filename);
-    String outputFilename = _makeOutputName(filename, movieTitle, video.sizeName, video.isHDR);
+    var movieTitle = extractMovieTitle(filename);
+    String outputFilename = makeOutputName(movieTitle, video);
 
     for (var opt in streamOptions) {
       buffer.write(opt.toString());
@@ -213,8 +216,8 @@ resolution of the input file. Will warn when trying to upconvert.''',
     StringBuffer buffer = StringBuffer();
     buffer.writeln('ffmpeg -i $filename \\');
 
-    String movieTitle = extractMovieTitle(filename);
-    String outputFilename = _makeOutputName(filename, movieTitle, video.sizeName, video.isHDR);
+    var movieTitle = extractMovieTitle(filename);
+    String outputFilename = makeOutputName(movieTitle, video);
 
     if (video.format == 'HEVC') {
       log.fine('Video already encoded with H.265');
@@ -378,52 +381,57 @@ String _langToISO639_2(String lang) {
   }
 }
 
-String extractMovieTitle(String sourcePathname) {
-  var sourceFilename = p.basename(sourcePathname);
+abstract class MovieTitle implements Built<MovieTitle, MovieTitleBuilder> {
+  MovieTitle._();
+  factory MovieTitle([void Function(MovieTitleBuilder) updates]) = _$MovieTitle;
 
-  // Try to identify the name of the movie.
+  String get name;
+  String? get year;
+
+  @override
+  String toString() {
+    return (year == null) ? name : '$name ($year)';
+  }
+}
+
+MovieTitle extractMovieTitle(String sourcePathname) {
+  final sourceFilename = p.basename(sourcePathname);
+
+  var name = 'unknown';
+  String? year;
+
+  // Try to identify the name and year of the movie.
   var regex = RegExp(r'^(?<name>(\w+[.]?)+?)[.]?(?<year>(19\d\d|20\d\d))?[.].*[.](mkv|mp4|m4v)$');
-  // var regex = RegExp(r'^(?<name>(\w+[.]?)+?)[.](?<year>(19\d\d|20\d\d))?.*[.](mkv|mp4|m4v)$');
   var match = regex.firstMatch(sourceFilename);
   if (match != null) {
     final rawName = match.namedGroup('name');
     if (rawName != null) {
-      final name = rawName.replaceAll('.', ' ').trim();
-      final year = match.namedGroup('year');
-      return (year != null) ? '$name ($year)' : name;
+      name = rawName.replaceAll('.', ' ').trim();
+      year = match.namedGroup('year');
     }
   }
 
-  return "unknown";
+  return (MovieTitleBuilder()
+        ..name = name
+        ..year = year)
+      .build();
 }
 
-String _makeOutputName(String sourcePathname, String movieName, String? resolution, bool isHDR) {
-  var sourceFilename = p.basename(sourcePathname);
-
-  // Try to identify the year the movie was released.
-  int? year;
-  RegExp regex = RegExp(r'\w+[.](?<year>19\d\d|20\d\d)');
-  RegExpMatch? match = regex.firstMatch(sourceFilename);
-  if (match != null) {
-    final releaseYear = match.namedGroup('year');
-    if (releaseYear != null) {
-      year = int.parse(releaseYear);
-    }
+String makeOutputName(MovieTitle movieTitle, VideoTrack video) {
+  final baseNameBuffer = StringBuffer(movieTitle.name);
+  if (movieTitle.year != null) {
+    baseNameBuffer.write(' (${movieTitle.year})');
   }
 
-  var pathBuffer = StringBuffer(movieName);
-  if (year != null) {
-    pathBuffer.write(' ($year)');
+  final fileNameBuffer = StringBuffer(baseNameBuffer);
+  if (video.sizeName != "unknown") {
+    fileNameBuffer.write(' - ${video.sizeName}');
+  }
+  if (video.isHDR) {
+    fileNameBuffer.write(' - HDR');
   }
 
-  var filenameBuffer = StringBuffer(movieName);
-  if (year != null) {
-    filenameBuffer.write(' ($year)');
-  }
-  if (resolution != null) {
-    filenameBuffer.write(' - $resolution');
-  }
-  filenameBuffer.write('.mkv');
+  fileNameBuffer.write('.mkv');
 
-  return p.join('"${pathBuffer.toString()}"', '"${filenameBuffer.toString()}"');
+  return p.join(baseNameBuffer.toString(), fileNameBuffer.toString());
 }
