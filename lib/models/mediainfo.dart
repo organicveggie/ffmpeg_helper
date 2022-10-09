@@ -1,25 +1,9 @@
 import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
 
-import 'audio_format.dart';
+import '../src/cli/enums.dart';
 
 part 'mediainfo.g.dart';
-
-enum BitRateMode {
-  constant('CBR'),
-  variable('VBR'),
-  unknown('unknown');
-
-  const BitRateMode(this.name);
-
-  final String name;
-
-  @override
-  String toString() => name;
-}
-
-@JsonEnum(fieldRename: FieldRename.pascal)
-enum TrackType { audio, general, menu, text, video }
 
 @JsonSerializable()
 class MediaRoot with EquatableMixin {

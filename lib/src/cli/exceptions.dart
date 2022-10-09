@@ -1,5 +1,3 @@
-import 'package:ffmpeg_helper/models/audio_format.dart';
-
 import 'enums.dart';
 
 abstract class CliException implements Exception {

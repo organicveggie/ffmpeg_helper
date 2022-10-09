@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:ffmpeg_helper/models/audio_format.dart';
 import 'package:ffmpeg_helper/models/mediainfo.dart';
+import 'package:ffmpeg_helper/src/cli/enums.dart';
 import 'package:test/test.dart';
 
 void main() {

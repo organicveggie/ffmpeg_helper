@@ -1,6 +1,6 @@
 import 'package:built_value/built_value.dart';
 
-import 'audio_format.dart';
+import '../src/cli/enums.dart';
 import 'mediainfo.dart' as mediainfo;
 
 part 'wrappers.g.dart';

@@ -1,6 +1,6 @@
 import 'package:built_collection/built_collection.dart';
 import 'package:collection/collection.dart';
-import 'package:ffmpeg_helper/models/audio_format.dart';
+import 'package:ffmpeg_helper/src/cli/enums.dart';
 import 'package:ffmpeg_helper/models/mediainfo.dart';
 import 'package:ffmpeg_helper/models/wrappers.dart' as wrappers;
 import 'package:ffmpeg_helper/src/cli/audio_finder.dart';

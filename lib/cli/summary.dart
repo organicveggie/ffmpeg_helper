@@ -6,6 +6,7 @@ import 'package:ffmpeg_helper/mediainfo_runner.dart';
 import 'package:ffmpeg_helper/models/mediainfo.dart';
 import 'package:logging/logging.dart';
 
+import "../src/cli/enums.dart";
 import '../src/cli/exceptions.dart';
 
 class SummaryCommand extends Command {

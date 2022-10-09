@@ -5,7 +5,6 @@ import 'dart:io';
 import 'package:args/command_runner.dart';
 import 'package:built_collection/built_collection.dart';
 import 'package:ffmpeg_helper/mediainfo_runner.dart';
-import 'package:ffmpeg_helper/models/audio_format.dart';
 import 'package:ffmpeg_helper/models/mediainfo.dart';
 import 'package:ffmpeg_helper/models/wrappers.dart' as wrappers;
 import 'package:logging/logging.dart';
