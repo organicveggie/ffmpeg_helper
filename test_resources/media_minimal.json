@@ -37,7 +37,8 @@
                 "@typeorder": "1",
                 "ID": "3",
                 "UniqueID": "0992ad7a97924e198c9027351a1943e4",
-                "CodecID": "S_TEXT/UTF8"
+                "CodecID": "S_TEXT/UTF8",
+                "Language": "eng"
             },
             {
                 "@type": "Menu"
