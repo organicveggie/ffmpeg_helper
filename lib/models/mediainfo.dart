@@ -1,3 +1,4 @@
+import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import 'audio_format.dart';
@@ -21,7 +22,7 @@ enum BitRateMode {
 enum TrackType { audio, general, menu, text, video }
 
 @JsonSerializable()
-class MediaRoot {
+class MediaRoot with EquatableMixin {
   const MediaRoot(this.media);
 
   final Media media;
@@ -29,10 +30,13 @@ class MediaRoot {
   factory MediaRoot.fromJson(Map<String, dynamic> json) => _$MediaRootFromJson(json);
 
   Map<String, dynamic> toJson() => _$MediaRootToJson(this);
+
+  @override
+  List<Object?> get props => [media];
 }
 
 @JsonSerializable()
-class Media {
+class Media with EquatableMixin {
   const Media(this.ref, this.trackList);
 
   @JsonKey(name: '@ref')
@@ -44,10 +48,13 @@ class Media {
   factory Media.fromJson(Map<String, dynamic> json) => _$MediaFromJson(json);
 
   Map<String, dynamic> toJson() => _$MediaToJson(this);
+
+  @override
+  List<Object?> get props => [ref, trackList];
 }
 
 @JsonSerializable()
-class TrackList {
+class TrackList with EquatableMixin {
   const TrackList(List<Track>? tracks,
       {this.generalTrack,
       List<AudioTrack>? audioTracks,
@@ -121,10 +128,13 @@ class TrackList {
     }
     return {'tracks': json};
   }
+
+  @override
+  List<Object?> get props => [tracks];
 }
 
 @JsonSerializable()
-class Track {
+class Track with EquatableMixin {
   @JsonKey(name: '@type')
   final TrackType type;
 
@@ -134,11 +144,11 @@ class Track {
   Map<String, dynamic> toJson() => _$TrackToJson(this);
 
   @override
-  String toString() => 'Track';
+  List<Object?> get props => [type];
 }
 
 @JsonSerializable(fieldRename: FieldRename.pascal)
-class GeneralTrack extends Track {
+class GeneralTrack extends Track with EquatableMixin {
   @JsonKey(name: "UniqueID")
   final String? uniqueId;
   final String fileExtension;
@@ -167,11 +177,12 @@ class GeneralTrack extends Track {
   Map<String, dynamic> toJson() => _$GeneralTrackToJson(this);
 
   @override
-  String toString() => 'General: $format';
+  List<Object?> get props =>
+      [uniqueId, fileExtension, format, movie, audioCount, menuCount, textCount, videoCount, extra];
 }
 
 @JsonSerializable()
-class CodecIdTrack extends Track {
+class CodecIdTrack extends Track with EquatableMixin {
   @JsonKey(name: 'ID')
   final String id;
   @JsonKey(name: 'CodecID')
@@ -184,10 +195,13 @@ class CodecIdTrack extends Track {
   factory CodecIdTrack.fromJson(Map<String, dynamic> json) => _$CodecIdTrackFromJson(json);
   @override
   Map<String, dynamic> toJson() => _$CodecIdTrackToJson(this);
+
+  @override
+  List<Object?> get props => [id, codecId, uniqueId];
 }
 
 @JsonSerializable(fieldRename: FieldRename.pascal)
-class AudioTrack extends CodecIdTrack {
+class AudioTrack extends CodecIdTrack with EquatableMixin {
   @JsonKey(name: 'extra')
   final Map<String, String>? extra;
   @JsonKey(name: 'Format_AdditionalFeatures')
@@ -299,6 +313,29 @@ class AudioTrack extends CodecIdTrack {
   @override
   Map<String, dynamic> toJson() => _$AudioTrackToJson(this);
 
+  @override
+  List<Object?> get props => [
+        id,
+        codecId,
+        uniqueId,
+        typeOrder,
+        streamOrder,
+        extra,
+        format,
+        formatCommercialName,
+        formatAdditionalFeatures,
+        channels,
+        channelPositions,
+        channelLayout,
+        title,
+        isDefault,
+        language,
+        bitRate,
+        bitRateMode,
+        bitRateMax,
+        compressionMode
+      ];
+
   AudioFormat toAudioFormat() {
     switch (format) {
       case 'MLP FBA':
@@ -362,13 +399,10 @@ class AudioTrack extends CodecIdTrack {
     }
     return false;
   }
-
-  @override
-  String toString() => 'Audio: ${toAudioFormat().toString()}, $channels channels, $title';
 }
 
 @JsonSerializable()
-class MenuTrack extends Track {
+class MenuTrack extends Track with EquatableMixin {
   final Map<String, String>? extra;
 
   const MenuTrack(super.type, this.extra);
@@ -379,11 +413,11 @@ class MenuTrack extends Track {
   Map<String, dynamic> toJson() => _$MenuTrackToJson(this);
 
   @override
-  String toString() => 'Menu: ${extra?.toString()}';
+  List<Object?> get props => [extra];
 }
 
 @JsonSerializable(fieldRename: FieldRename.pascal)
-class TextTrack extends Track {
+class TextTrack extends Track with EquatableMixin {
   @JsonKey(name: 'CodecID')
   final String? codecId;
   @JsonKey(name: 'extra')
@@ -417,6 +451,10 @@ class TextTrack extends Track {
 
   @override
   Map<String, dynamic> toJson() => _$TextTrackToJson(this);
+
+  @override
+  List<Object?> get props =>
+      [codecId, typeOrder, id, uniqueId, extra, format, language, title, isDefault, isForced];
 
   String get languageName {
     switch (language) {
@@ -459,7 +497,7 @@ class TextTrack extends Track {
 }
 
 @JsonSerializable(fieldRename: FieldRename.pascal)
-class VideoTrack extends CodecIdTrack {
+class VideoTrack extends CodecIdTrack with EquatableMixin {
   @JsonKey(name: 'extra')
   final Map<String, String>? extra;
   @JsonKey(name: 'HDR_Format')
@@ -488,7 +526,7 @@ class VideoTrack extends CodecIdTrack {
       this.hdrFormat,
       this.hdrFormatCompatibility);
 
-  VideoTrack.create(
+  const VideoTrack.create(
       String id,
       String codecId,
       String? uniqueId,
@@ -520,7 +558,18 @@ class VideoTrack extends CodecIdTrack {
   }
 
   @override
-  String toString() => 'Video: $format, $hdrName, $sizeName';
+  List<Object?> get props => [
+        id,
+        codecId,
+        uniqueId,
+        streamOrder,
+        extra,
+        format,
+        width,
+        height,
+        hdrFormat,
+        hdrFormatCompatibility
+      ];
 }
 
 int _stringToInt(String? s) => (s == null) ? 0 : int.parse(s);
