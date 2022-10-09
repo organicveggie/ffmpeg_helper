@@ -3,53 +3,6 @@ import 'package:ffmpeg_helper/models.dart';
 
 part 'conversions.g.dart';
 
-enum ConversionOp {
-  copy,
-  transcode;
-}
-
-abstract class AudioConversion implements Built<AudioConversion, AudioConversionBuilder> {
-  int get srcStreamId;
-  int get dstStreamId;
-
-  AudioFormat get format;
-  ConversionOp get op;
-
-  bool get isDolbyProLogic2;
-
-  // Common details
-  bool get isDefault;
-  String? get subtitle;
-
-  // Transcoding details
-  int? get kbRate;
-  int? get numChannels;
-
-  @override
-  String toString() {
-    var output = <String>[];
-
-    if (isDolbyProLogic2) {
-      output.add('-filter_complex "[0:a]aresample=matrix_encoding=dplii[a]"');
-    }
-
-    if (op == ConversionOp.copy) {
-      output.add('-map 0:a:$srcStreamId -c:a:$dstStreamId copy');
-    } else {}
-
-    var disposition = isDefault ? 'default' : '0';
-    output.add('-disposition:a:$dstStreamId $disposition');
-
-    var streamTitle = (subtitle == null) ? format.name : '${format.name} ($subtitle)';
-    output.add('-metadata:s:a:$dstStreamId title="$streamTitle"');
-
-    return output.join(' \\\n');
-  }
-
-  AudioConversion._();
-  factory AudioConversion([void Function(AudioConversionBuilder) updates]) = _$AudioConversion;
-}
-
 abstract class StreamOption {
   @override
   String toString();
