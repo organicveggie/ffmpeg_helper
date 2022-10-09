@@ -396,7 +396,7 @@ class TextTrack extends Track {
   final String? uniqueId;
 
   final String? format;
-  final String? language;
+  final String language;
   final String? title;
 
   @JsonKey(name: 'Default', fromJson: _stringToBool)
@@ -409,13 +409,16 @@ class TextTrack extends Track {
 
   factory TextTrack.fromJson(Map<String, dynamic> json) => _$TextTrackFromJson(json);
 
+  factory TextTrack.fromMinimum(
+      int typeOrder, String id, String language, bool isDefault, bool isForced) {
+    return TextTrack(
+        TrackType.text, typeOrder, id, null, null, null, language, isDefault, isForced, null, null);
+  }
+
   @override
   Map<String, dynamic> toJson() => _$TextTrackToJson(this);
 
   String get languageName {
-    if (language == null) {
-      return 'Unknown';
-    }
     switch (language) {
       case 'de':
       case 'deu':

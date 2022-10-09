@@ -1,4 +1,4 @@
-import 'package:ffmpeg_helper/cli/suggest.dart';
+import 'package:built_collection/built_collection.dart';
 import 'package:ffmpeg_helper/models/mediainfo.dart';
 import 'package:ffmpeg_helper/src/cli/conversions.dart';
 import 'package:ffmpeg_helper/src/cli/exceptions.dart';
@@ -57,15 +57,13 @@ void main() {
   group('processVideoTrack', () {
     test('throws exception for upscaling without flag', () {
       var opts = defaultOptions;
-      var cmd = SuggestCommand();
-      expect(() => cmd.processVideoTrack(opts, vtH265HdSdr),
-          throwsA(isA<UpscalingRequiredException>()));
+      expect(
+          () => processVideoTrack(opts, vtH265HdSdr), throwsA(isA<UpscalingRequiredException>()));
     });
 
     test('upscales H.265 with flag', () {
       var opts = defaultOptions.rebuild((o) => o..forceUpscaling = true);
-      var cmd = SuggestCommand();
-      var results = cmd.processVideoTrack(opts, vtH265HdSdr);
+      var results = processVideoTrack(opts, vtH265HdSdr);
 
       expect(results, hasLength(2));
       expect(results, containsAll([scaleFilter3840, defaultVideoStreamConverter]));
@@ -73,8 +71,7 @@ void main() {
 
     test('upscales H.264 with flag', () {
       var opts = defaultOptions.rebuild((o) => o..forceUpscaling = true);
-      var cmd = SuggestCommand();
-      var results = cmd.processVideoTrack(opts, vtH264HdSdr);
+      var results = processVideoTrack(opts, vtH264HdSdr);
 
       expect(results, hasLength(2));
       expect(results, containsAll([scaleFilter3840, defaultVideoStreamConverter]));
@@ -82,8 +79,7 @@ void main() {
 
     test('downscaling H.265 works without flag', () {
       var opts = defaultOptions.rebuild((o) => o..targetResolution = VideoResolution.hd);
-      var cmd = SuggestCommand();
-      var results = cmd.processVideoTrack(opts, vtH265UhdHdr);
+      var results = processVideoTrack(opts, vtH265UhdHdr);
 
       expect(results, hasLength(2));
       expect(results, containsAll([scaleFilter1920, defaultVideoStreamConverter]));
@@ -91,8 +87,7 @@ void main() {
 
     test('downscaling H.264 works without force flag', () {
       var opts = defaultOptions.rebuild((o) => o..targetResolution = VideoResolution.hd);
-      var cmd = SuggestCommand();
-      var results = cmd.processVideoTrack(opts, vtH264UhdHdr);
+      var results = processVideoTrack(opts, vtH264UhdHdr);
 
       expect(results, hasLength(2));
       expect(results, containsAll([scaleFilter1920, defaultVideoStreamConverter]));
@@ -100,8 +95,7 @@ void main() {
 
     test('H.264 UHD requires conversion to H.265 UHD with UHD target', () {
       var opts = defaultOptions.rebuild((o) => o..targetResolution = VideoResolution.uhd);
-      var cmd = SuggestCommand();
-      var results = cmd.processVideoTrack(opts, vtH264UhdHdr);
+      var results = processVideoTrack(opts, vtH264UhdHdr);
 
       expect(results, hasLength(1));
       expect(results, containsAll([defaultVideoStreamConverter]));
@@ -109,8 +103,7 @@ void main() {
 
     test('H.264 UHD requires conversion to H.265 UHD with no video target', () {
       var opts = defaultOptions.rebuild((o) => o..targetResolution = null);
-      var cmd = SuggestCommand();
-      var results = cmd.processVideoTrack(opts, vtH264UhdHdr);
+      var results = processVideoTrack(opts, vtH264UhdHdr);
 
       expect(results, hasLength(1));
       expect(results, containsAll([defaultVideoStreamConverter]));
@@ -118,8 +111,7 @@ void main() {
 
     test('H.264 HD requires conversion to H.265 HD with HD target', () {
       var opts = defaultOptions.rebuild((o) => o..targetResolution = VideoResolution.hd);
-      var cmd = SuggestCommand();
-      var results = cmd.processVideoTrack(opts, vtH264HdSdr);
+      var results = processVideoTrack(opts, vtH264HdSdr);
 
       expect(results, hasLength(1));
       expect(results, containsAll([defaultVideoStreamConverter]));
@@ -127,8 +119,7 @@ void main() {
 
     test('H.264 UHD requires conversion to H.265 UHD with no video target', () {
       var opts = defaultOptions.rebuild((o) => o..targetResolution = null);
-      var cmd = SuggestCommand();
-      var results = cmd.processVideoTrack(opts, vtH264HdSdr);
+      var results = processVideoTrack(opts, vtH264HdSdr);
 
       expect(results, hasLength(1));
       expect(results, containsAll([defaultVideoStreamConverter]));
@@ -136,16 +127,14 @@ void main() {
 
     test('Copies H.265 HD to H.265 HD with HD target', () {
       var opts = defaultOptions.rebuild((o) => o..targetResolution = VideoResolution.hd);
-      var cmd = SuggestCommand();
-      var results = cmd.processVideoTrack(opts, vtH265HdSdr);
+      var results = processVideoTrack(opts, vtH265HdSdr);
 
       expect(results, hasLength(1));
       expect(results, containsAll([defaultVideoStreamCopy]));
     });
     test('Copies H.265 HD to H.265 HD with no target', () {
       var opts = defaultOptions.rebuild((o) => o..targetResolution = null);
-      var cmd = SuggestCommand();
-      var results = cmd.processVideoTrack(opts, vtH265HdSdr);
+      var results = processVideoTrack(opts, vtH265HdSdr);
 
       expect(results, hasLength(1));
       expect(results, containsAll([defaultVideoStreamCopy]));
@@ -153,8 +142,7 @@ void main() {
 
     test('Copies H.265 UHD to H.265 UHD with UHD target', () {
       var opts = defaultOptions.rebuild((o) => o..targetResolution = VideoResolution.uhd);
-      var cmd = SuggestCommand();
-      var results = cmd.processVideoTrack(opts, vtH265UhdHdr);
+      var results = processVideoTrack(opts, vtH265UhdHdr);
 
       expect(results, hasLength(1));
       expect(results, containsAll([defaultVideoStreamCopy]));
@@ -162,8 +150,7 @@ void main() {
 
     test('Copies H.265 UHD to H.265 UHD with no target', () {
       var opts = defaultOptions.rebuild((o) => o..targetResolution = null);
-      var cmd = SuggestCommand();
-      var results = cmd.processVideoTrack(opts, vtH265UhdHdr);
+      var results = processVideoTrack(opts, vtH265UhdHdr);
 
       expect(results, hasLength(1));
       expect(results, containsAll([defaultVideoStreamCopy]));
@@ -255,6 +242,89 @@ void main() {
     test('for HD SDR without year', () {
       var got = makeOutputName((MovieTitleBuilder()..name = 'My Movie').build(), vtH265HdSdr);
       expect(got, 'My Movie/My Movie - 1080p.mkv');
+    });
+  });
+
+  group('Process Subtitles', () {
+    test('two total, one supported', () {
+      var tracks = <TextTrack>[
+        TextTrack.fromMinimum(0, '0', 'eng', true, false),
+        TextTrack.fromMinimum(1, '1', 'czh', false, false),
+      ];
+      var opts = processSubtitles(tracks.build());
+      expect(opts.length, 3);
+      expect(
+          opts,
+          containsAllInOrder([
+            (StreamCopyBuilder()
+                  ..trackType = TrackType.text
+                  ..inputFileId = 0
+                  ..srcStreamId = 0
+                  ..dstStreamId = 0)
+                .build(),
+            (StreamMetadataBuilder()
+                  ..trackType = TrackType.text
+                  ..streamId = 0
+                  ..name = 'language'
+                  ..value = 'eng')
+                .build(),
+            (StreamMetadataBuilder()
+                  ..trackType = TrackType.text
+                  ..streamId = 0
+                  ..name = 'handler'
+                  ..value = 'English')
+                .build(),
+          ]));
+    });
+    test('three total, two supported', () {
+      var tracks = <TextTrack>[
+        TextTrack.fromMinimum(0, '0', 'eng', true, false),
+        TextTrack.fromMinimum(1, '1', 'czh', false, false),
+        const TextTrack(
+            TrackType.text, 2, '2', '2', null, 'CC', 'es', false, false, 'UTF-8', 'S_TEXT/UTF8'),
+      ];
+      var opts = processSubtitles(tracks.build());
+      expect(opts.length, 6);
+      expect(
+          opts,
+          containsAllInOrder([
+            (StreamCopyBuilder()
+                  ..trackType = TrackType.text
+                  ..inputFileId = 0
+                  ..srcStreamId = 0
+                  ..dstStreamId = 0)
+                .build(),
+            (StreamMetadataBuilder()
+                  ..trackType = TrackType.text
+                  ..streamId = 0
+                  ..name = 'language'
+                  ..value = 'eng')
+                .build(),
+            (StreamMetadataBuilder()
+                  ..trackType = TrackType.text
+                  ..streamId = 0
+                  ..name = 'handler'
+                  ..value = 'English')
+                .build(),
+            (StreamCopyBuilder()
+                  ..trackType = TrackType.text
+                  ..inputFileId = 0
+                  ..srcStreamId = 2
+                  ..dstStreamId = 1)
+                .build(),
+            (StreamMetadataBuilder()
+                  ..trackType = TrackType.text
+                  ..streamId = 1
+                  ..name = 'language'
+                  ..value = 'esp')
+                .build(),
+            (StreamMetadataBuilder()
+                  ..trackType = TrackType.text
+                  ..streamId = 1
+                  ..name = 'handler'
+                  ..value = 'Spanish CC (SRT)')
+                .build(),
+          ]));
     });
   });
 }

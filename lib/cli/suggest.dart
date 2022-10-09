@@ -4,20 +4,15 @@ import 'dart:io';
 
 import 'package:args/command_runner.dart';
 import 'package:built_collection/built_collection.dart';
-import 'package:built_value/built_value.dart';
 import 'package:ffmpeg_helper/mediainfo_exec.dart';
 import 'package:ffmpeg_helper/models/audio_format.dart';
 import 'package:ffmpeg_helper/models/mediainfo.dart';
 import 'package:ffmpeg_helper/models/wrappers.dart' as wrappers;
-import 'package:ffmpeg_helper/src/cli/conversions.dart';
 import 'package:logging/logging.dart';
-import 'package:path/path.dart' as p;
 
 import '../src/cli/audio_finder.dart';
 import '../src/cli/exceptions.dart';
 import '../src/cli/suggest.dart';
-
-part 'suggest.g.dart';
 
 class SuggestCommand extends Command {
   static const String defaultOutputMovies = r'$MOVIES';
@@ -98,11 +93,15 @@ resolution of the input file. Will warn when trying to upconvert.''',
       }
 
       TrackList tracks = await getTrackList(filename);
+      var suggestedCmdline = '';
       if (argResults[flagExperimental]) {
-        processFileAdvancedMode(opts, filename, tracks);
+        suggestedCmdline = processFileExperimentalMode(opts, filename, tracks);
       } else {
-        processFile(opts, filename, tracks);
+        suggestedCmdline = await processFile(opts, filename, tracks);
       }
+
+      print('Suggested commandline:');
+      print(suggestedCmdline);
     }
   }
 
@@ -127,83 +126,7 @@ resolution of the input file. Will warn when trying to upconvert.''',
     return tl;
   }
 
-  void processFileAdvancedMode(SuggestOptions opts, String filename, TrackList tracks) {
-    var streamOptions = <StreamOption>[];
-
-    // Check video track
-    var video = tracks.videoTracks.first;
-    var videoStreamOpts = processVideoTrack(opts, video);
-    streamOptions.addAll(videoStreamOpts);
-
-    StringBuffer buffer = StringBuffer();
-    buffer.writeln('ffmpeg -i $filename \\');
-
-    var movieTitle = extractMovieTitle(filename);
-    String outputFilename = makeOutputName(movieTitle, video);
-
-    for (var opt in streamOptions) {
-      buffer.write(opt.toString());
-      buffer.writeln(' \\');
-    }
-    buffer.writeln(outputFilename);
-
-    print('Suggested commandline:');
-    print(buffer.toString());
-  }
-
-  List<StreamOption> processVideoTrack(SuggestOptions opts, VideoTrack video) {
-    var streamOpts = <StreamOption>[];
-
-    // Check if we need to apply a scaling filter.
-    if (opts.targetResolution == VideoResolution.uhd && video.width < 3840) {
-      if (!opts.forceUpscaling) {
-        throw UpscalingRequiredException(opts.targetResolution!, video.width);
-      }
-      log.info('Upscaling from width of ${video.width} to ${opts.targetResolution!.name}.');
-      streamOpts.add((ScaleFilterBuilder()
-            ..width = 3840
-            ..height = -1)
-          .build());
-      // Convert to H.265
-      streamOpts.add((VideoStreamConvertBuilder()
-            ..inputFileId = 0
-            ..srcStreamId = 0
-            ..dstStreamId = 0)
-          .build());
-    } else if (opts.targetResolution == VideoResolution.hd && video.width > 1920) {
-      log.info('Downscaling from width of ${video.width} to ${opts.targetResolution!.name}.');
-      streamOpts.add((ScaleFilterBuilder()
-            ..width = 1920
-            ..height = -1)
-          .build());
-      // Convert to H.265
-      streamOpts.add((VideoStreamConvertBuilder()
-            ..inputFileId = 0
-            ..srcStreamId = 0
-            ..dstStreamId = 0)
-          .build());
-    } else if (video.format == 'HEVC') {
-      log.info('Video already encoded with H.265. Copying to destination.');
-      streamOpts.add((StreamCopyBuilder()
-            ..inputFileId = 0
-            ..srcStreamId = 0
-            ..dstStreamId = 0
-            ..trackType = TrackType.video)
-          .build());
-    } else {
-      // Convert to H.265
-      log.info('Converting video to H.265.');
-      streamOpts.add((VideoStreamConvertBuilder()
-            ..inputFileId = 0
-            ..srcStreamId = 0
-            ..dstStreamId = 0)
-          .build());
-    }
-
-    return streamOpts;
-  }
-
-  void processFile(SuggestOptions opts, String filename, TrackList tracks) async {
+  Future<String> processFile(SuggestOptions opts, String filename, TrackList tracks) async {
     // Check for upconversion.
     VideoTrack video = tracks.videoTracks.first;
     if (video.width <= 1920 && opts.targetResolution == VideoResolution.uhd) {
@@ -242,9 +165,7 @@ resolution of the input file. Will warn when trying to upconvert.''',
     for (int i = 0; i < subtitleTracks.length; i++) {
       wrappers.TextTrack tt = subtitleTracks[i];
       buffer.writeln('-map 0:s:${tt.orderId} -c:s:$i copy \\');
-      if (tt.track.language != null) {
-        buffer.write('-metadata:s:s:$i language=${_langToISO639_2(tt.track.language!)}');
-      }
+      buffer.write('-metadata:s:s:$i language=${langToISO639_2(tt.track.language)}');
       buffer.writeln(' -metadata:s:s:$i handler="${tt.track.handler}" \\');
     }
 
@@ -286,8 +207,7 @@ resolution of the input file. Will warn when trying to upconvert.''',
 
     buffer.writeln(outputFilename);
 
-    print('Suggested commandline:');
-    print(buffer.toString());
+    return buffer.toString();
   }
 
   String processMonoStereoAudio(wrappers.AudioTrack audioSource) {
@@ -360,78 +280,4 @@ resolution of the input file. Will warn when trying to upconvert.''',
 
   String copyAudio(int srcStreamId, int destStreamId) =>
       '-map 0:a:$srcStreamId -c:a:$destStreamId copy \\';
-}
-
-String _langToISO639_2(String lang) {
-  switch (lang) {
-    case 'de':
-    case 'deu':
-      return 'deu';
-    case 'en':
-    case 'eng':
-      return 'eng';
-    case 'es':
-    case 'esp':
-      return 'esp';
-    case 'fr':
-    case 'fra':
-      return 'fra';
-    default:
-      return lang;
-  }
-}
-
-abstract class MovieTitle implements Built<MovieTitle, MovieTitleBuilder> {
-  MovieTitle._();
-  factory MovieTitle([void Function(MovieTitleBuilder) updates]) = _$MovieTitle;
-
-  String get name;
-  String? get year;
-
-  @override
-  String toString() {
-    return (year == null) ? name : '$name ($year)';
-  }
-}
-
-MovieTitle extractMovieTitle(String sourcePathname) {
-  final sourceFilename = p.basename(sourcePathname);
-
-  var name = 'unknown';
-  String? year;
-
-  // Try to identify the name and year of the movie.
-  var regex = RegExp(r'^(?<name>(\w+[.]?)+?)[.]?(?<year>(19\d\d|20\d\d))?[.].*[.](mkv|mp4|m4v)$');
-  var match = regex.firstMatch(sourceFilename);
-  if (match != null) {
-    final rawName = match.namedGroup('name');
-    if (rawName != null) {
-      name = rawName.replaceAll('.', ' ').trim();
-      year = match.namedGroup('year');
-    }
-  }
-
-  return (MovieTitleBuilder()
-        ..name = name
-        ..year = year)
-      .build();
-}
-
-String makeOutputName(MovieTitle movieTitle, VideoTrack video) {
-  final baseNameBuffer = StringBuffer(movieTitle.name);
-  if (movieTitle.year != null) {
-    baseNameBuffer.write(' (${movieTitle.year})');
-  }
-
-  final fileNameBuffer = StringBuffer(baseNameBuffer);
-  if (video.sizeName != "unknown") {
-    fileNameBuffer.write(' - ${video.sizeName}');
-  }
-  if (video.isHDR) {
-    fileNameBuffer.write(' - HDR');
-  }
-
-  fileNameBuffer.write('.mkv');
-
-  return p.join(baseNameBuffer.toString(), fileNameBuffer.toString());
 }

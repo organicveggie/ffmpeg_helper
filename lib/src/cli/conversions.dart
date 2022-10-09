@@ -192,7 +192,7 @@ abstract class StreamMetadata
   @override
   String toString() {
     var ttAbbrev = _trackTypeAbbrev(trackType);
-    return '-metadata:s:$ttAbbrev:0 $name="$value"';
+    return '-metadata:s:$ttAbbrev:$streamId $name="$value"';
   }
 }
 
