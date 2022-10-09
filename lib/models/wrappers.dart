@@ -1,27 +1,26 @@
 import 'package:built_value/built_value.dart';
 
-import '../src/cli/enums.dart';
-import 'mediainfo.dart' as mediainfo;
+import 'package:ffmpeg_helper/models.dart' as models;
 
 part 'wrappers.g.dart';
 
 abstract class AudioTrack implements Built<AudioTrack, AudioTrackBuilder> {
-  AudioFormat get format;
-  mediainfo.AudioTrack get track;
+  models.AudioFormat get format;
+  models.AudioTrack get track;
   int get orderId;
 
   AudioTrack._();
-  factory AudioTrack(int orderId, mediainfo.AudioTrack track) {
+  factory AudioTrack(int orderId, models.AudioTrack track) {
     return _$AudioTrack._(format: track.toAudioFormat(), track: track, orderId: orderId);
   }
 }
 
 abstract class TextTrack implements Built<TextTrack, TextTrackBuilder> {
   int get orderId;
-  mediainfo.TextTrack get track;
+  models.TextTrack get track;
 
   TextTrack._();
-  factory TextTrack(int orderId, mediainfo.TextTrack track) {
+  factory TextTrack(int orderId, models.TextTrack track) {
     return _$TextTrack._(orderId: orderId, track: track);
   }
 }

@@ -1,7 +1,5 @@
 import 'package:built_value/built_value.dart';
-
-import '../../models/mediainfo.dart';
-import "enums.dart";
+import 'package:ffmpeg_helper/models.dart';
 
 part 'conversions.g.dart';
 

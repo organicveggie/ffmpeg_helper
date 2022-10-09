@@ -2,7 +2,7 @@ import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:ffmpeg_helper/models/wrappers.dart' as wrappers;
 
-import 'enums.dart';
+import '../models/enums.dart';
 import 'exceptions.dart';
 
 part 'audio_finder.g.dart';

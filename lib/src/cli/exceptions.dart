@@ -1,4 +1,4 @@
-import 'enums.dart';
+import '../models/enums.dart';
 
 abstract class CliException implements Exception {
   const CliException();

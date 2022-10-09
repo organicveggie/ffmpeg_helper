@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:ffmpeg_helper/models/mediainfo.dart';
+import 'package:ffmpeg_helper/models.dart';
 import 'package:logging/logging.dart';
 import 'package:process_run/shell.dart';
 

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:ffmpeg_helper/models.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
@@ -7,7 +8,6 @@ import 'package:path/path.dart' as p;
 import 'package:provider/provider.dart';
 
 import 'mediainfo_runner.dart';
-import 'models/mediainfo.dart';
 import 'models/media_file.dart';
 
 void main() {

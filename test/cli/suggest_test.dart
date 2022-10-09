@@ -1,8 +1,7 @@
 import 'package:built_collection/built_collection.dart';
-import 'package:ffmpeg_helper/models/mediainfo.dart';
+import 'package:ffmpeg_helper/models.dart';
 import 'package:ffmpeg_helper/src/cli/conversions.dart';
 import 'package:ffmpeg_helper/src/cli/exceptions.dart';
-import 'package:ffmpeg_helper/src/cli/enums.dart';
 import 'package:ffmpeg_helper/src/cli/suggest.dart';
 import 'package:test/test.dart';
 import 'package:tuple/tuple.dart';

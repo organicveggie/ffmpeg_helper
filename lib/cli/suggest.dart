@@ -5,12 +5,11 @@ import 'dart:io';
 import 'package:args/command_runner.dart';
 import 'package:built_collection/built_collection.dart';
 import 'package:ffmpeg_helper/mediainfo_runner.dart';
-import 'package:ffmpeg_helper/models/mediainfo.dart';
+import 'package:ffmpeg_helper/models.dart';
 import 'package:ffmpeg_helper/models/wrappers.dart' as wrappers;
 import 'package:logging/logging.dart';
 
 import '../src/cli/audio_finder.dart';
-import '../src/cli/enums.dart';
 import '../src/cli/exceptions.dart';
 import '../src/cli/suggest.dart';
 

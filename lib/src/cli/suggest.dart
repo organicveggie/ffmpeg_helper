@@ -1,11 +1,10 @@
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
-import 'package:ffmpeg_helper/models/mediainfo.dart';
+import 'package:ffmpeg_helper/models.dart';
 import 'package:ffmpeg_helper/src/cli/conversions.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 
-import 'enums.dart';
 import 'exceptions.dart';
 
 part 'suggest.g.dart';
