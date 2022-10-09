@@ -5,44 +5,10 @@ import 'package:ffmpeg_helper/src/cli/conversions.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 
+import 'enums.dart';
 import 'exceptions.dart';
 
 part 'suggest.g.dart';
-
-////////////////////
-// Enums
-////////////////////
-
-enum MediaType {
-  movie,
-  tv;
-
-  static Iterable<String> names() => MediaType.values.map((v) => v.name);
-}
-
-enum VideoResolution {
-  hd(['1080', '1080p']),
-  uhd(['4k', '2160', '2160p']);
-
-  final List<String> aliases;
-
-  const VideoResolution(this.aliases);
-
-  static Iterable<String> names() => VideoResolution.values.map((v) => v.name);
-  static Iterable<String> allNames() {
-    var all = <String>[];
-    for (var v in VideoResolution.values) {
-      all.add(v.name);
-      all.addAll(v.aliases);
-    }
-    all.sort();
-    return all;
-  }
-}
-
-////////////////////
-/// Extensions
-////////////////////
 
 extension MediaTypeParsing on String {
   MediaType parseMediaType() {

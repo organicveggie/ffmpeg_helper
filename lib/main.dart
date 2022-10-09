@@ -6,7 +6,7 @@ import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:provider/provider.dart';
 
-import 'mediainfo_exec.dart';
+import 'mediainfo_runner.dart';
 import 'models/mediainfo.dart';
 import 'models/media_file.dart';
 
@@ -28,6 +28,8 @@ enum MediaLoadingState {
 }
 
 class MediaModel extends ChangeNotifier {
+  final MediainfoRunner runner = MediainfoRunner();
+
   MediaLoadingState _loadingState = MediaLoadingState.none;
   MediaFile? _file;
   MediaRoot? _mediaRoot;
@@ -76,7 +78,7 @@ class MediaModel extends ChangeNotifier {
     _setMediaFileFromPathname(pathname);
     loadingState = MediaLoadingState.loading;
 
-    return runMediainfo(pathname).then((mediaRoot) {
+    return runner.run(pathname).then((mediaRoot) {
       _mediaRoot = mediaRoot;
       loadingState = MediaLoadingState.loaded;
       return mediaRoot;

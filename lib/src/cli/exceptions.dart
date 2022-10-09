@@ -1,5 +1,6 @@
 import 'package:ffmpeg_helper/models/audio_format.dart';
-import 'package:ffmpeg_helper/src/cli/suggest.dart';
+
+import 'enums.dart';
 
 abstract class CliException implements Exception {
   const CliException();

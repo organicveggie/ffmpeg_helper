@@ -11,6 +11,7 @@ import 'package:ffmpeg_helper/models/wrappers.dart' as wrappers;
 import 'package:logging/logging.dart';
 
 import '../src/cli/audio_finder.dart';
+import '../src/cli/enums.dart';
 import '../src/cli/exceptions.dart';
 import '../src/cli/suggest.dart';
 

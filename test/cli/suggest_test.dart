@@ -2,27 +2,28 @@ import 'package:built_collection/built_collection.dart';
 import 'package:ffmpeg_helper/models/mediainfo.dart';
 import 'package:ffmpeg_helper/src/cli/conversions.dart';
 import 'package:ffmpeg_helper/src/cli/exceptions.dart';
+import 'package:ffmpeg_helper/src/cli/enums.dart';
 import 'package:ffmpeg_helper/src/cli/suggest.dart';
 import 'package:test/test.dart';
 import 'package:tuple/tuple.dart';
 
 void main() {
-  final VideoTrack vtH265HdHdr = VideoTrack.create(
+  const VideoTrack vtH265HdHdr = VideoTrack.create(
       '0', 'V_MPEGH/ISO/HEVC', '1', '0', null, 'HEVC', 1920, 1080, 'SMPTE ST 2086', 'HDR10');
 
-  final VideoTrack vtH265HdSdr =
+  const VideoTrack vtH265HdSdr =
       VideoTrack.create('0', 'V_MPEGH/ISO/HEVC', '1', '0', null, 'HEVC', 1920, 1080, null, null);
 
-  final VideoTrack vtH265UhdHdr = VideoTrack.create(
+  const VideoTrack vtH265UhdHdr = VideoTrack.create(
       '1', 'V_MPEGH/ISO/HEVC', '2', '1', null, 'HEVC', 3840, 2160, 'SMPTE ST 2086', 'HDR10');
 
-  final VideoTrack vtH265UhdSdr =
+  const VideoTrack vtH265UhdSdr =
       VideoTrack.create('1', 'V_MPEGH/ISO/HEVC', '2', '1', null, 'HEVC', 3840, 2160, null, null);
 
-  final VideoTrack vtH264HdSdr =
+  const VideoTrack vtH264HdSdr =
       VideoTrack.create('2', 'avc1', '3', '2', null, 'AVC', 1920, 1080, null, null);
 
-  final VideoTrack vtH264UhdHdr =
+  const VideoTrack vtH264UhdHdr =
       VideoTrack.create('3', 'avc1', '4', '3', null, 'AVC', 3840, 2160, null, null);
 
   final defaultOptions = (SuggestOptionsBuilder()
