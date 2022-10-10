@@ -49,9 +49,10 @@ void main() {
     });
   });
 
-  group('Make output filename', () {
+  group('Make output filename without prefix', () {
     test('for UHD HDR with year', () {
       var got = makeOutputName(
+          false,
           (MovieTitleBuilder()
                 ..name = 'My Movie'
                 ..year = '1981')
@@ -60,11 +61,13 @@ void main() {
       expect(got, '"My Movie (1981)"/"My Movie (1981) - 2160p-HDR.mkv"');
     });
     test('for UHD HDR without year', () {
-      var got = makeOutputName((MovieTitleBuilder()..name = 'My Movie').build(), vtH265UhdHdr);
+      var got =
+          makeOutputName(false, (MovieTitleBuilder()..name = 'My Movie').build(), vtH265UhdHdr);
       expect(got, '"My Movie"/"My Movie - 2160p-HDR.mkv"');
     });
     test('for UHD SDR with year', () {
       var got = makeOutputName(
+          false,
           (MovieTitleBuilder()
                 ..name = 'My Movie'
                 ..year = '1981')
@@ -73,11 +76,13 @@ void main() {
       expect(got, '"My Movie (1981)"/"My Movie (1981) - 2160p.mkv"');
     });
     test('for UHD SDR without year', () {
-      var got = makeOutputName((MovieTitleBuilder()..name = 'My Movie').build(), vtH265UhdSdr);
+      var got =
+          makeOutputName(false, (MovieTitleBuilder()..name = 'My Movie').build(), vtH265UhdSdr);
       expect(got, '"My Movie"/"My Movie - 2160p.mkv"');
     });
     test('for HD HDR with year', () {
       var got = makeOutputName(
+          false,
           (MovieTitleBuilder()
                 ..name = 'My Movie'
                 ..year = '1981')
@@ -86,11 +91,13 @@ void main() {
       expect(got, '"My Movie (1981)"/"My Movie (1981) - 1080p-HDR.mkv"');
     });
     test('for HD HDR without year', () {
-      var got = makeOutputName((MovieTitleBuilder()..name = 'My Movie').build(), vtH265HdHdr);
+      var got =
+          makeOutputName(false, (MovieTitleBuilder()..name = 'My Movie').build(), vtH265HdHdr);
       expect(got, '"My Movie"/"My Movie - 1080p-HDR.mkv"');
     });
     test('for HD SDR with year', () {
       var got = makeOutputName(
+          false,
           (MovieTitleBuilder()
                 ..name = 'My Movie'
                 ..year = '1981')
@@ -99,8 +106,37 @@ void main() {
       expect(got, '"My Movie (1981)"/"My Movie (1981) - 1080p.mkv"');
     });
     test('for HD SDR without year', () {
-      var got = makeOutputName((MovieTitleBuilder()..name = 'My Movie').build(), vtH265HdSdr);
+      var got =
+          makeOutputName(false, (MovieTitleBuilder()..name = 'My Movie').build(), vtH265HdSdr);
       expect(got, '"My Movie"/"My Movie - 1080p.mkv"');
     });
+  });
+
+  group('Make output filename with prefix', () {
+    test('for UHD HDR with year', () {
+      var got = makeOutputName(
+          true,
+          (MovieTitleBuilder()
+                ..name = 'The First Movie'
+                ..year = '1981')
+              .build(),
+          vtH265UhdHdr);
+      expect(got, 'F/"The First Movie (1981)"/"The First Movie (1981) - 2160p-HDR.mkv"');
+    });
+  });
+
+  group('Get first letter of movie title', () {
+    const tests = <Tuple3<String, String, String>>[
+      Tuple3('no stop words', 'Boogie Nights', 'B'),
+      Tuple3('ignores "the"', 'The Big Lebowski', 'B'),
+      Tuple3('ignores "a"', 'A Fish Called Wanda', 'F'),
+      Tuple3('ignores "an"', 'An American Werewolf in London (1981)', 'A'),
+      Tuple3('number as range', '12 Years a Slave (2013)', '0-9'),
+    ];
+    for (var t in tests) {
+      test(t.item1, () {
+        expect(getMovieTitleFirstLetter(t.item2), t.item3);
+      });
+    }
   });
 }

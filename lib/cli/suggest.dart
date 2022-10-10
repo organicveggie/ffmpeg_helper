@@ -20,6 +20,7 @@ class SuggestCommand extends Command {
   static const String flagExperimental = 'experimental';
   static const String flagForce = 'force';
   static const String flagMediaType = 'media_type';
+  static const String flagMovieLetterPrefix = 'output_movie_letter';
   static const String flagOutputFolder = 'output_folder';
   static const String flagTargetResolution = 'target_resolution';
 
@@ -56,6 +57,11 @@ resolution of the input file. Will warn when trying to upconvert.''',
         defaultsTo: true,
         negatable: true,
         aliases: ['dolbyprologic2', 'dplii', 'dolbyprologicii']);
+
+    argParser.addFlag(flagMovieLetterPrefix,
+        help: 'Prefix output directory the first letter of the movie title.',
+        defaultsTo: true,
+        negatable: true);
   }
 
   // [run] may also return a Future.
@@ -74,6 +80,7 @@ resolution of the input file. Will warn when trying to upconvert.''',
         force: argResults[flagForce],
         dpl2: argResults[flagDPL2],
         mediaType: argResults[flagMediaType],
+        movieOutputLetterPrefix: argResults[flagMovieLetterPrefix],
         outputFolder: argResults[flagOutputFolder],
         targetResolution: argResults[flagTargetResolution]);
 

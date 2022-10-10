@@ -57,6 +57,8 @@ abstract class MovieTitle implements Built<MovieTitle, MovieTitleBuilder> {
 abstract class SuggestOptions implements Built<SuggestOptions, SuggestOptionsBuilder> {
   bool get forceUpscaling;
   bool get generateDPL2;
+  bool get movieOutputLetterPrefix;
+
   MediaType get mediaType;
   String? get outputFolder;
   VideoResolution? get targetResolution;
@@ -68,14 +70,17 @@ abstract class SuggestOptions implements Built<SuggestOptions, SuggestOptionsBui
       {required bool force,
       required bool dpl2,
       required String mediaType,
+      bool? movieOutputLetterPrefix,
       String? outputFolder,
       String? targetResolution}) {
-    return SuggestOptions((o) => o
-      ..forceUpscaling = force
-      ..generateDPL2 = dpl2
-      ..mediaType = mediaType.parseMediaType()
-      ..outputFolder = outputFolder
-      ..targetResolution = targetResolution?.parseVideoResolution());
+    return (SuggestOptionsBuilder()
+          ..forceUpscaling = force
+          ..generateDPL2 = dpl2
+          ..mediaType = mediaType.parseMediaType()
+          ..movieOutputLetterPrefix = movieOutputLetterPrefix
+          ..outputFolder = outputFolder
+          ..targetResolution = targetResolution?.parseVideoResolution())
+        .build();
   }
 }
 
@@ -128,7 +133,7 @@ String processFile(SuggestOptions opts, String filename, TrackList tracks) {
         ..value = movieTitle.name)
       .build());
 
-  String outputFilename = makeOutputName(movieTitle, video);
+  String outputFilename = makeOutputName(opts.movieOutputLetterPrefix, movieTitle, video);
 
   for (var opt in streamOptions) {
     buffer.write('  ');
@@ -414,7 +419,29 @@ MovieTitle extractMovieTitle(String sourcePathname) {
       .build();
 }
 
-String makeOutputName(MovieTitle movieTitle, VideoTrack video) {
+final _movieTitleStopWords = BuiltSet<String>(['a', 'an', 'the']);
+final _movieNumberRegex = RegExp(r'[0-9]');
+
+String getMovieTitleFirstLetter(String title) {
+  var titleWords = title.toLowerCase().split(' ');
+  var firstLetter = titleWords[0].substring(0, 1);
+
+  for (var w in titleWords) {
+    if (_movieTitleStopWords.contains(w)) {
+      continue;
+    }
+    firstLetter = w.substring(0, 1);
+    break;
+  }
+
+  if (_movieNumberRegex.matchAsPrefix(firstLetter) != null) {
+    firstLetter = '0-9';
+  }
+
+  return firstLetter.toUpperCase();
+}
+
+String makeOutputName(bool letterPrefix, MovieTitle movieTitle, VideoTrack video) {
   final baseNameBuffer = StringBuffer(movieTitle.name);
   if (movieTitle.year != null) {
     baseNameBuffer.write(' (${movieTitle.year})');
@@ -427,10 +454,14 @@ String makeOutputName(MovieTitle movieTitle, VideoTrack video) {
   if (video.isHDR) {
     fileNameBuffer.write('-HDR');
   }
-
   fileNameBuffer.write('.mkv');
 
-  return p.join('"${baseNameBuffer.toString()}"', '"${fileNameBuffer.toString()}"');
+  final outputName = p.join('"${baseNameBuffer.toString()}"', '"${fileNameBuffer.toString()}"');
+  if (letterPrefix) {
+    final letter = getMovieTitleFirstLetter(movieTitle.name);
+    return p.join(letter, outputName);
+  }
+  return outputName;
 }
 
 int maxAudioKbRate(AudioTrack track, int defaultMaxKbRate) {
