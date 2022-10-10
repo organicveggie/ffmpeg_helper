@@ -190,6 +190,7 @@ List<StreamOption> processAudioTracks(SuggestOptions opts, BuiltList<AudioTrack>
           .build());
     } else {
       // Source track is not Dolby Digital Plus or Dolby Digital, so transcode.
+      firstTrackFormat = AudioFormat.dolbyDigitalPlus;
       streamOpts.add((AudioStreamConvertBuilder()
             ..inputFileId = 0
             ..srcStreamId = source.orderId

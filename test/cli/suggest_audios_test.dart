@@ -38,7 +38,7 @@ void main() {
           _makeAudioTrack(0, AudioFormat.aacMulti, 1, true, false),
         ].build());
     expect(results, isNotNull);
-    expect(results, hasLength(2));
+    expect(results, hasLength(3));
     expect(
         results,
         containsAllInOrder(<StreamOption>[
@@ -55,19 +55,13 @@ void main() {
           _makeAudioTrack(0, AudioFormat.aacMulti, 2, true, false),
         ].build());
     expect(results, isNotNull);
-    expect(results, hasLength(2));
+    expect(results, hasLength(3));
     expect(
         results,
         containsAllInOrder(<StreamOption>[
           _streamCopy(0, 0),
           _dispositionDefault(0, true),
           _metadataTitle(0, 'AAC (stereo)'),
-          (StreamMetadataBuilder()
-                ..trackType = TrackType.audio
-                ..streamId = 0
-                ..name = 'title'
-                ..value = 'AAC (stereo')
-              .build(),
         ]));
   });
 
@@ -88,7 +82,7 @@ void main() {
           _metadataTitle(0, 'Dolby Digital Plus'),
           convertAacMulti,
           _dispositionDefault(1, false),
-          _metadataTitle(0, 'AAC (5.1)')
+          _metadataTitle(1, 'AAC (5.1)')
         ]));
   });
 
@@ -99,7 +93,7 @@ void main() {
           _makeAudioTrack(0, AudioFormat.dolbyDigitalPlus, 6, true, false, bitRate: 512000),
         ].build());
     expect(results, isNotNull);
-    expect(results, hasLength(6));
+    expect(results, hasLength(10));
 
     expect(
         results,
@@ -110,6 +104,7 @@ void main() {
           convertAacMulti,
           _dispositionDefault(1, false),
           _metadataTitle(1, 'AAC (5.1)'),
+          (ComplexFilterBuilder()..filter = '[0:a]aresample=matrix_encoding=dplii[a]').build(),
           (AudioStreamConvertBuilder()
                 ..inputFileId = 0
                 ..srcStreamId = 0
@@ -130,7 +125,7 @@ void main() {
           _makeAudioTrack(0, AudioFormat.dolbyDigital, 6, true, false, bitRate: 512000),
         ].build());
     expect(results, isNotNull);
-    expect(results, hasLength(4));
+    expect(results, hasLength(6));
     expect(
         results,
         containsAllInOrder(<StreamOption>[
@@ -150,7 +145,29 @@ void main() {
           _makeAudioTrack(0, AudioFormat.trueHD, 6, true, false, bitRate: 512000),
         ].build());
     expect(results, isNotNull);
-    expect(results, hasLength(4));
+    expect(results, hasLength(6));
+    expect(
+        results,
+        containsAllInOrder(<StreamOption>[
+          convertDDPlus,
+          _dispositionDefault(0, true),
+          _metadataTitle(0, 'Dolby Digital Plus'),
+          convertAacMulti,
+          _dispositionDefault(1, false),
+          _metadataTitle(1, 'AAC (5.1)'),
+        ]));
+  });
+
+  test('TrueHD and Dolby Digital with commentary excluded', () {
+    var results = processAudioTracks(
+        defaultOptions,
+        <AudioTrack>[
+          _makeAudioTrack(0, AudioFormat.trueHD, 6, true, false, bitRate: 512000),
+          _makeAudioTrack(0, AudioFormat.dolbyDigital, 6, true, false,
+              bitRate: 512000, title: 'Director\'s commentary with other famous people'),
+        ].build());
+    expect(results, isNotNull);
+    expect(results, hasLength(6));
     expect(
         results,
         containsAllInOrder(<StreamOption>[
@@ -174,7 +191,7 @@ StreamDisposition _dispositionDefault(int streamId, bool isDefault) {
 
 AudioTrack _makeAudioTrack(
     int order, AudioFormat format, int channels, bool isDefault, bool isForced,
-    {int? bitRate}) {
+    {int? bitRate, String? title}) {
   return AudioTrack.fromParams(
       id: '$order',
       codecId: format.codec,
@@ -184,7 +201,8 @@ AudioTrack _makeAudioTrack(
       isDefault: isDefault,
       isForced: isForced,
       channels: channels,
-      bitRate: bitRate);
+      bitRate: bitRate,
+      title: title);
 }
 
 StreamMetadata _metadataTitle(int streamId, String value) {
