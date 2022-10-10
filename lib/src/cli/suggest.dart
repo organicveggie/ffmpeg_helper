@@ -133,7 +133,11 @@ String processFile(SuggestOptions opts, String filename, TrackList tracks) {
         ..value = movieTitle.name)
       .build());
 
-  String outputFilename = makeOutputName(opts.movieOutputLetterPrefix, movieTitle, video);
+  String outputFilename = makeOutputName(
+      movieTitle: movieTitle,
+      video: video,
+      outputFolder: opts.outputFolder,
+      letterPrefix: opts.movieOutputLetterPrefix);
 
   for (var opt in streamOptions) {
     buffer.write('  ');
@@ -441,7 +445,11 @@ String getMovieTitleFirstLetter(String title) {
   return firstLetter.toUpperCase();
 }
 
-String makeOutputName(bool letterPrefix, MovieTitle movieTitle, VideoTrack video) {
+String makeOutputName(
+    {required MovieTitle movieTitle,
+    required VideoTrack video,
+    String? outputFolder,
+    bool letterPrefix = false}) {
   final baseNameBuffer = StringBuffer(movieTitle.name);
   if (movieTitle.year != null) {
     baseNameBuffer.write(' (${movieTitle.year})');
@@ -456,12 +464,12 @@ String makeOutputName(bool letterPrefix, MovieTitle movieTitle, VideoTrack video
   }
   fileNameBuffer.write('.mkv');
 
-  final outputName = p.join('"${baseNameBuffer.toString()}"', '"${fileNameBuffer.toString()}"');
+  var firstLetter = '';
   if (letterPrefix) {
-    final letter = getMovieTitleFirstLetter(movieTitle.name);
-    return p.join(letter, outputName);
+    firstLetter = getMovieTitleFirstLetter(movieTitle.name);
   }
-  return outputName;
+  return p.join(outputFolder ?? '', firstLetter, '"${baseNameBuffer.toString()}"',
+      '"${fileNameBuffer.toString()}"');
 }
 
 int maxAudioKbRate(AudioTrack track, int defaultMaxKbRate) {

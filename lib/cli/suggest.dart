@@ -13,8 +13,8 @@ import '../src/cli/exceptions.dart';
 import '../src/cli/suggest.dart';
 
 class SuggestCommand extends Command {
-  static const String defaultOutputMovies = r'$MOVIES';
-  static const String defaultOutputTV = r'$TV';
+  static const String _defaultOutputMovies = r'$MOVIES';
+  static const String _defaultOutputTV = r'$TV';
 
   static const String flagDPL2 = 'dpl2';
   static const String flagExperimental = 'experimental';
@@ -40,8 +40,8 @@ class SuggestCommand extends Command {
 
     argParser.addOption(flagOutputFolder,
         abbr: 'o',
-        help: '''Base output folder. Defaults to "$defaultOutputMovies" when --media_type is
-${MediaType.movie.name} and "$defaultOutputTV" when --media_type is ${MediaType.tv.name}.''');
+        help: '''Base output folder. Defaults to "$_defaultOutputMovies" when --media_type is
+${MediaType.movie.name} and "$_defaultOutputTV" when --media_type is ${MediaType.tv.name}.''');
 
     argParser.addOption(flagTargetResolution,
         abbr: 't',
@@ -76,12 +76,22 @@ resolution of the input file. Will warn when trying to upconvert.''',
       throw const MissingRequiredArgumentException('filename');
     }
 
-    var opts = SuggestOptions.fromStrings(
+    final mediaType = argResults[flagMediaType] ?? MediaType.movie;
+    var outputFolder = argResults[flagOutputFolder];
+    if (outputFolder == null) {
+      if (mediaType == MediaType.movie) {
+        outputFolder = _defaultOutputMovies;
+      } else {
+        outputFolder = _defaultOutputTV;
+      }
+    }
+
+    final opts = SuggestOptions.fromStrings(
         force: argResults[flagForce],
         dpl2: argResults[flagDPL2],
         mediaType: argResults[flagMediaType],
         movieOutputLetterPrefix: argResults[flagMovieLetterPrefix],
-        outputFolder: argResults[flagOutputFolder],
+        outputFolder: outputFolder,
         targetResolution: argResults[flagTargetResolution]);
 
     var mediainfoRunner = MediainfoRunner(mediainfoBinary: globalResults?['mediainfo_bin']);
