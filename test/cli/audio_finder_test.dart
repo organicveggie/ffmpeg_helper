@@ -1,3 +1,4 @@
+// ignore: depend_on_referenced_packages
 import 'package:built_collection/built_collection.dart';
 import 'package:collection/collection.dart';
 import 'package:ffmpeg_helper/models.dart';
