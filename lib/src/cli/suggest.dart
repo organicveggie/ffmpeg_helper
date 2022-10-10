@@ -425,12 +425,12 @@ String makeOutputName(MovieTitle movieTitle, VideoTrack video) {
     fileNameBuffer.write(' - ${video.sizeName}');
   }
   if (video.isHDR) {
-    fileNameBuffer.write(' - HDR');
+    fileNameBuffer.write('-HDR');
   }
 
   fileNameBuffer.write('.mkv');
 
-  return p.join(baseNameBuffer.toString(), fileNameBuffer.toString());
+  return p.join('"${baseNameBuffer.toString()}"', '"${fileNameBuffer.toString()}"');
 }
 
 int maxAudioKbRate(AudioTrack track, int defaultMaxKbRate) {

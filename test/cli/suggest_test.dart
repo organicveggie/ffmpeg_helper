@@ -57,11 +57,11 @@ void main() {
                 ..year = '1981')
               .build(),
           vtH265UhdHdr);
-      expect(got, 'My Movie (1981)/My Movie (1981) - 2160p - HDR.mkv');
+      expect(got, '"My Movie (1981)"/"My Movie (1981) - 2160p-HDR.mkv"');
     });
     test('for UHD HDR without year', () {
       var got = makeOutputName((MovieTitleBuilder()..name = 'My Movie').build(), vtH265UhdHdr);
-      expect(got, 'My Movie/My Movie - 2160p - HDR.mkv');
+      expect(got, '"My Movie"/"My Movie - 2160p-HDR.mkv"');
     });
     test('for UHD SDR with year', () {
       var got = makeOutputName(
@@ -70,11 +70,11 @@ void main() {
                 ..year = '1981')
               .build(),
           vtH265UhdSdr);
-      expect(got, 'My Movie (1981)/My Movie (1981) - 2160p.mkv');
+      expect(got, '"My Movie (1981)"/"My Movie (1981) - 2160p.mkv"');
     });
     test('for UHD SDR without year', () {
       var got = makeOutputName((MovieTitleBuilder()..name = 'My Movie').build(), vtH265UhdSdr);
-      expect(got, 'My Movie/My Movie - 2160p.mkv');
+      expect(got, '"My Movie"/"My Movie - 2160p.mkv"');
     });
     test('for HD HDR with year', () {
       var got = makeOutputName(
@@ -83,11 +83,11 @@ void main() {
                 ..year = '1981')
               .build(),
           vtH265HdHdr);
-      expect(got, 'My Movie (1981)/My Movie (1981) - 1080p - HDR.mkv');
+      expect(got, '"My Movie (1981)"/"My Movie (1981) - 1080p-HDR.mkv"');
     });
     test('for HD HDR without year', () {
       var got = makeOutputName((MovieTitleBuilder()..name = 'My Movie').build(), vtH265HdHdr);
-      expect(got, 'My Movie/My Movie - 1080p - HDR.mkv');
+      expect(got, '"My Movie"/"My Movie - 1080p-HDR.mkv"');
     });
     test('for HD SDR with year', () {
       var got = makeOutputName(
@@ -96,11 +96,11 @@ void main() {
                 ..year = '1981')
               .build(),
           vtH265HdSdr);
-      expect(got, 'My Movie (1981)/My Movie (1981) - 1080p.mkv');
+      expect(got, '"My Movie (1981)"/"My Movie (1981) - 1080p.mkv"');
     });
     test('for HD SDR without year', () {
       var got = makeOutputName((MovieTitleBuilder()..name = 'My Movie').build(), vtH265HdSdr);
-      expect(got, 'My Movie/My Movie - 1080p.mkv');
+      expect(got, '"My Movie"/"My Movie - 1080p.mkv"');
     });
   });
 }
