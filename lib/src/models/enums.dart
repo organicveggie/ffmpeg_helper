@@ -1,20 +1,21 @@
 import 'package:json_annotation/json_annotation.dart';
 
 enum AudioFormat {
-  unknown(name: 'unknown', codec: 'unknown'),
-  trueHD(name: 'Dolby TrueHD', codec: 'unsupported'),
-  dtsHDMA(name: 'DTS-HD MA', codec: 'unsupported'),
-  dolbyDigitalPlus(name: 'Dolby Digital Plus', codec: 'eac3'),
-  dolbyDigital(name: 'Dolby Digital', codec: 'ac3'),
-  dtsX(name: 'DTS:X', codec: 'dts'),
-  dts(name: 'DTS', codec: 'dts'),
-  aacMulti(name: 'AAC multichannel', codec: 'aac'),
-  stereo(name: 'stereo', codec: 'aac'),
-  mono(name: 'mono', codec: 'aac');
+  unknown(name: 'unknown', codec: 'unknown', format: 'unknown'),
+  trueHD(name: 'Dolby TrueHD', codec: 'A_TRUEHD', format: 'MLP FBA'),
+  dtsHDMA(name: 'DTS-HD MA', codec: 'A_DTS', format: 'DTS'),
+  dolbyDigitalPlus(name: 'Dolby Digital Plus', codec: 'A_EAC3', format: 'A_EAC3'),
+  dolbyDigital(name: 'Dolby Digital', codec: 'A_AC3', format: 'A_AC3'),
+  dtsX(name: 'DTS:X', codec: 'A_DTS', format: 'DTS'),
+  dts(name: 'DTS', codec: 'A_DTS', format: 'DTS'),
+  aacMulti(name: 'AAC multichannel', codec: 'A_AAC-2', format: 'AAC'),
+  stereo(name: 'stereo', codec: 'A_AAC-2', format: 'AAC'),
+  mono(name: 'mono', codec: 'A_AAC-2', format: 'AAC');
 
-  const AudioFormat({required this.name, required this.codec});
+  const AudioFormat({required this.name, required this.codec, required this.format});
 
   final String codec;
+  final String format;
   final String name;
 
   @override

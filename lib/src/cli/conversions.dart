@@ -82,6 +82,7 @@ abstract class StreamDisposition
 abstract class ComplexFilter implements StreamOption, Built<ComplexFilter, ComplexFilterBuilder> {
   ComplexFilter._();
   factory ComplexFilter([void Function(ComplexFilterBuilder) updates]) = _$ComplexFilter;
+  factory ComplexFilter.fromFilter(String filter) => _$ComplexFilter._(filter: filter);
 
   String get filter;
 

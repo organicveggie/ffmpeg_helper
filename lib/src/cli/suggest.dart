@@ -1,10 +1,14 @@
+// ignore: depend_on_referenced_packages
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:ffmpeg_helper/models.dart';
-import 'package:ffmpeg_helper/src/cli/conversions.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 
+import '../../models/wrappers.dart' as wrappers;
+
+import '../cli/audio_finder.dart';
+import '../cli/conversions.dart';
 import 'exceptions.dart';
 
 part 'suggest.g.dart';
@@ -78,7 +82,8 @@ abstract class SuggestOptions implements Built<SuggestOptions, SuggestOptionsBui
 ////////////////////
 // Functions
 ////////////////////
-///
+
+/// Convert supported 2 or 3 character language abbreviations into ISO639-2.
 String langToISO639_2(String lang) {
   switch (lang) {
     case 'de':
@@ -125,9 +130,166 @@ String processFileExperimentalMode(SuggestOptions opts, String filename, TrackLi
   return buffer.toString();
 }
 
+List<StreamOption> processAudioTracks(SuggestOptions opts, BuiltList<AudioTrack> tracks) {
+  final log = Logger('processAudioTracks');
+
+  // Organize audio tracks by format and filter out any commentary tracks.
+  Map<AudioFormat, wrappers.AudioTrack> tracksByFormat = {};
+  for (int i = 0; i < tracks.length; i++) {
+    AudioTrack t = tracks[i];
+    if (t.title != null && t.title!.toLowerCase().contains('commentary')) {
+      continue;
+    }
+    var af = t.toAudioFormat();
+    tracksByFormat[af] = wrappers.AudioTrack(i, t);
+  }
+
+  var streamOpts = <StreamOption>[];
+
+  // Find the best audio source track for the main multichannel audio track.
+  var audioFinder = AudioFinder((af) => af..tracksByFormat.addAll(tracksByFormat));
+  var source = audioFinder.bestForEAC3();
+
+  if (source.format == AudioFormat.mono || source.format == AudioFormat.stereo) {
+    // No multichannel audio tracks available, so skip dealing with multichannel audio entirely
+    // and include only this track.
+    log.fine('Only available source is ${source.format.name}.');
+    streamOpts.addAll([
+      (StreamCopyBuilder()
+            ..trackType = TrackType.audio
+            ..inputFileId = 0
+            ..srcStreamId = source.orderId
+            ..dstStreamId = 0)
+          .build(),
+      (StreamDispositionBuilder()
+            ..trackType = TrackType.audio
+            ..streamId = 0
+            ..isDefault = true)
+          .build(),
+      (StreamMetadataBuilder()
+            ..trackType = TrackType.audio
+            ..streamId = 0
+            ..name = 'title'
+            ..value = 'AAC (${source.format.name})')
+          .build(),
+    ]);
+  } else {
+    // Multichannel audio tracks.
+    // First track should be Dolby Digital Plus or Dolby Digital, if possible.
+    // Prefer using a Dolby Digital Plus or Dolby Digital track as the source for the first track.
+    AudioFormat firstTrackFormat = AudioFormat.unknown;
+    if (source.format == AudioFormat.dolbyDigitalPlus ||
+        source.format == AudioFormat.dolbyDigital) {
+      firstTrackFormat = source.format;
+      log.fine('Copying ${source.format.name} (track #${source.orderId}) to track #0.');
+      streamOpts.add((StreamCopyBuilder()
+            ..trackType = TrackType.audio
+            ..inputFileId = 0
+            ..srcStreamId = source.orderId
+            ..dstStreamId = 0)
+          .build());
+    } else {
+      // Source track is not Dolby Digital Plus or Dolby Digital, so transcode.
+      streamOpts.add((AudioStreamConvertBuilder()
+            ..inputFileId = 0
+            ..srcStreamId = source.orderId
+            ..dstStreamId = 0
+            ..format = AudioFormat.dolbyDigitalPlus
+            ..channels = source.track.channels
+            ..kbRate = maxAudioKbRate(source.track, 384))
+          .build());
+    }
+    streamOpts.addAll([
+      (StreamDispositionBuilder()
+            ..trackType = TrackType.audio
+            ..streamId = 0
+            ..isDefault = true)
+          .build(),
+      (StreamMetadataBuilder()
+            ..trackType = TrackType.audio
+            ..streamId = 0
+            ..name = 'title'
+            ..value = firstTrackFormat.name)
+          .build(),
+    ]);
+
+    // Find the best audio source track for the multichannel AAC track.
+    source = audioFinder.bestForMultiChannelAAC();
+    if (source.format == AudioFormat.aacMulti) {
+      log.fine('Copying ${source.format.name} (track #${source.orderId}) to track #1.');
+      streamOpts.add((StreamCopyBuilder()
+            ..trackType = TrackType.audio
+            ..inputFileId = 0
+            ..srcStreamId = source.orderId
+            ..dstStreamId = 1)
+          .build());
+    } else {
+      int kbRate = maxAudioKbRate(source.track, 384);
+      int channels = (source.track.channels != null && source.track.channels! < 6)
+          ? source.track.channels!
+          : 6;
+      log.fine('Transcoding ${source.format.name} (track #${source.orderId}) '
+          'to AAC ($channels channels) $kbRate kbps as track #1.');
+      streamOpts.add((AudioStreamConvertBuilder()
+            ..inputFileId = 0
+            ..srcStreamId = source.orderId
+            ..dstStreamId = 1
+            ..format = AudioFormat.aacMulti
+            ..channels = channels
+            ..kbRate = kbRate)
+          .build());
+    }
+    streamOpts.addAll([
+      (StreamDispositionBuilder()
+            ..trackType = TrackType.audio
+            ..streamId = 1
+            ..isDefault = false)
+          .build(),
+      (StreamMetadataBuilder()
+            ..trackType = TrackType.audio
+            ..streamId = 1
+            ..name = 'title'
+            ..value = 'AAC (5.1)')
+          .build(),
+    ]);
+
+    // Dolby Pro Logic II
+    if (opts.generateDPL2) {
+      streamOpts.add(ComplexFilter.fromFilter('[0:a]aresample=matrix_encoding=dplii[a]'));
+      // Find the best audio source track for the Dolby Pro Logic II AAC track.
+      source = audioFinder.bestForDolbyProLogic2();
+      int kbRate = maxAudioKbRate(source.track, 256);
+      log.fine('Transcoding ${source.format.name} (track #${source.orderId}) to '
+          'AAC (Dolby Pro Logic II) $kbRate kbps as track #2.');
+      streamOpts.add((AudioStreamConvertBuilder()
+            ..inputFileId = 0
+            ..srcStreamId = source.orderId
+            ..dstStreamId = 2
+            ..format = AudioFormat.stereo
+            ..channels = 2
+            ..kbRate = kbRate)
+          .build());
+      streamOpts.addAll([
+        (StreamDispositionBuilder()
+              ..trackType = TrackType.audio
+              ..streamId = 2
+              ..isDefault = false)
+            .build(),
+        (StreamMetadataBuilder()
+              ..trackType = TrackType.audio
+              ..streamId = 2
+              ..name = 'title'
+              ..value = 'AAC (Dolby Pro Logic II)')
+            .build(),
+      ]);
+    }
+  }
+
+  return streamOpts;
+}
+
 List<StreamOption> processSubtitles(BuiltList<TextTrack> subtitles) {
   final log = Logger('processSubtitles');
-
   var streamOpts = <StreamOption>[];
 
   log.info('Analyzing ${subtitles.length} subtitle tracks...');
@@ -258,4 +420,13 @@ String makeOutputName(MovieTitle movieTitle, VideoTrack video) {
   fileNameBuffer.write('.mkv');
 
   return p.join(baseNameBuffer.toString(), fileNameBuffer.toString());
+}
+
+int maxAudioKbRate(AudioTrack track, int defaultMaxKbRate) {
+  if (track.bitRateLimit != null) {
+    int kbRateLimit = track.bitRateLimit! ~/ 1024;
+    return (kbRateLimit < defaultMaxKbRate) ? kbRateLimit : defaultMaxKbRate;
+  }
+
+  return defaultMaxKbRate;
 }

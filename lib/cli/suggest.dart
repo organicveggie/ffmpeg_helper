@@ -270,15 +270,6 @@ resolution of the input file. Will warn when trying to upconvert.''',
     return buffer.toString();
   }
 
-  int maxAudioKbRate(AudioTrack track, int defaultMaxKbRate) {
-    if (track.bitRateLimit != null) {
-      int kbRateLimit = track.bitRateLimit! ~/ 1024;
-      return (kbRateLimit < defaultMaxKbRate) ? kbRateLimit : defaultMaxKbRate;
-    }
-
-    return defaultMaxKbRate;
-  }
-
   String copyAudio(int srcStreamId, int destStreamId) =>
       '-map 0:a:$srcStreamId -c:a:$destStreamId copy \\';
 }
