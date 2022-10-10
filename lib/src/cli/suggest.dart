@@ -152,6 +152,8 @@ String processFile(SuggestOptions opts, String filename, TrackList tracks) {
 List<StreamOption> processAudioTracks(SuggestOptions opts, BuiltList<AudioTrack> tracks) {
   final log = Logger('processAudioTracks');
 
+  log.info('Analyzing ${tracks.length} audio tracks.');
+
   // Organize audio tracks by format and filter out any commentary tracks.
   Map<AudioFormat, wrappers.AudioTrack> tracksByFormat = {};
   for (int i = 0; i < tracks.length; i++) {
@@ -312,7 +314,7 @@ List<StreamOption> processSubtitles(BuiltList<TextTrack> subtitles) {
   final log = Logger('processSubtitles');
   var streamOpts = <StreamOption>[];
 
-  log.info('Analyzing ${subtitles.length} subtitle tracks...');
+  log.info('Analyzing ${subtitles.length} subtitle tracks.');
   var subLangs = Set.unmodifiable(['en', 'eng', 'es', 'esp', 'fr', 'fra', 'de', 'deu']);
   var destStreamId = 0;
   for (int i = 0; i < subtitles.length; i++) {
@@ -380,7 +382,7 @@ List<StreamOption> processVideoTrack(SuggestOptions opts, VideoTrack video) {
           ..dstStreamId = 0)
         .build());
   } else if (video.format == 'HEVC') {
-    log.info('Video already encoded with H.265. Copying to destination.');
+    log.info('Video already encoded with H.265.');
     streamOpts.add((StreamCopyBuilder()
           ..inputFileId = 0
           ..srcStreamId = 0

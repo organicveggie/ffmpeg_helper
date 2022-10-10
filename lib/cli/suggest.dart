@@ -102,6 +102,7 @@ resolution of the input file. Will warn when trying to upconvert.''',
         if (!f.existsSync()) {
           throw FileNotFoundException(file.path);
         }
+        log.info('Found file: ${f.path}');
 
         TrackList tracks = await getTrackList(mediainfoRunner, file.path);
         var suggestedCmdline = processFile(opts, file.path, tracks);
