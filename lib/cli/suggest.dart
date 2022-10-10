@@ -5,6 +5,8 @@ import 'dart:io';
 import 'package:args/command_runner.dart';
 import 'package:ffmpeg_helper/mediainfo_runner.dart';
 import 'package:ffmpeg_helper/models.dart';
+import 'package:glob/glob.dart';
+import 'package:glob/list_local_fs.dart';
 import 'package:logging/logging.dart';
 
 import '../src/cli/exceptions.dart';
@@ -77,22 +79,24 @@ resolution of the input file. Will warn when trying to upconvert.''',
 
     var mediainfoRunner = MediainfoRunner(mediainfoBinary: globalResults?['mediainfo_bin']);
 
-    for (var filename in argResults.rest) {
-      final f = File(filename);
-      if (!f.existsSync()) {
-        throw FileNotFoundException(filename);
+    for (var fileGlob in argResults.rest) {
+      for (var file in Glob(fileGlob).listSync()) {
+        final f = File(file.path);
+        if (!f.existsSync()) {
+          throw FileNotFoundException(file.path);
+        }
+
+        TrackList tracks = await getTrackList(mediainfoRunner, file.path);
+        var suggestedCmdline = processFile(opts, file.path, tracks);
+
+        print('Suggested commandline:');
+        print(suggestedCmdline);
       }
-
-      TrackList tracks = await getTrackList(mediainfoRunner, filename);
-      var suggestedCmdline = processFile(opts, filename, tracks);
-
-      print('Suggested commandline:');
-      print(suggestedCmdline);
     }
   }
 
   Future<TrackList> getTrackList(MediainfoRunner runner, String filename) async {
-    log.info('Running mediainfo...');
+    log.info('Running mediainfo on $filename...');
     MediaRoot root = await runner.run(filename);
     if (root.media.trackList.tracks.isEmpty) {
       throw InvalidMetadataException('no tracks found', filename);
