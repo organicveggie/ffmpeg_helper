@@ -115,13 +115,23 @@ String processFileExperimentalMode(SuggestOptions opts, String filename, TrackLi
   var subtitleStreamOpts = processSubtitles(tracks.textTracks.build());
   streamOptions.addAll(subtitleStreamOpts);
 
+  // Check audio tracks
+  var audioStreamOpts = processAudioTracks(opts, tracks.audioTracks.build());
+  streamOptions.addAll(audioStreamOpts);
+
   StringBuffer buffer = StringBuffer();
   buffer.writeln('ffmpeg -i $filename \\');
 
   var movieTitle = extractMovieTitle(filename);
+  streamOptions.add((GlobalMetadataBuilder()
+        ..name = 'title'
+        ..value = movieTitle.name)
+      .build());
+
   String outputFilename = makeOutputName(movieTitle, video);
 
   for (var opt in streamOptions) {
+    buffer.write('  ');
     buffer.write(opt.toString());
     buffer.writeln(' \\');
   }
