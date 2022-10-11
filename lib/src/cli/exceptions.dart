@@ -39,6 +39,16 @@ class MissingRequiredArgumentException extends CliException {
   String toString() => 'Missing required argument: $argument.';
 }
 
+class OutputFileExistsException extends CliException {
+  final String filename;
+  final String overwriteFileFlagName;
+  const OutputFileExistsException(this.filename, this.overwriteFileFlagName);
+
+  @override
+  String toString() =>
+      'Output file already exists: $filename. Use --$overwriteFileFlagName to overwrite the file.';
+}
+
 class UpscalingRequiredException extends CliException {
   final VideoResolution target;
   final int width;

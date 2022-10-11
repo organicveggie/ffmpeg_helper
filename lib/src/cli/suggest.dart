@@ -34,8 +34,10 @@ abstract class SuggestOptions implements Built<SuggestOptions, SuggestOptionsBui
   bool get forceUpscaling;
   bool get generateDPL2;
   bool get movieOutputLetterPrefix;
+  bool get overwriteOutputFile;
 
   MediaType get mediaType;
+  String? get outputFile;
   String? get outputFolder;
   VideoResolution? get targetResolution;
 
@@ -47,14 +49,18 @@ abstract class SuggestOptions implements Built<SuggestOptions, SuggestOptionsBui
       required bool dpl2,
       required MediaType mediaType,
       bool? movieOutputLetterPrefix,
+      String? outputFile,
       String? outputFolder,
+      bool? overwriteOutputFile,
       VideoResolution? targetResolution}) {
     return (SuggestOptionsBuilder()
           ..forceUpscaling = force
           ..generateDPL2 = dpl2
           ..mediaType = mediaType
           ..movieOutputLetterPrefix = movieOutputLetterPrefix
+          ..outputFile = outputFile
           ..outputFolder = outputFolder
+          ..overwriteOutputFile = overwriteOutputFile ?? false
           ..targetResolution = targetResolution)
         .build();
   }
@@ -84,7 +90,7 @@ String langToISO639_2(String lang) {
   }
 }
 
-String processFile(SuggestOptions opts, String filename, TrackList tracks) {
+BuiltList<String> processFile(SuggestOptions opts, String filename, TrackList tracks) {
   var streamOptions = <StreamOption>[];
 
   // Check video track
@@ -100,8 +106,8 @@ String processFile(SuggestOptions opts, String filename, TrackList tracks) {
   var audioStreamOpts = processAudioTracks(opts, tracks.audioTracks.build());
   streamOptions.addAll(audioStreamOpts);
 
-  StringBuffer buffer = StringBuffer();
-  buffer.writeln('ffmpeg -i $filename \\');
+  var buffer = <String>[];
+  buffer.add('ffmpeg -i $filename \\');
 
   var movieTitle = extractMovieTitle(filename);
   streamOptions.add((GlobalMetadataBuilder()
@@ -116,13 +122,11 @@ String processFile(SuggestOptions opts, String filename, TrackList tracks) {
       letterPrefix: opts.movieOutputLetterPrefix);
 
   for (var opt in streamOptions) {
-    buffer.write('  ');
-    buffer.write(opt.toString());
-    buffer.writeln(' \\');
+    buffer.add(' ${opt.toString()} \\');
   }
-  buffer.writeln(outputFilename);
+  buffer.add(outputFilename);
 
-  return buffer.toString();
+  return buffer.build();
 }
 
 List<StreamOption> processAudioTracks(SuggestOptions opts, BuiltList<AudioTrack> tracks) {

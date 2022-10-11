@@ -18,6 +18,8 @@ class SuggestCommand extends Command {
 
   static const String flagDPL2 = 'dpl2';
   static const String flagExperimental = 'experimental';
+  static const String flagFile = 'file';
+  static const String flagFileOverwrite = 'file_overwrite';
   static const String flagForce = 'force';
   static const String flagMediaType = 'media_type';
   static const String flagMovieLetterPrefix = 'output_movie_letter';
@@ -38,6 +40,11 @@ class SuggestCommand extends Command {
         allowed: MediaType.values.names(),
         defaultsTo: MediaType.movie.name);
 
+    argParser.addOption(flagFile,
+        abbr: 'f',
+        help: '''Write the suggested commandlines to the specified file instead of stdout. Will fail
+if the destination file already exists, unless --$flagFileOverwrite is specified.''');
+
     argParser.addOption(flagOutputFolder,
         abbr: 'o',
         help: '''Base output folder. Defaults to "$_defaultOutputMovies" when --media_type is
@@ -49,8 +56,10 @@ ${MediaType.movie.name} and "$_defaultOutputTV" when --media_type is ${MediaType
 resolution of the input file. Will warn when trying to upconvert.''',
         allowed: VideoResolution.namesAndAliases());
 
-    argParser.addFlag(flagForce,
-        abbr: 'f', help: 'Force upscaling.', defaultsTo: false, negatable: true);
+    argParser.addFlag(flagFileOverwrite,
+        help: 'Overwrite output file, if it exists.', defaultsTo: false, negatable: true);
+
+    argParser.addFlag(flagForce, help: 'Force upscaling.', defaultsTo: false, negatable: true);
 
     argParser.addFlag(flagDPL2,
         help: 'Generate Dolby Pro Logic II audio track.',
@@ -86,15 +95,31 @@ resolution of the input file. Will warn when trying to upconvert.''',
       }
     }
 
+    var outputFilename = argResults[flagFile];
+    var overwriteOutputFile = argResults[flagFileOverwrite];
+
+    if (argResults[flagFile] != null) {
+      var outputFile = File(outputFilename);
+      if (outputFile.existsSync() && !overwriteOutputFile) {
+        log.severe('Output file already exists: $outputFilename. Use --$flagFileOverwrite to '
+            'overwrite the file.');
+        return;
+      }
+    }
+
     final opts = SuggestOptions.fromStrings(
         force: argResults[flagForce],
         dpl2: argResults[flagDPL2],
         mediaType: mediaType,
         movieOutputLetterPrefix: argResults[flagMovieLetterPrefix],
+        outputFile: outputFilename,
         outputFolder: outputFolder,
+        overwriteOutputFile: overwriteOutputFile,
         targetResolution: VideoResolution.byNameOrAlias(argResults[flagTargetResolution]));
 
     var mediainfoRunner = MediainfoRunner(mediainfoBinary: globalResults?['mediainfo_bin']);
+
+    var output = makeOutputSink(opts);
 
     for (var fileGlob in argResults.rest) {
       for (var file in Glob(fileGlob).listSync()) {
@@ -107,10 +132,14 @@ resolution of the input file. Will warn when trying to upconvert.''',
         TrackList tracks = await getTrackList(mediainfoRunner, file.path);
         var suggestedCmdline = processFile(opts, file.path, tracks);
 
-        print('Suggested commandline:');
-        print(suggestedCmdline);
+        for (var line in suggestedCmdline) {
+          output.writeln(line);
+        }
+        output.writeln();
       }
     }
+
+    await output.close();
   }
 
   Future<TrackList> getTrackList(MediainfoRunner runner, String filename) async {
@@ -132,5 +161,17 @@ resolution of the input file. Will warn when trying to upconvert.''',
     }
 
     return tl;
+  }
+
+  IOSink makeOutputSink(SuggestOptions opts) {
+    if (opts.outputFile != null) {
+      var outputFile = File(opts.outputFile!);
+      if (outputFile.existsSync() && !opts.overwriteOutputFile) {
+        throw OutputFileExistsException(opts.outputFile!, flagFileOverwrite);
+      }
+      return outputFile.openWrite(mode: FileMode.writeOnly);
+    }
+
+    return stdout;
   }
 }
