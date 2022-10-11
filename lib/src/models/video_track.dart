@@ -61,11 +61,11 @@ class VideoTrack extends CodecIdTrack with EquatableMixin {
 
   String get sizeName {
     if (width == 1920) {
-      return "1080p";
+      return '1080p';
     } else if (width == 3840) {
-      return "2160p";
+      return '2160p';
     }
-    return "unknown";
+    return 'unknown';
   }
 
   @override

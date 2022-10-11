@@ -9,7 +9,7 @@ part 'general_track.g.dart';
 
 @JsonSerializable(fieldRename: FieldRename.pascal)
 class GeneralTrack extends Track with EquatableMixin {
-  @JsonKey(name: "UniqueID")
+  @JsonKey(name: 'UniqueID')
   final String? uniqueId;
   final String fileExtension;
   final String? format;

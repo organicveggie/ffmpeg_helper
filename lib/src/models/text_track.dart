@@ -17,7 +17,7 @@ class TextTrack extends Track with EquatableMixin {
   final int typeOrder;
   @JsonKey(name: 'ID')
   final String id;
-  @JsonKey(name: "UniqueID")
+  @JsonKey(name: 'UniqueID')
   final String? uniqueId;
 
   final String? format;

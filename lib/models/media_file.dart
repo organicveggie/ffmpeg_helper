@@ -14,7 +14,7 @@ abstract class MediaFile implements Built<MediaFile, MediaFileBuilder> {
       return null;
     }
     var bytes = sizeInBytes!;
-    const suffixes = ["b", "kb", "mb", "gb", "tb"];
+    const suffixes = ['b', 'kb', 'mb', 'gb', 'tb'];
     var i = (log(bytes) / log(1024)).floor();
     return ((bytes / pow(1024, i)).toStringAsFixed(decimals)) + suffixes[i];
   }

@@ -27,9 +27,9 @@ class SuggestCommand extends Command {
   static const String flagTargetResolution = 'target_resolution';
 
   @override
-  final name = "suggest";
+  final name = 'suggest';
   @override
-  final description = "Suggests commandline flags for ffmpeg.";
+  final description = 'Suggests commandline flags for ffmpeg.';
 
   final log = Logger('SuggestComment');
 

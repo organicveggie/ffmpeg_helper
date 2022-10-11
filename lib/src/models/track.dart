@@ -25,7 +25,7 @@ class CodecIdTrack extends Track with EquatableMixin {
   final String id;
   @JsonKey(name: 'CodecID')
   final String codecId;
-  @JsonKey(name: "UniqueID")
+  @JsonKey(name: 'UniqueID')
   final String? uniqueId;
 
   const CodecIdTrack(super.type, this.id, this.codecId, this.uniqueId);

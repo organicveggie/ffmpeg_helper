@@ -438,7 +438,7 @@ String makeOutputName(
   }
 
   final fileNameBuffer = StringBuffer(baseNameBuffer);
-  if (video.sizeName != "unknown") {
+  if (video.sizeName != 'unknown') {
     fileNameBuffer.write(' - ${video.sizeName}');
   }
   if (video.isHDR) {

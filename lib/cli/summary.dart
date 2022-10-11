@@ -12,9 +12,9 @@ class SummaryCommand extends Command {
   // The [name] and [description] properties must be defined by every
   // subclass.
   @override
-  final name = "summary";
+  final name = 'summary';
   @override
-  final description = "Show summary information about a media file.";
+  final description = 'Show summary information about a media file.';
 
   static const detailedFlagName = 'detailed';
 
