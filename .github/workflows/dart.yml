@@ -28,6 +28,9 @@ jobs:
       # Uncomment this step to verify the use of 'dart format' on each commit.
       # - name: Verify formatting
       #   run: dart format --output=none --set-exit-if-changed .
+      
+      - name: Run code generation with build_runner
+        run: flutter pub run build_runner
 
       # Consider passing '--fatal-infos' for slightly stricter analysis.
       - name: Analyze project source
