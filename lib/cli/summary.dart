@@ -253,6 +253,7 @@ class SummaryCommand extends Command {
         fp.writeln('');
       }
     }
+    // ignore: avoid_print
     print(buffer.toString());
   }
 

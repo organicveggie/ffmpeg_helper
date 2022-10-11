@@ -12,6 +12,7 @@ import 'models/media_file.dart';
 
 void main() {
   Logger.root.onRecord.listen((record) {
+    // ignore: avoid_print
     print('${record.level.name}: ${record.time}: ${record.message}');
   });
   Logger.root.level = Level.ALL;
@@ -268,7 +269,7 @@ class MediaInfoPanel extends StatelessWidget {
     return DataRow(cells: <DataCell>[
       DataCell(Row(children: const <Widget>[Icon(Icons.subtitles), Text('Subtitle')])),
       DataCell(Text(t.format ?? 'unknown')),
-      DataCell(Text(t.language ?? 'unk')),
+      DataCell(Text(t.language)),
       DataCell(Text(notes.join(', '))),
     ]);
   }
