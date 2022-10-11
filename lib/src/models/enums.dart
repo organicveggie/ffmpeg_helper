@@ -1,5 +1,28 @@
 import 'package:json_annotation/json_annotation.dart';
 
+extension EnumAllNames<T extends Enum> on Iterable<T> {
+  // ignore: unnecessary_this
+  Iterable<String> names() => this.asNameMap().keys;
+}
+
+extension EnumByNameOrNull<T extends Enum> on Iterable<T> {
+  T? byNameNullable(String? name) {
+    for (var value in this) {
+      if (value.name == name) return value;
+    }
+    return null;
+  }
+}
+
+extension EnumByNameWithDefault<T extends Enum> on Iterable<T> {
+  T byNameDefault(String name, T defaultValue) {
+    for (var value in this) {
+      if (value.name == name) return value;
+    }
+    return defaultValue;
+  }
+}
+
 enum AudioFormat {
   unknown(name: 'unknown', codec: 'unknown', format: 'unknown'),
   trueHD(name: 'Dolby TrueHD', codec: 'A_TRUEHD', format: 'MLP FBA'),
@@ -51,8 +74,6 @@ enum BitRateMode {
 enum MediaType {
   movie,
   tv;
-
-  static Iterable<String> names() => MediaType.values.map((v) => v.name);
 }
 
 @JsonEnum(fieldRename: FieldRename.pascal)
@@ -69,15 +90,14 @@ enum TrackType {
 }
 
 enum VideoResolution {
-  hd(['1080', '1080p']),
-  uhd(['4k', '2160', '2160p']);
+  hd({'1080', '1080p'}),
+  uhd({'4k', '2160', '2160p'});
 
-  final List<String> aliases;
+  final Set<String> aliases;
 
   const VideoResolution(this.aliases);
 
-  static Iterable<String> names() => VideoResolution.values.map((v) => v.name);
-  static Iterable<String> allNames() {
+  static Iterable<String> namesAndAliases() {
     var all = <String>[];
     for (var v in VideoResolution.values) {
       all.add(v.name);
@@ -85,5 +105,14 @@ enum VideoResolution {
     }
     all.sort();
     return all;
+  }
+
+  static VideoResolution? byNameOrAlias(String? name) {
+    for (var v in values) {
+      if (v.name == name || v.aliases.contains(name)) {
+        return v;
+      }
+    }
+    return null;
   }
 }

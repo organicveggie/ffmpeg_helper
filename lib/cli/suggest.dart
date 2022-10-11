@@ -35,7 +35,7 @@ class SuggestCommand extends Command {
     argParser.addOption(flagMediaType,
         abbr: 'm',
         help: 'Type of media file. Controls output naming behavior.',
-        allowed: MediaType.names(),
+        allowed: MediaType.values.names(),
         defaultsTo: MediaType.movie.name);
 
     argParser.addOption(flagOutputFolder,
@@ -47,7 +47,7 @@ ${MediaType.movie.name} and "$_defaultOutputTV" when --media_type is ${MediaType
         abbr: 't',
         help: '''Target video resolution for the output file. Defaults to matching the
 resolution of the input file. Will warn when trying to upconvert.''',
-        allowed: VideoResolution.allNames());
+        allowed: VideoResolution.namesAndAliases());
 
     argParser.addFlag(flagForce,
         abbr: 'f', help: 'Force upscaling.', defaultsTo: false, negatable: true);
@@ -76,7 +76,7 @@ resolution of the input file. Will warn when trying to upconvert.''',
       throw const MissingRequiredArgumentException('filename');
     }
 
-    final mediaType = argResults[flagMediaType] ?? MediaType.movie;
+    final mediaType = MediaType.values.byNameDefault(argResults[flagMediaType], MediaType.movie);
     var outputFolder = argResults[flagOutputFolder];
     if (outputFolder == null) {
       if (mediaType == MediaType.movie) {
@@ -89,10 +89,10 @@ resolution of the input file. Will warn when trying to upconvert.''',
     final opts = SuggestOptions.fromStrings(
         force: argResults[flagForce],
         dpl2: argResults[flagDPL2],
-        mediaType: argResults[flagMediaType],
+        mediaType: mediaType,
         movieOutputLetterPrefix: argResults[flagMovieLetterPrefix],
         outputFolder: outputFolder,
-        targetResolution: argResults[flagTargetResolution]);
+        targetResolution: VideoResolution.byNameOrAlias(argResults[flagTargetResolution]));
 
     var mediainfoRunner = MediainfoRunner(mediainfoBinary: globalResults?['mediainfo_bin']);
 

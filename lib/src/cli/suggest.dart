@@ -13,30 +13,6 @@ import 'exceptions.dart';
 
 part 'suggest.g.dart';
 
-extension MediaTypeParsing on String {
-  MediaType parseMediaType() {
-    var lower = toLowerCase();
-    for (var mt in MediaType.values) {
-      if (lower == mt.name) {
-        return mt;
-      }
-    }
-    throw ArgParsingFailedException('MediaType', this);
-  }
-}
-
-extension VideoResolutionParsing on String {
-  VideoResolution parseVideoResolution() {
-    var lower = toLowerCase();
-    for (var v in VideoResolution.values) {
-      if ((lower == v.name) || (v.aliases.contains(lower))) {
-        return v;
-      }
-    }
-    throw ArgParsingFailedException('VideoResolution', this);
-  }
-}
-
 ////////////////////
 // Data Models
 ////////////////////
@@ -69,17 +45,17 @@ abstract class SuggestOptions implements Built<SuggestOptions, SuggestOptionsBui
   factory SuggestOptions.fromStrings(
       {required bool force,
       required bool dpl2,
-      required String mediaType,
+      required MediaType mediaType,
       bool? movieOutputLetterPrefix,
       String? outputFolder,
-      String? targetResolution}) {
+      VideoResolution? targetResolution}) {
     return (SuggestOptionsBuilder()
           ..forceUpscaling = force
           ..generateDPL2 = dpl2
-          ..mediaType = mediaType.parseMediaType()
+          ..mediaType = mediaType
           ..movieOutputLetterPrefix = movieOutputLetterPrefix
           ..outputFolder = outputFolder
-          ..targetResolution = targetResolution?.parseVideoResolution())
+          ..targetResolution = targetResolution)
         .build();
   }
 }
