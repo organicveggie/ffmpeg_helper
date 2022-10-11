@@ -17,12 +17,8 @@ void main() {
   const VideoTrack vtH264UhdHdr =
       VideoTrack.create('3', 'avc1', '4', '3', null, 'AVC', 3840, 2160, null, null);
 
-  final defaultOptions = (SuggestOptionsBuilder()
-        ..forceUpscaling = false
-        ..generateDPL2 = false
-        ..mediaType = MediaType.movie
-        ..targetResolution = VideoResolution.uhd)
-      .build();
+  final defaultOptions = SuggestOptions.withDefaults(
+      force: false, dpl2: false, mediaType: MediaType.movie, targetResolution: VideoResolution.uhd);
 
   final defaultVideoStreamConverter = (VideoStreamConvertBuilder()
         ..inputFileId = 0

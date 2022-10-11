@@ -6,12 +6,8 @@ import 'package:ffmpeg_helper/src/cli/suggest.dart';
 import 'package:test/test.dart';
 
 void main() {
-  final defaultOptions = (SuggestOptionsBuilder()
-        ..forceUpscaling = false
-        ..generateDPL2 = false
-        ..mediaType = MediaType.movie
-        ..targetResolution = VideoResolution.uhd)
-      .build();
+  final defaultOptions = SuggestOptions.withDefaults(
+      force: false, dpl2: false, mediaType: MediaType.movie, targetResolution: VideoResolution.uhd);
 
   final convertAacMulti = (AudioStreamConvertBuilder()
         ..inputFileId = 0

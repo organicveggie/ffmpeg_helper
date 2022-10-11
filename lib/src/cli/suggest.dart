@@ -44,7 +44,7 @@ abstract class SuggestOptions implements Built<SuggestOptions, SuggestOptionsBui
   SuggestOptions._();
   factory SuggestOptions([void Function(SuggestOptionsBuilder) updates]) = _$SuggestOptions;
 
-  factory SuggestOptions.fromStrings(
+  factory SuggestOptions.withDefaults(
       {required bool force,
       required bool dpl2,
       required MediaType mediaType,
@@ -57,7 +57,7 @@ abstract class SuggestOptions implements Built<SuggestOptions, SuggestOptionsBui
           ..forceUpscaling = force
           ..generateDPL2 = dpl2
           ..mediaType = mediaType
-          ..movieOutputLetterPrefix = movieOutputLetterPrefix
+          ..movieOutputLetterPrefix = movieOutputLetterPrefix ?? false
           ..outputFile = outputFile
           ..outputFolder = outputFolder
           ..overwriteOutputFile = overwriteOutputFile ?? false

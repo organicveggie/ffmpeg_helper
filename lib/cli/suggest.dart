@@ -107,7 +107,7 @@ resolution of the input file. Will warn when trying to upconvert.''',
       }
     }
 
-    final opts = SuggestOptions.fromStrings(
+    final opts = SuggestOptions.withDefaults(
         force: argResults[flagForce],
         dpl2: argResults[flagDPL2],
         mediaType: mediaType,
