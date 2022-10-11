@@ -30,7 +30,7 @@ jobs:
       #   run: dart format --output=none --set-exit-if-changed .
       
       - name: Run code generation with build_runner
-        run: flutter pub run build_runner
+        run: flutter pub run build_runner build
 
       # Consider passing '--fatal-infos' for slightly stricter analysis.
       - name: Analyze project source
