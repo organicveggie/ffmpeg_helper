@@ -8,7 +8,7 @@ import 'package:test/test.dart';
 void main() {
   group('Process Subtitles', () {
     test('two total, one supported', () {
-      var tracks = <TextTrack>[
+      const tracks = <TextTrack>[
         TextTrack.fromParams(typeOrder: 0, id: '0', language: 'eng', isDefault: true),
         TextTrack.fromParams(typeOrder: 1, id: '1', language: 'czh'),
       ];
@@ -38,11 +38,17 @@ void main() {
           ]));
     });
     test('three total, two supported', () {
-      var tracks = <TextTrack>[
+      const tracks = <TextTrack>[
         TextTrack.fromParams(typeOrder: 0, id: '0', language: 'eng', isDefault: true),
         TextTrack.fromParams(typeOrder: 1, id: '1', language: 'czh'),
-        const TextTrack(
-            TrackType.text, 2, '2', '2', null, 'CC', 'es', false, false, 'UTF-8', 'S_TEXT/UTF8'),
+        TextTrack.fromParams(
+            typeOrder: 2,
+            id: '2',
+            uniqueId: '2',
+            title: 'CC',
+            language: 'es',
+            format: 'UTF-8',
+            codecId: 'S_TEXT/UTF8'),
       ];
       var opts = processSubtitles(tracks.build());
       expect(opts.length, 6);
