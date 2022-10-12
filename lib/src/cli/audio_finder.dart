@@ -1,9 +1,8 @@
 // ignore: depend_on_referenced_packages
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
-import 'package:ffmpeg_helper/models/wrappers.dart' as wrappers;
+import 'package:ffmpeg_helper/models.dart';
 
-import '../models/enums.dart';
 import 'exceptions.dart';
 
 part 'audio_finder.g.dart';
@@ -12,10 +11,10 @@ abstract class AudioFinder implements Built<AudioFinder, AudioFinderBuilder> {
   AudioFinder._();
   factory AudioFinder([void Function(AudioFinderBuilder) updates]) = _$AudioFinder;
 
-  BuiltMap<AudioFormat, wrappers.AudioTrack> get tracksByFormat;
+  BuiltMap<AudioFormat, AudioTrackWrapper> get tracksByFormat;
 
   /// Finds the best source audio track for outputting E-AC3 (Dolby Digital or Dolby Digital Plus).
-  wrappers.AudioTrack bestForEAC3() {
+  AudioTrackWrapper bestForEAC3() {
     // Prefer DD+ or DD, since we can just copy them.
     if (tracksByFormat.containsKey(AudioFormat.dolbyDigitalPlus)) {
       return tracksByFormat[AudioFormat.dolbyDigitalPlus]!;
@@ -63,7 +62,7 @@ abstract class AudioFinder implements Built<AudioFinder, AudioFinderBuilder> {
   }
 
   /// Finds the best source audio track for multi-channel AAC output.
-  wrappers.AudioTrack bestForMultiChannelAAC() {
+  AudioTrackWrapper bestForMultiChannelAAC() {
     // Use existing multi-channel AAC track, if it exists.
     // TODO: check bitrates
     if (tracksByFormat.containsKey(AudioFormat.aacMulti)) {
@@ -103,7 +102,7 @@ abstract class AudioFinder implements Built<AudioFinder, AudioFinderBuilder> {
     throw MissingAudioSourceException('AAC multichannel', tracksByFormat.keys.toList());
   }
 
-  wrappers.AudioTrack bestForDolbyProLogic2() {
+  AudioTrackWrapper bestForDolbyProLogic2() {
     // If we have lossless formats, choose one of those.
     if (tracksByFormat.containsKey(AudioFormat.trueHD)) {
       return tracksByFormat[AudioFormat.trueHD]!;

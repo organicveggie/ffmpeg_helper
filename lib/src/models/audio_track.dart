@@ -1,3 +1,4 @@
+import 'package:built_value/built_value.dart';
 import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -205,5 +206,16 @@ class AudioTrack extends CodecIdTrack with EquatableMixin {
       return true;
     }
     return false;
+  }
+}
+
+abstract class AudioTrackWrapper implements Built<AudioTrackWrapper, AudioTrackWrapperBuilder> {
+  AudioFormat get format;
+  AudioTrack get track;
+  int get orderId;
+
+  AudioTrackWrapper._();
+  factory AudioTrackWrapper(int orderId, AudioTrack track) {
+    return _$AudioTrackWrapper._(format: track.toAudioFormat(), track: track, orderId: orderId);
   }
 }

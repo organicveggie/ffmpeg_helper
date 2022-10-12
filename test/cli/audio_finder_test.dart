@@ -2,13 +2,12 @@
 import 'package:built_collection/built_collection.dart';
 import 'package:collection/collection.dart';
 import 'package:ffmpeg_helper/models.dart';
-import 'package:ffmpeg_helper/models/wrappers.dart' as wrappers;
 import 'package:ffmpeg_helper/src/cli/audio_finder.dart';
 import 'package:test/test.dart';
 
 class AudioFinderTest {
   final String name;
-  final BuiltMap<AudioFormat, wrappers.AudioTrack> trackMap;
+  final BuiltMap<AudioFormat, AudioTrackWrapper> trackMap;
   final AudioFormat expectedFormat;
 
   AudioFinderTest(this.name, this.expectedFormat, this.trackMap);
@@ -17,9 +16,9 @@ class AudioFinderTest {
       {required String name,
       required AudioFormat expected,
       required BuiltList<AudioTrack> tracks}) {
-    var trackMap = <AudioFormat, wrappers.AudioTrack>{};
+    var trackMap = <AudioFormat, AudioTrackWrapper>{};
     tracks.forEachIndexed((i, t) {
-      trackMap[t.toAudioFormat()] = wrappers.AudioTrack(i, t);
+      trackMap[t.toAudioFormat()] = AudioTrackWrapper(i, t);
     });
 
     return AudioFinderTest(name, expected, trackMap.build());

@@ -5,8 +5,6 @@ import 'package:ffmpeg_helper/models.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 
-import '../../models/wrappers.dart' as wrappers;
-
 import '../cli/audio_finder.dart';
 import '../cli/conversions.dart';
 import 'exceptions.dart';
@@ -135,14 +133,14 @@ List<StreamOption> processAudioTracks(SuggestOptions opts, BuiltList<AudioTrack>
   log.info('Analyzing ${tracks.length} audio tracks.');
 
   // Organize audio tracks by format and filter out any commentary tracks.
-  Map<AudioFormat, wrappers.AudioTrack> tracksByFormat = {};
+  Map<AudioFormat, AudioTrackWrapper> tracksByFormat = {};
   for (int i = 0; i < tracks.length; i++) {
     AudioTrack t = tracks[i];
     if (t.title != null && t.title!.toLowerCase().contains('commentary')) {
       continue;
     }
     var af = t.toAudioFormat();
-    tracksByFormat[af] = wrappers.AudioTrack(i, t);
+    tracksByFormat[af] = AudioTrackWrapper(i, t);
   }
 
   var streamOpts = <StreamOption>[];
