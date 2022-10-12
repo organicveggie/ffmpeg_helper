@@ -37,18 +37,18 @@ class VideoTrack extends CodecIdTrack with EquatableMixin {
       this.hdrFormat,
       this.hdrFormatCompatibility);
 
-  const VideoTrack.create(
-      String id,
-      String codecId,
-      String? uniqueId,
-      String streamOrder,
-      Map<String, String>? extra,
-      String format,
-      int width,
-      int height,
-      String? hdrFormat,
-      String? hdrFormatCompatibility)
-      : this(TrackType.video, id, codecId, uniqueId, streamOrder, extra, format, width, height,
+  const VideoTrack.createFromParams({
+    required String codecId,
+    required String format,
+    required int height,
+    required String id,
+    required String streamOrder,
+    required int width,
+    Map<String, String>? extra,
+    String? hdrFormat,
+    String? hdrFormatCompatibility,
+    String? uniqueId,
+  }) : this(TrackType.video, id, codecId, uniqueId, streamOrder, extra, format, width, height,
             hdrFormat, hdrFormatCompatibility);
 
   factory VideoTrack.fromJson(Map<String, dynamic> json) => _$VideoTrackFromJson(json);

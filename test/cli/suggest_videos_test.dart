@@ -5,17 +5,49 @@ import 'package:ffmpeg_helper/src/cli/suggest.dart';
 import 'package:test/test.dart';
 
 void main() {
-  const VideoTrack vtH265HdSdr =
-      VideoTrack.create('0', 'V_MPEGH/ISO/HEVC', '1', '0', null, 'HEVC', 1920, 1080, null, null);
+  const VideoTrack vtH265HdSdr = VideoTrack.createFromParams(
+    codecId: 'V_MPEGH/ISO/HEVC',
+    format: 'HEVC',
+    height: 1080,
+    id: '0',
+    streamOrder: '0',
+    uniqueId: '1',
+    width: 1920,
+  );
 
-  const VideoTrack vtH265UhdHdr = VideoTrack.create(
-      '1', 'V_MPEGH/ISO/HEVC', '2', '1', null, 'HEVC', 3840, 2160, 'SMPTE ST 2086', 'HDR10');
+  const VideoTrack vtH265UhdHdr = VideoTrack.createFromParams(
+    codecId: 'V_MPEGH/ISO/HEVC',
+    format: 'HEVC',
+    hdrFormat: 'SMPTE ST 2086',
+    hdrFormatCompatibility: 'HDR10',
+    height: 2160,
+    id: '1',
+    streamOrder: '1',
+    uniqueId: '2',
+    width: 3840,
+  );
 
-  const VideoTrack vtH264HdSdr =
-      VideoTrack.create('2', 'avc1', '3', '2', null, 'AVC', 1920, 1080, null, null);
+  const VideoTrack vtH264HdSdr = VideoTrack.createFromParams(
+    codecId: 'avc1',
+    format: 'AVC',
+    height: 1080,
+    id: '2',
+    streamOrder: '2',
+    uniqueId: '3',
+    width: 1920,
+  );
 
-  const VideoTrack vtH264UhdHdr =
-      VideoTrack.create('3', 'avc1', '4', '3', null, 'AVC', 3840, 2160, null, null);
+  const VideoTrack vtH264UhdHdr = VideoTrack.createFromParams(
+    codecId: 'avc1',
+    format: 'AVC',
+    hdrFormat: 'SMPTE ST 2086',
+    hdrFormatCompatibility: 'HDR10',
+    height: 2160,
+    id: '3',
+    streamOrder: '3',
+    uniqueId: '4',
+    width: 3840,
+  );
 
   final defaultOptions = SuggestOptions.withDefaults(
       force: false, dpl2: false, mediaType: MediaType.movie, targetResolution: VideoResolution.uhd);

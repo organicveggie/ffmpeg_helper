@@ -67,13 +67,7 @@ class AudioTrack extends CodecIdTrack with EquatableMixin {
       this.bitRateMax,
       this.compressionMode);
 
-  factory AudioTrack.fromJson(Map<String, dynamic> json) => _$AudioTrackFromJson(json);
-  factory AudioTrack.fromMinimal(
-      String id, int typeOrder, String streamOrder, String codecId, String format, int channels) {
-    return AudioTrack(TrackType.audio, id, codecId, null, typeOrder, streamOrder, null, format,
-        null, null, channels, null, null, null, false, false, null, null, null, null, null);
-  }
-  factory AudioTrack.fromParams(
+  const AudioTrack.fromParams(
       {required String id,
       required String codecId,
       String? uniqueId,
@@ -93,30 +87,31 @@ class AudioTrack extends CodecIdTrack with EquatableMixin {
       int? bitRate,
       BitRateMode? bitRateMode,
       int? bitRateMax,
-      String? compressionMode}) {
-    return AudioTrack(
-        TrackType.audio,
-        id,
-        codecId,
-        uniqueId,
-        typeOrder,
-        streamOrder,
-        extra,
-        format,
-        formatCommercialName,
-        formatAdditionalFeatures,
-        channels,
-        channelPositions,
-        channelLayout,
-        title,
-        isDefault,
-        isForced,
-        language,
-        bitRate,
-        bitRateMode,
-        bitRateMax,
-        compressionMode);
-  }
+      String? compressionMode})
+      : this(
+            TrackType.audio,
+            id,
+            codecId,
+            uniqueId,
+            typeOrder,
+            streamOrder,
+            extra,
+            format,
+            formatCommercialName,
+            formatAdditionalFeatures,
+            channels,
+            channelPositions,
+            channelLayout,
+            title,
+            isDefault,
+            isForced,
+            language,
+            bitRate,
+            bitRateMode,
+            bitRateMax,
+            compressionMode);
+
+  factory AudioTrack.fromJson(Map<String, dynamic> json) => _$AudioTrackFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$AudioTrackToJson(this);

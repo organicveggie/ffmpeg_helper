@@ -32,13 +32,21 @@ class TextTrack extends Track with EquatableMixin {
   const TextTrack(super.type, this.typeOrder, this.id, this.uniqueId, this.extra, this.title,
       this.language, this.isDefault, this.isForced, this.format, this.codecId);
 
-  factory TextTrack.fromJson(Map<String, dynamic> json) => _$TextTrackFromJson(json);
+  const TextTrack.fromParams(
+      {required int typeOrder,
+      required String id,
+      required String language,
+      bool isDefault = false,
+      bool isForced = false,
+      String? codecId,
+      Map<String, String>? extra,
+      String? format,
+      String? title,
+      String? uniqueId})
+      : this(TrackType.text, typeOrder, id, uniqueId, extra, title, language, isDefault, isForced,
+            format, codecId);
 
-  factory TextTrack.fromMinimum(
-      int typeOrder, String id, String language, bool isDefault, bool isForced) {
-    return TextTrack(
-        TrackType.text, typeOrder, id, null, null, null, language, isDefault, isForced, null, null);
-  }
+  factory TextTrack.fromJson(Map<String, dynamic> json) => _$TextTrackFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$TextTrackToJson(this);

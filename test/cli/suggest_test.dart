@@ -4,17 +4,49 @@ import 'package:test/test.dart';
 import 'package:tuple/tuple.dart';
 
 void main() {
-  const VideoTrack vtH265HdHdr = VideoTrack.create(
-      '0', 'V_MPEGH/ISO/HEVC', '1', '0', null, 'HEVC', 1920, 1080, 'SMPTE ST 2086', 'HDR10');
+  const VideoTrack vtH265HdHdr = VideoTrack.createFromParams(
+    codecId: 'V_MPEGH/ISO/HEVC',
+    format: 'HEVC',
+    hdrFormat: 'SMPTE ST 2086',
+    hdrFormatCompatibility: 'HDR10',
+    height: 1080,
+    id: '0',
+    streamOrder: '0',
+    uniqueId: '1',
+    width: 1920,
+  );
 
-  const VideoTrack vtH265HdSdr =
-      VideoTrack.create('0', 'V_MPEGH/ISO/HEVC', '1', '0', null, 'HEVC', 1920, 1080, null, null);
+  const VideoTrack vtH265HdSdr = VideoTrack.createFromParams(
+    codecId: 'V_MPEGH/ISO/HEVC',
+    format: 'HEVC',
+    height: 1080,
+    id: '0',
+    streamOrder: '0',
+    uniqueId: '1',
+    width: 1920,
+  );
 
-  const VideoTrack vtH265UhdHdr = VideoTrack.create(
-      '1', 'V_MPEGH/ISO/HEVC', '2', '1', null, 'HEVC', 3840, 2160, 'SMPTE ST 2086', 'HDR10');
+  const VideoTrack vtH265UhdHdr = VideoTrack.createFromParams(
+    codecId: 'V_MPEGH/ISO/HEVC',
+    format: 'HEVC',
+    hdrFormat: 'SMPTE ST 2086',
+    hdrFormatCompatibility: 'HDR10',
+    height: 2160,
+    id: '1',
+    streamOrder: '1',
+    uniqueId: '2',
+    width: 3840,
+  );
 
-  const VideoTrack vtH265UhdSdr =
-      VideoTrack.create('1', 'V_MPEGH/ISO/HEVC', '2', '1', null, 'HEVC', 3840, 2160, null, null);
+  const VideoTrack vtH265UhdSdr = VideoTrack.createFromParams(
+    codecId: 'V_MPEGH/ISO/HEVC',
+    format: 'HEVC',
+    height: 2160,
+    id: '1',
+    streamOrder: '1',
+    uniqueId: '2',
+    width: 3840,
+  );
 
   group('Extract movie title', () {
     test('from full pathname with periods but without year', () {

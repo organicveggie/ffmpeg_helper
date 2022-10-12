@@ -9,8 +9,8 @@ void main() {
   group('Process Subtitles', () {
     test('two total, one supported', () {
       var tracks = <TextTrack>[
-        TextTrack.fromMinimum(0, '0', 'eng', true, false),
-        TextTrack.fromMinimum(1, '1', 'czh', false, false),
+        TextTrack.fromParams(typeOrder: 0, id: '0', language: 'eng', isDefault: true),
+        TextTrack.fromParams(typeOrder: 1, id: '1', language: 'czh'),
       ];
       var opts = processSubtitles(tracks.build());
       expect(opts.length, 3);
@@ -39,8 +39,8 @@ void main() {
     });
     test('three total, two supported', () {
       var tracks = <TextTrack>[
-        TextTrack.fromMinimum(0, '0', 'eng', true, false),
-        TextTrack.fromMinimum(1, '1', 'czh', false, false),
+        TextTrack.fromParams(typeOrder: 0, id: '0', language: 'eng', isDefault: true),
+        TextTrack.fromParams(typeOrder: 1, id: '1', language: 'czh'),
         const TextTrack(
             TrackType.text, 2, '2', '2', null, 'CC', 'es', false, false, 'UTF-8', 'S_TEXT/UTF8'),
       ];
