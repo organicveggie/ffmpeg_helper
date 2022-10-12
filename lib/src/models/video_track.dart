@@ -60,12 +60,21 @@ class VideoTrack extends CodecIdTrack with EquatableMixin {
   String get hdrName => isHDR ? 'HDR' : 'SDR';
 
   String get sizeName {
-    if (width == 1920) {
+    if (width == 1920 || height <= 1080) {
       return '1080p';
-    } else if (width == 3840) {
+    } else if (width == 3840 || height <= 2160) {
       return '2160p';
     }
     return 'unknown';
+  }
+
+  VideoResolution? get videoResolution {
+    if (width == 1920 || height <= 1080) {
+      return VideoResolution.hd;
+    } else if (width == 3840 || height <= 2160) {
+      return VideoResolution.uhd;
+    }
+    return null;
   }
 
   @override

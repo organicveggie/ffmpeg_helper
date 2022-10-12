@@ -454,6 +454,30 @@ String makeOutputName(
       '"${fileNameBuffer.toString()}"');
 }
 
+String makeTvOutputName(
+    {required TvEpisode episode, required VideoTrack video, String? outputFolder}) {
+  StringBuffer buffer = StringBuffer(episode.asFullName());
+
+  if ((video.videoResolution == VideoResolution.uhd || video.isHDR)) {
+    buffer.write(' - [');
+    if (video.videoResolution == VideoResolution.uhd) {
+      buffer.write(video.sizeName);
+      if (video.isHDR) {
+        buffer.write(' ');
+      }
+    }
+    if (video.isHDR) {
+      buffer.write('HDR');
+    }
+    buffer.write(']');
+  }
+  buffer.write('.mkv');
+
+  var season = 'season${episode.season}';
+
+  return p.join('"${episode.series.asFullName()}"', season, '"${buffer.toString()}"');
+}
+
 int maxAudioKbRate(AudioTrack track, int defaultMaxKbRate) {
   if (track.bitRateLimit != null) {
     int kbRateLimit = track.bitRateLimit! ~/ 1024;

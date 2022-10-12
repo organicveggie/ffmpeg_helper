@@ -174,4 +174,32 @@ void main() {
       });
     }
   });
+
+  group('makeTvOutputName', () {
+    final series = (TvSeriesBuilder()
+          ..name = 'Another TV Series'
+          ..year = '1986')
+        .build();
+    final episode = (TvEpisodeBuilder()
+          ..series.replace(series)
+          ..season = 1
+          ..episodeNumber = 3)
+        .build();
+    test('1080p SDR', () {
+      expect(makeTvOutputName(episode: episode, video: vtH265HdSdr),
+          '"Another TV Series (1986)"/season1/"Another TV Series (1986) - s01e03.mkv"');
+    });
+    test('1080p HDR', () {
+      expect(makeTvOutputName(episode: episode, video: vtH265HdHdr),
+          '"Another TV Series (1986)"/season1/"Another TV Series (1986) - s01e03 - [HDR].mkv"');
+    });
+    test('4k SDR', () {
+      expect(makeTvOutputName(episode: episode, video: vtH265UhdSdr),
+          '"Another TV Series (1986)"/season1/"Another TV Series (1986) - s01e03 - [2160p].mkv"');
+    });
+    test('4k HDR', () {
+      expect(makeTvOutputName(episode: episode, video: vtH265UhdHdr),
+          '"Another TV Series (1986)"/season1/"Another TV Series (1986) - s01e03 - [2160p HDR].mkv"');
+    });
+  });
 }

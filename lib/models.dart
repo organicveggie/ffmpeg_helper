@@ -7,4 +7,5 @@ export 'src/models/menu_track.dart';
 export 'src/models/text_track.dart';
 export 'src/models/track_list.dart';
 export 'src/models/track.dart';
+export 'src/models/tv.dart';
 export 'src/models/video_track.dart';
