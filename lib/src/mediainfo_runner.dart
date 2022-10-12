@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:equatable/equatable.dart';
 import 'package:ffmpeg_helper/models.dart';
 import 'package:logging/logging.dart';
 import 'package:process_run/shell.dart';
@@ -8,7 +9,7 @@ import 'package:process_run/shell.dart';
 const mediainfoBinMac = '/usr/local/bin/mediainfo';
 const mediainfoBinLinux = '/usr/bin/mediainfo';
 
-class MediainfoException implements Exception {
+class MediainfoException extends Equatable implements Exception {
   final String message;
   final int exitCode;
   final String? stdout;
@@ -17,15 +18,24 @@ class MediainfoException implements Exception {
   const MediainfoException(this.message, this.exitCode, this.stdout, this.stderr);
 
   @override
+  List<Object?> get props => [message, exitCode, stdout, stderr];
+
+  @override
   String toString() => '$message. Exit code: $exitCode.';
 }
 
-class MediainfoRunner {
+class MediainfoRunner extends Equatable {
   final String _binary;
   final _log = Logger('MediainfoRunner');
 
   MediainfoRunner({String? mediainfoBinary})
       : _binary = mediainfoBinary ?? (Platform.isMacOS ? mediainfoBinMac : mediainfoBinLinux);
+
+  @override
+  List<Object?> get props => [_binary];
+
+  @override
+  bool get stringify => true;
 
   Future<MediaRoot> run(String filename) async {
     var stdoutController = ShellLinesController();

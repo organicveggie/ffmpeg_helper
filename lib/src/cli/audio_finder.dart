@@ -1,17 +1,24 @@
 // ignore: depend_on_referenced_packages
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
+import 'package:equatable/equatable.dart';
 import 'package:ffmpeg_helper/models.dart';
 
 import 'exceptions.dart';
 
 part 'audio_finder.g.dart';
 
-abstract class AudioFinder implements Built<AudioFinder, AudioFinderBuilder> {
+abstract class AudioFinder with EquatableMixin implements Built<AudioFinder, AudioFinderBuilder> {
   AudioFinder._();
   factory AudioFinder([void Function(AudioFinderBuilder) updates]) = _$AudioFinder;
 
   BuiltMap<AudioFormat, AudioTrackWrapper> get tracksByFormat;
+
+  @override
+  List<Object> get props => [tracksByFormat];
+
+  @override
+  bool get stringify => true;
 
   /// Finds the best source audio track for outputting E-AC3 (Dolby Digital or Dolby Digital Plus).
   AudioTrackWrapper bestForEAC3() {

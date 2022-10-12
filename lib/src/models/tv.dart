@@ -1,8 +1,9 @@
 import 'package:built_value/built_value.dart';
+import 'package:equatable/equatable.dart';
 
 part 'tv.g.dart';
 
-abstract class TvSeries implements Built<TvSeries, TvSeriesBuilder> {
+abstract class TvSeries with EquatableMixin implements Built<TvSeries, TvSeriesBuilder> {
   String get name;
   String? get year;
 
@@ -11,6 +12,12 @@ abstract class TvSeries implements Built<TvSeries, TvSeriesBuilder> {
 
   TvSeries._();
   factory TvSeries([void Function(TvSeriesBuilder) updates]) = _$TvSeries;
+
+  @override
+  List<Object?> get props => [name, year, tmdbShowId, tvdbShowId];
+
+  @override
+  bool get stringify => true;
 
   String asFullName() {
     var sb = StringBuffer(name);
@@ -26,7 +33,7 @@ abstract class TvSeries implements Built<TvSeries, TvSeriesBuilder> {
   }
 }
 
-abstract class TvEpisode implements Built<TvEpisode, TvEpisodeBuilder> {
+abstract class TvEpisode with EquatableMixin implements Built<TvEpisode, TvEpisodeBuilder> {
   TvSeries get series;
   String? get episodeName;
   int get episodeNumber;
@@ -34,6 +41,12 @@ abstract class TvEpisode implements Built<TvEpisode, TvEpisodeBuilder> {
 
   TvEpisode._();
   factory TvEpisode([void Function(TvEpisodeBuilder) updates]) = _$TvEpisode;
+
+  @override
+  List<Object?> get props => [series, episodeName, episodeNumber, season];
+
+  @override
+  bool get stringify => true;
 
   String seasonNumber() => season.toString().padLeft(2);
 

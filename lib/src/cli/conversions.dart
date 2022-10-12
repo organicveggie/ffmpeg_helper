@@ -1,4 +1,5 @@
 import 'package:built_value/built_value.dart';
+import 'package:equatable/equatable.dart';
 import 'package:ffmpeg_helper/models.dart';
 
 part 'conversions.g.dart';
@@ -15,11 +16,16 @@ abstract class MapStreamSelection extends StreamOption {
   int get inputFileId;
 }
 
-abstract class StreamCopy implements MapStreamSelection, Built<StreamCopy, StreamCopyBuilder> {
+abstract class StreamCopy
+    with EquatableMixin
+    implements MapStreamSelection, Built<StreamCopy, StreamCopyBuilder> {
   StreamCopy._();
   factory StreamCopy([void Function(StreamCopyBuilder) updates]) = _$StreamCopy;
 
   TrackType get trackType;
+
+  @override
+  List<Object> get props => [inputFileId, srcStreamId, dstStreamId, trackType];
 
   @override
   String toString() {
@@ -29,6 +35,7 @@ abstract class StreamCopy implements MapStreamSelection, Built<StreamCopy, Strea
 }
 
 abstract class AudioStreamConvert
+    with EquatableMixin
     implements MapStreamSelection, Built<AudioStreamConvert, AudioStreamConvertBuilder> {
   AudioStreamConvert._();
   factory AudioStreamConvert([void Function(AudioStreamConvertBuilder) updates]) =
@@ -39,6 +46,9 @@ abstract class AudioStreamConvert
   int get kbRate;
 
   @override
+  List<Object> get props => [inputFileId, srcStreamId, dstStreamId, channels, format, kbRate];
+
+  @override
   String toString() {
     return '-map $inputFileId:a:$srcStreamId -c:a:$dstStreamId ${format.codec} -b:a ${kbRate}k '
         '-ac:a:$dstStreamId $channels';
@@ -46,15 +56,17 @@ abstract class AudioStreamConvert
 }
 
 abstract class VideoStreamConvert
+    with EquatableMixin
     implements MapStreamSelection, Built<VideoStreamConvert, VideoStreamConvertBuilder> {
   VideoStreamConvert._();
   factory VideoStreamConvert([void Function(VideoStreamConvertBuilder) updates]) =
       _$VideoStreamConvert;
 
   @override
-  String toString() {
-    return '-map $inputFileId:v:$srcStreamId -c:v:$dstStreamId hevc -vtag hvc1';
-  }
+  List<Object> get props => [inputFileId, srcStreamId, dstStreamId];
+
+  @override
+  String toString() => '-map $inputFileId:v:$srcStreamId -c:v:$dstStreamId hevc -vtag hvc1';
 }
 
 abstract class StreamSelection extends StreamOption {
@@ -63,6 +75,7 @@ abstract class StreamSelection extends StreamOption {
 }
 
 abstract class StreamDisposition
+    with EquatableMixin
     implements StreamSelection, Built<StreamDisposition, StreamDispositionBuilder> {
   StreamDisposition._();
   factory StreamDisposition([void Function(StreamDispositionBuilder) updates]) =
@@ -71,20 +84,26 @@ abstract class StreamDisposition
   bool get isDefault;
 
   @override
-  String toString() {
-    var ttAbbrev = _trackTypeAbbrev(trackType);
-    var disposition = isDefault ? 'default' : '0';
+  List<Object> get props => [streamId, trackType, isDefault];
 
-    return '-disposition:$ttAbbrev:$streamId $disposition';
+  @override
+  String toString() {
+    var disposition = isDefault ? 'default' : '0';
+    return '-disposition:${trackType.abbrev}:$streamId $disposition';
   }
 }
 
-abstract class ComplexFilter implements StreamOption, Built<ComplexFilter, ComplexFilterBuilder> {
+abstract class ComplexFilter
+    with EquatableMixin
+    implements StreamOption, Built<ComplexFilter, ComplexFilterBuilder> {
   ComplexFilter._();
   factory ComplexFilter([void Function(ComplexFilterBuilder) updates]) = _$ComplexFilter;
   factory ComplexFilter.fromFilter(String filter) => _$ComplexFilter._(filter: filter);
 
   String get filter;
+
+  @override
+  List<Object> get props => [filter];
 
   @override
   String toString() {
@@ -93,6 +112,7 @@ abstract class ComplexFilter implements StreamOption, Built<ComplexFilter, Compl
 }
 
 abstract class GlobalMetadata
+    with EquatableMixin
     implements StreamOption, Built<GlobalMetadata, GlobalMetadataBuilder> {
   GlobalMetadata._();
   factory GlobalMetadata([void Function(GlobalMetadataBuilder) updates]) = _$GlobalMetadata;
@@ -101,12 +121,16 @@ abstract class GlobalMetadata
   String get value;
 
   @override
+  List<Object> get props => [name, value];
+
+  @override
   String toString() {
     return '-metadata $name="$value"';
   }
 }
 
 abstract class StreamMetadata
+    with EquatableMixin
     implements StreamSelection, Built<StreamMetadata, StreamMetadataBuilder> {
   StreamMetadata._();
   factory StreamMetadata([void Function(StreamMetadataBuilder) updates]) = _$StreamMetadata;
@@ -115,21 +139,26 @@ abstract class StreamMetadata
   String get value;
 
   @override
-  String toString() {
-    var ttAbbrev = _trackTypeAbbrev(trackType);
-    return '-metadata:s:$ttAbbrev:$streamId $name="$value"';
-  }
+  List<Object> get props => [streamId, trackType, name, value];
+
+  @override
+  String toString() => '-metadata:s:${trackType.abbrev}:$streamId $name="$value"';
 }
 
 abstract class StreamFilter implements StreamOption {}
 
-abstract class ScaleFilter implements StreamFilter, Built<ScaleFilter, ScaleFilterBuilder> {
+abstract class ScaleFilter
+    with EquatableMixin
+    implements StreamFilter, Built<ScaleFilter, ScaleFilterBuilder> {
   ScaleFilter._();
   factory ScaleFilter([void Function(ScaleFilterBuilder) updates]) = _$ScaleFilter;
 
   String? get algorithm;
   int get height;
   int get width;
+
+  @override
+  List<Object?> get props => [algorithm, height, width];
 
   @override
   String toString() {
@@ -139,23 +168,4 @@ abstract class ScaleFilter implements StreamFilter, Built<ScaleFilter, ScaleFilt
     }
     return filter;
   }
-}
-
-String _trackTypeAbbrev(TrackType tt) {
-  switch (tt) {
-    case TrackType.audio:
-      return 'a';
-    case TrackType.general:
-      return 'g';
-    case TrackType.menu:
-      return 'm';
-    case TrackType.text:
-      return 's';
-    case TrackType.video:
-      return 'v';
-    default:
-      break;
-  }
-  // TODO: Throw exception
-  return 'UNKNOWN';
 }

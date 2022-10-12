@@ -1,10 +1,11 @@
 import 'dart:math';
 
 import 'package:built_value/built_value.dart';
+import 'package:equatable/equatable.dart';
 
 part 'media_file.g.dart';
 
-abstract class MediaFile implements Built<MediaFile, MediaFileBuilder> {
+abstract class MediaFile with EquatableMixin implements Built<MediaFile, MediaFileBuilder> {
   String get filename;
   String get path;
   int? get sizeInBytes;
@@ -21,4 +22,10 @@ abstract class MediaFile implements Built<MediaFile, MediaFileBuilder> {
 
   MediaFile._();
   factory MediaFile([void Function(MediaFileBuilder) updates]) = _$MediaFile;
+
+  @override
+  List<Object?> get props => [filename, path, sizeInBytes];
+
+  @override
+  bool get stringify => true;
 }

@@ -1,6 +1,7 @@
 // ignore: depend_on_referenced_packages
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
+import 'package:equatable/equatable.dart';
 import 'package:ffmpeg_helper/models.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
@@ -15,7 +16,7 @@ part 'suggest.g.dart';
 // Data Models
 ////////////////////
 
-abstract class MovieTitle implements Built<MovieTitle, MovieTitleBuilder> {
+abstract class MovieTitle with EquatableMixin implements Built<MovieTitle, MovieTitleBuilder> {
   MovieTitle._();
   factory MovieTitle([void Function(MovieTitleBuilder) updates]) = _$MovieTitle;
 
@@ -23,12 +24,17 @@ abstract class MovieTitle implements Built<MovieTitle, MovieTitleBuilder> {
   String? get year;
 
   @override
+  List<Object?> get props => [name, year];
+
+  @override
   String toString() {
     return (year == null) ? name : '$name ($year)';
   }
 }
 
-abstract class SuggestOptions implements Built<SuggestOptions, SuggestOptionsBuilder> {
+abstract class SuggestOptions
+    with EquatableMixin
+    implements Built<SuggestOptions, SuggestOptionsBuilder> {
   bool get forceUpscaling;
   bool get generateDPL2;
   bool get movieOutputLetterPrefix;
@@ -62,6 +68,18 @@ abstract class SuggestOptions implements Built<SuggestOptions, SuggestOptionsBui
           ..targetResolution = targetResolution)
         .build();
   }
+
+  @override
+  List<Object?> get props => [
+        forceUpscaling,
+        generateDPL2,
+        movieOutputLetterPrefix,
+        overwriteOutputFile,
+        mediaType,
+        outputFile,
+        outputFolder,
+        targetResolution
+      ];
 }
 
 ////////////////////

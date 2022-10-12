@@ -1,3 +1,5 @@
+import 'package:equatable/equatable.dart';
+
 enum Alignment {
   left,
   middle,
@@ -9,7 +11,7 @@ enum Overflow {
   ellipsis;
 }
 
-class Item {
+class Item extends Equatable {
   final String? s;
   final int? width;
   final Alignment? align;
@@ -17,9 +19,15 @@ class Item {
   final String? padding;
 
   const Item(String? s, {this.width, this.align, this.overflow, this.padding}) : s = s ?? '';
+
+  @override
+  List<Object?> get props => [s, width, align, overflow, padding];
+
+  @override
+  bool get stringify => true;
 }
 
-class FixedPrinter {
+class FixedPrinter extends Equatable {
   final StringSink out;
   final Alignment defaultAlign;
   final Overflow defaultOverflow;
@@ -30,6 +38,12 @@ class FixedPrinter {
       : defaultAlign = defaultAlign ?? Alignment.left,
         defaultOverflow = defaultOverflow ?? Overflow.truncate,
         defaultPadding = defaultPadding ?? ' ';
+
+  @override
+  List<Object?> get props => [out, defaultAlign, defaultOverflow, defaultPadding];
+
+  @override
+  bool get stringify => true;
 
   // Writes a string to the output sink.
   //
