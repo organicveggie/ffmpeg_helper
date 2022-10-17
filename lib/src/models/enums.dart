@@ -24,19 +24,21 @@ extension EnumByNameWithDefault<T extends Enum> on Iterable<T> {
 }
 
 enum AudioFormat {
-  unknown(name: 'unknown', codec: 'unknown', format: 'unknown'),
-  trueHD(name: 'Dolby TrueHD', codec: 'A_TRUEHD', format: 'MLP FBA'),
-  dtsHDMA(name: 'DTS-HD MA', codec: 'A_DTS', format: 'DTS'),
-  dolbyDigitalPlus(name: 'Dolby Digital Plus', codec: 'A_EAC3', format: 'A_EAC3'),
-  dolbyDigital(name: 'Dolby Digital', codec: 'A_AC3', format: 'A_AC3'),
-  dtsX(name: 'DTS:X', codec: 'A_DTS', format: 'DTS'),
-  dts(name: 'DTS', codec: 'A_DTS', format: 'DTS'),
-  aacMulti(name: 'AAC multichannel', codec: 'A_AAC-2', format: 'AAC'),
-  stereo(name: 'stereo', codec: 'A_AAC-2', format: 'AAC'),
-  mono(name: 'mono', codec: 'A_AAC-2', format: 'AAC');
+  unknown(name: 'unknown', codecId: 'unknown', codec: 'unknown', format: 'unknown'),
+  trueHD(name: 'Dolby TrueHD', codecId: 'A_TRUEHD', codec: 'truehd', format: 'MLP FBA'),
+  dtsHDMA(name: 'DTS-HD MA', codecId: 'A_DTS', codec: 'dts', format: 'DTS'),
+  dolbyDigitalPlus(name: 'Dolby Digital Plus', codecId: 'A_EAC3', codec: 'eac3', format: 'E-AC-3'),
+  dolbyDigital(name: 'Dolby Digital', codecId: 'A_AC3', codec: 'ac3', format: 'AC-3'),
+  dtsX(name: 'DTS:X', codecId: 'A_DTS', codec: 'dts', format: 'DTS'),
+  dts(name: 'DTS', codecId: 'A_DTS', codec: 'dts', format: 'DTS'),
+  aacMulti(name: 'AAC multichannel', codecId: 'A_AAC-2', codec: 'aac', format: 'AAC'),
+  stereo(name: 'stereo', codecId: 'A_AAC-2', codec: 'aac', format: 'AAC'),
+  mono(name: 'mono', codecId: 'A_AAC-2', codec: 'aac', format: 'AAC');
 
-  const AudioFormat({required this.name, required this.codec, required this.format});
+  const AudioFormat(
+      {required this.name, required this.codecId, required this.codec, required this.format});
 
+  final String codecId;
   final String codec;
   final String format;
   final String name;
@@ -96,6 +98,15 @@ enum VideoResolution {
   final Set<String> aliases;
 
   const VideoResolution(this.aliases);
+
+  String toSizeName() {
+    switch (this) {
+      case hd:
+        return '1080p';
+      case uhd:
+        return '2160p';
+    }
+  }
 
   static Iterable<String> namesAndAliases() {
     var all = <String>[];

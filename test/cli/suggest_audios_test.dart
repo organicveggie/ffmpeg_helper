@@ -101,7 +101,7 @@ void main() {
           _dispositionDefault(1, false),
           _metadataTitle(1, 'AAC (5.1)'),
           (ComplexFilterBuilder()..filter = '[0:a]aresample=matrix_encoding=dplii[a]').build(),
-          (AudioStreamConvertBuilder()
+          (DolbyProLogicAudioStreamConvertBuilder()
                 ..inputFileId = 0
                 ..srcStreamId = 0
                 ..dstStreamId = 2

@@ -132,10 +132,11 @@ BuiltList<String> processFile(SuggestOptions opts, String filename, TrackList tr
       .build());
 
   String outputFilename = makeOutputName(
+      isHdr: video.isHDR,
+      letterPrefix: opts.movieOutputLetterPrefix,
       movieTitle: movieTitle,
-      video: video,
       outputFolder: opts.outputFolder,
-      letterPrefix: opts.movieOutputLetterPrefix);
+      targetResolution: opts.targetResolution ?? video.videoResolution);
 
   for (var opt in streamOptions) {
     buffer.add(' ${opt.toString()} \\');
@@ -279,7 +280,7 @@ List<StreamOption> processAudioTracks(SuggestOptions opts, BuiltList<AudioTrack>
       int kbRate = maxAudioKbRate(source.track, 256);
       log.fine('Transcoding ${source.format.name} (track #${source.orderId}) to '
           'AAC (Dolby Pro Logic II) $kbRate kbps as track #2.');
-      streamOpts.add((AudioStreamConvertBuilder()
+      streamOpts.add((DolbyProLogicAudioStreamConvertBuilder()
             ..inputFileId = 0
             ..srcStreamId = source.orderId
             ..dstStreamId = 2
@@ -398,6 +399,21 @@ List<StreamOption> processVideoTrack(SuggestOptions opts, VideoTrack video) {
   return streamOpts;
 }
 
+extension CapitalExtension on String {
+  String get capitalizeFirstLetter {
+    if (length == 0) return '';
+    if (length == 1) return this[0].toUpperCase();
+    return '${this[0].toUpperCase()}${substring(1)}';
+  }
+
+  String get capitalizeEveryWord {
+    return split(' ')
+        .where((s) => s.trim().isNotEmpty)
+        .map((s) => s.capitalizeFirstLetter)
+        .join(' ');
+  }
+}
+
 MovieTitle extractMovieTitle(String sourcePathname) {
   final sourceFilename = p.basename(sourcePathname);
 
@@ -415,6 +431,7 @@ MovieTitle extractMovieTitle(String sourcePathname) {
     }
   }
 
+  name = name.capitalizeEveryWord;
   return (MovieTitleBuilder()
         ..name = name
         ..year = year)
@@ -426,7 +443,7 @@ final _movieNumberRegex = RegExp(r'[0-9]');
 
 String getMovieTitleFirstLetter(String title) {
   var titleWords = title.toLowerCase().split(' ');
-  var firstLetter = titleWords[0].substring(0, 1);
+  var firstLetter = titleWords[0][0];
 
   for (var w in titleWords) {
     if (_movieTitleStopWords.contains(w)) {
@@ -445,19 +462,20 @@ String getMovieTitleFirstLetter(String title) {
 
 String makeOutputName(
     {required MovieTitle movieTitle,
-    required VideoTrack video,
+    bool isHdr = false,
+    bool letterPrefix = false,
     String? outputFolder,
-    bool letterPrefix = false}) {
+    VideoResolution? targetResolution}) {
   final baseNameBuffer = StringBuffer(movieTitle.name);
   if (movieTitle.year != null) {
     baseNameBuffer.write(' (${movieTitle.year})');
   }
 
   final fileNameBuffer = StringBuffer(baseNameBuffer);
-  if (video.sizeName != 'unknown') {
-    fileNameBuffer.write(' - ${video.sizeName}');
+  if (targetResolution != null) {
+    fileNameBuffer.write(' - ${targetResolution.toSizeName()}');
   }
-  if (video.isHDR) {
+  if (isHdr) {
     fileNameBuffer.write('-HDR');
   }
   fileNameBuffer.write('.mkv');
@@ -471,18 +489,21 @@ String makeOutputName(
 }
 
 String makeTvOutputName(
-    {required TvEpisode episode, required VideoTrack video, String? outputFolder}) {
+    {required TvEpisode episode,
+    bool isHdr = false,
+    String? outputFolder,
+    VideoResolution? targetResolution}) {
   StringBuffer buffer = StringBuffer(episode.asFullName());
 
-  if ((video.videoResolution == VideoResolution.uhd || video.isHDR)) {
+  if ((targetResolution != null || isHdr)) {
     buffer.write(' - [');
-    if (video.videoResolution == VideoResolution.uhd) {
-      buffer.write(video.sizeName);
-      if (video.isHDR) {
+    if (targetResolution != null) {
+      buffer.write(targetResolution.toSizeName());
+      if (isHdr) {
         buffer.write(' ');
       }
     }
-    if (video.isHDR) {
+    if (isHdr) {
       buffer.write('HDR');
     }
     buffer.write(']');

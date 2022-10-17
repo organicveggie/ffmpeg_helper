@@ -48,6 +48,21 @@ void main() {
     width: 3840,
   );
 
+  group('CapitalExtension', () {
+    test('capitalizeFirstLetter', () {
+      expect('soon'.capitalizeFirstLetter, 'Soon');
+      expect('alphabet'.capitalizeFirstLetter, 'Alphabet');
+      expect('Capitalized'.capitalizeFirstLetter, 'Capitalized');
+    });
+
+    test('capitalizeEveryWord', () {
+      expect('one'.capitalizeEveryWord, 'One');
+      expect('one two'.capitalizeEveryWord, 'One Two');
+      expect('one two three'.capitalizeEveryWord, 'One Two Three');
+      expect('name   with  extra spaces'.capitalizeEveryWord, 'Name With Extra Spaces');
+    });
+  });
+
   group('Extract movie title', () {
     test('from full pathname with periods but without year', () {
       var pathnames = <String>[
@@ -76,8 +91,8 @@ void main() {
       }
     });
     test('returns unknown for unsupported formats', () {
-      expect(extractMovieTitle('/example/Unsupported.Format.mp3').toString(), 'unknown');
-      expect(extractMovieTitle('/example/Unsupported.Format.mov').toString(), 'unknown');
+      expect(extractMovieTitle('/example/Unsupported.Format.mp3').toString(), 'Unknown');
+      expect(extractMovieTitle('/example/Unsupported.Format.mov').toString(), 'Unknown');
     });
   });
 

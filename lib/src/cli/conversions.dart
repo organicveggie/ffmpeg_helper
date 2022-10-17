@@ -34,16 +34,18 @@ abstract class StreamCopy
   }
 }
 
-abstract class AudioStreamConvert
-    with EquatableMixin
-    implements MapStreamSelection, Built<AudioStreamConvert, AudioStreamConvertBuilder> {
-  AudioStreamConvert._();
-  factory AudioStreamConvert([void Function(AudioStreamConvertBuilder) updates]) =
-      _$AudioStreamConvert;
-
+abstract class BaseAudioStreamConvert implements MapStreamSelection {
   int get channels;
   AudioFormat get format;
   int get kbRate;
+}
+
+abstract class AudioStreamConvert
+    with EquatableMixin
+    implements BaseAudioStreamConvert, Built<AudioStreamConvert, AudioStreamConvertBuilder> {
+  AudioStreamConvert._();
+  factory AudioStreamConvert([void Function(AudioStreamConvertBuilder) updates]) =
+      _$AudioStreamConvert;
 
   @override
   List<Object> get props => [inputFileId, srcStreamId, dstStreamId, channels, format, kbRate];
@@ -52,6 +54,26 @@ abstract class AudioStreamConvert
   String toString() {
     return '-map $inputFileId:a:$srcStreamId -c:a:$dstStreamId ${format.codec} -b:a ${kbRate}k '
         '-ac:a:$dstStreamId $channels';
+  }
+}
+
+abstract class DolbyProLogicAudioStreamConvert
+    with EquatableMixin
+    implements
+        BaseAudioStreamConvert,
+        Built<DolbyProLogicAudioStreamConvert, DolbyProLogicAudioStreamConvertBuilder> {
+  DolbyProLogicAudioStreamConvert._();
+  factory DolbyProLogicAudioStreamConvert(
+          [void Function(DolbyProLogicAudioStreamConvertBuilder) updates]) =
+      _$DolbyProLogicAudioStreamConvert;
+
+  @override
+  List<Object> get props => [inputFileId, srcStreamId, dstStreamId, channels, format, kbRate];
+
+  @override
+  String toString() {
+    return '-map:a:$srcStreamId "[a]" -c:a:$dstStreamId ${format.codec} -b:a ${kbRate}k '
+        '-ac:a:$dstStreamId $channels -strict 2';
   }
 }
 
@@ -107,7 +129,7 @@ abstract class ComplexFilter
 
   @override
   String toString() {
-    return 'filter_complex "$filter"';
+    return '-filter_complex "$filter"';
   }
 }
 
