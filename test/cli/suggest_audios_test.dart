@@ -199,6 +199,27 @@ void main() {
         ]));
   });
 
+  test('TrueHD with variable bitrate converted', () {
+    var results = processAudioTracks(
+        defaultOptions,
+        <AudioTrack>[
+          _makeAudioTrack(0, AudioFormat.trueHD, true, false,
+              bitRateMode: BitRateMode.variable, channels: 6),
+        ].build());
+    expect(results, isNotNull);
+    expect(results, hasLength(6));
+    expect(
+        results,
+        containsAllInOrder(<StreamOption>[
+          convertDDPlus,
+          _dispositionDefault(0, true),
+          _metadataTitle(0, 'Dolby Digital Plus'),
+          convertAacMulti,
+          _dispositionDefault(1, false),
+          _metadataTitle(1, 'AAC (5.1)'),
+        ]));
+  });
+
   test('TrueHD and Dolby Digital with commentary excluded', () {
     var results = processAudioTracks(
         defaultOptions,
@@ -233,7 +254,7 @@ StreamDisposition _dispositionDefault(int streamId, bool isDefault) {
 }
 
 AudioTrack _makeAudioTrack(int order, AudioFormat format, bool isDefault, bool isForced,
-    {int? channels, int? bitRate, String? title}) {
+    {int? bitRate, BitRateMode? bitRateMode, int? channels, String? title}) {
   return AudioTrack.fromParams(
       id: '$order',
       codecId: format.codec,
@@ -242,8 +263,9 @@ AudioTrack _makeAudioTrack(int order, AudioFormat format, bool isDefault, bool i
       format: format.format,
       isDefault: isDefault,
       isForced: isForced,
-      channels: channels,
       bitRate: bitRate,
+      bitRateMode: bitRateMode,
+      channels: channels,
       title: title);
 }
 

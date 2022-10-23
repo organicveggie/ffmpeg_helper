@@ -190,7 +190,13 @@ class AudioTrack extends CodecIdTrack with EquatableMixin {
   String? get bitRateAsKbpsOrMode =>
       (bitRateMode == BitRateMode.variable) ? 'VBR' : bitRateAsKbps?.toString();
   int? get bitRateAsKbps => (bitRate == null) ? null : bitRate! ~/ 1000;
-  int? get bitRateLimit => bitRate ?? bitRateMax;
+  int? get bitRateLimit {
+    if (bitRateMode == BitRateMode.variable) {
+      return null;
+    }
+    return bitRate ?? bitRateMax;
+  }
+
   int? get bitRateMaxAsKbps => (bitRateMax == null) ? null : bitRateMax! ~/ 1000;
 
   bool? get isLossless {
