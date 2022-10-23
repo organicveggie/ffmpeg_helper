@@ -31,7 +31,7 @@ void main() {
     var results = processAudioTracks(
         defaultOptions,
         <AudioTrack>[
-          _makeAudioTrack(0, AudioFormat.aacMulti, 1, true, false),
+          _makeAudioTrack(0, AudioFormat.aacMulti, true, false, channels: 1),
         ].build());
     expect(results, isNotNull);
     expect(results, hasLength(3));
@@ -48,7 +48,7 @@ void main() {
     var results = processAudioTracks(
         defaultOptions,
         <AudioTrack>[
-          _makeAudioTrack(0, AudioFormat.aacMulti, 2, true, false),
+          _makeAudioTrack(0, AudioFormat.aacMulti, true, false, channels: 2),
         ].build());
     expect(results, isNotNull);
     expect(results, hasLength(3));
@@ -61,11 +61,11 @@ void main() {
         ]));
   });
 
-  test('Dolby Digital Plus produces 2 audio streams, 6 operations', () {
+  test('Dolby Digital Plus no channels produces 2 audio streams, 6 operations', () {
     var results = processAudioTracks(
         defaultOptions,
         <AudioTrack>[
-          _makeAudioTrack(0, AudioFormat.dolbyDigitalPlus, 6, true, false, bitRate: 512000),
+          _makeAudioTrack(0, AudioFormat.dolbyDigitalPlus, true, false, bitRate: 512000),
         ].build());
     expect(results, isNotNull);
     expect(results, hasLength(6));
@@ -82,11 +82,56 @@ void main() {
         ]));
   });
 
+  test('Dolby Digital Plus with 5.1 produces 2 audio streams, 6 operations', () {
+    var results = processAudioTracks(
+        defaultOptions,
+        <AudioTrack>[
+          _makeAudioTrack(0, AudioFormat.dolbyDigitalPlus, true, false,
+              bitRate: 512000, channels: 6),
+        ].build());
+    expect(results, isNotNull);
+    expect(results, hasLength(6));
+
+    expect(
+        results,
+        containsAllInOrder(<StreamOption>[
+          _streamCopy(0, 0),
+          _dispositionDefault(0, true),
+          _metadataTitle(0, 'Dolby Digital Plus'),
+          convertAacMulti,
+          _dispositionDefault(1, false),
+          _metadataTitle(1, 'AAC (5.1)')
+        ]));
+  });
+
+  test('Dolby Digital Plus with 7.1 forces transcode to 5.1', () {
+    var results = processAudioTracks(
+        defaultOptions,
+        <AudioTrack>[
+          _makeAudioTrack(0, AudioFormat.dolbyDigitalPlus, true, false,
+              bitRate: 512000, channels: 8),
+        ].build());
+    expect(results, isNotNull);
+    expect(results, hasLength(6));
+
+    expect(
+        results,
+        containsAllInOrder(<StreamOption>[
+          convertDDPlus,
+          _dispositionDefault(0, true),
+          _metadataTitle(0, 'Dolby Digital Plus'),
+          convertAacMulti,
+          _dispositionDefault(1, false),
+          _metadataTitle(1, 'AAC (5.1)')
+        ]));
+  });
+
   test('Dolby Digital Plus with DPL2', () {
     var results = processAudioTracks(
         defaultOptions.rebuild((o) => o..generateDPL2 = true),
         <AudioTrack>[
-          _makeAudioTrack(0, AudioFormat.dolbyDigitalPlus, 6, true, false, bitRate: 512000),
+          _makeAudioTrack(0, AudioFormat.dolbyDigitalPlus, true, false,
+              bitRate: 512000, channels: 6),
         ].build());
     expect(results, isNotNull);
     expect(results, hasLength(10));
@@ -118,7 +163,7 @@ void main() {
     var results = processAudioTracks(
         defaultOptions,
         <AudioTrack>[
-          _makeAudioTrack(0, AudioFormat.dolbyDigital, 6, true, false, bitRate: 512000),
+          _makeAudioTrack(0, AudioFormat.dolbyDigital, true, false, bitRate: 512000, channels: 6),
         ].build());
     expect(results, isNotNull);
     expect(results, hasLength(6));
@@ -138,7 +183,7 @@ void main() {
     var results = processAudioTracks(
         defaultOptions,
         <AudioTrack>[
-          _makeAudioTrack(0, AudioFormat.trueHD, 6, true, false, bitRate: 512000),
+          _makeAudioTrack(0, AudioFormat.trueHD, true, false, bitRate: 512000, channels: 6),
         ].build());
     expect(results, isNotNull);
     expect(results, hasLength(6));
@@ -158,9 +203,11 @@ void main() {
     var results = processAudioTracks(
         defaultOptions,
         <AudioTrack>[
-          _makeAudioTrack(0, AudioFormat.trueHD, 6, true, false, bitRate: 512000),
-          _makeAudioTrack(0, AudioFormat.dolbyDigital, 6, true, false,
-              bitRate: 512000, title: 'Director\'s commentary with other famous people'),
+          _makeAudioTrack(0, AudioFormat.trueHD, true, false, bitRate: 512000, channels: 6),
+          _makeAudioTrack(0, AudioFormat.dolbyDigital, true, false,
+              bitRate: 512000,
+              channels: 6,
+              title: 'Director\'s commentary with other famous people'),
         ].build());
     expect(results, isNotNull);
     expect(results, hasLength(6));
@@ -185,9 +232,8 @@ StreamDisposition _dispositionDefault(int streamId, bool isDefault) {
       .build();
 }
 
-AudioTrack _makeAudioTrack(
-    int order, AudioFormat format, int channels, bool isDefault, bool isForced,
-    {int? bitRate, String? title}) {
+AudioTrack _makeAudioTrack(int order, AudioFormat format, bool isDefault, bool isForced,
+    {int? channels, int? bitRate, String? title}) {
   return AudioTrack.fromParams(
       id: '$order',
       codecId: format.codec,

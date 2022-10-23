@@ -198,23 +198,47 @@ List<StreamOption> processAudioTracks(SuggestOptions opts, BuiltList<AudioTrack>
     AudioFormat firstTrackFormat = AudioFormat.unknown;
     if (source.format == AudioFormat.dolbyDigitalPlus ||
         source.format == AudioFormat.dolbyDigital) {
-      firstTrackFormat = source.format;
-      log.fine('Copying ${source.format.name} (track #${source.orderId}) to track #0.');
-      streamOpts.add((StreamCopyBuilder()
-            ..trackType = TrackType.audio
-            ..inputFileId = 0
-            ..srcStreamId = source.orderId
-            ..dstStreamId = 0)
-          .build());
+      // Note: ffmpeg EAC3 encoder can't handle > 5.1 channels.
+      if (source.track.channels != null && source.track.channels! > 6) {
+        // Force transcoding to 5.1
+        log.info('Source track is ${source.format} with ${source.track.channels}, but ffmpeg only '
+            'supports 5.1. Transcoding to 5.1.');
+        firstTrackFormat = AudioFormat.dolbyDigitalPlus;
+        streamOpts.add((AudioStreamConvertBuilder()
+              ..inputFileId = 0
+              ..srcStreamId = source.orderId
+              ..dstStreamId = 0
+              ..format = AudioFormat.dolbyDigitalPlus
+              ..channels = 6
+              ..kbRate = maxAudioKbRate(source.track, 384))
+            .build());
+      } else {
+        // Already 5.1 or lower.
+        firstTrackFormat = source.format;
+        log.fine('Copying ${source.format.name} (track #${source.orderId}) to track #0.');
+        streamOpts.add((StreamCopyBuilder()
+              ..trackType = TrackType.audio
+              ..inputFileId = 0
+              ..srcStreamId = source.orderId
+              ..dstStreamId = 0)
+            .build());
+      }
     } else {
       // Source track is not Dolby Digital Plus or Dolby Digital, so transcode.
       firstTrackFormat = AudioFormat.dolbyDigitalPlus;
+
+      // Note: ffmpeg EAC3 encoder can't handle > 5.1 channels.
+      var channels = source.track.channels;
+      if (source.track.channels != null && source.track.channels! > 6) {
+        channels = 6;
+      }
+
       streamOpts.add((AudioStreamConvertBuilder()
             ..inputFileId = 0
             ..srcStreamId = source.orderId
             ..dstStreamId = 0
             ..format = AudioFormat.dolbyDigitalPlus
-            ..channels = source.track.channels
+            ..channels = channels
             ..kbRate = maxAudioKbRate(source.track, 384))
           .build());
     }
