@@ -495,10 +495,10 @@ String makeTvOutputName(
     VideoResolution? targetResolution}) {
   StringBuffer buffer = StringBuffer(episode.asFullName());
 
-  if ((targetResolution != null || isHdr)) {
+  if ((targetResolution == VideoResolution.uhd || isHdr)) {
     buffer.write(' - [');
-    if (targetResolution != null) {
-      buffer.write(targetResolution.toSizeName());
+    if (targetResolution == VideoResolution.uhd) {
+      buffer.write(targetResolution!.toSizeName());
       if (isHdr) {
         buffer.write(' ');
       }

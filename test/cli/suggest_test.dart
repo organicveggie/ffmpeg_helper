@@ -104,14 +104,16 @@ void main() {
                 ..name = 'My Movie'
                 ..year = '1981')
               .build(),
-          video: vtH265UhdHdr);
+          targetResolution: VideoResolution.uhd,
+          isHdr: true);
       expect(got, '"My Movie (1981)"/"My Movie (1981) - 2160p-HDR.mkv"');
     });
     test('for UHD HDR without year', () {
       var got = makeOutputName(
           letterPrefix: false,
           movieTitle: (MovieTitleBuilder()..name = 'My Movie').build(),
-          video: vtH265UhdHdr);
+          targetResolution: VideoResolution.uhd,
+          isHdr: true);
       expect(got, '"My Movie"/"My Movie - 2160p-HDR.mkv"');
     });
     test('for UHD SDR with year', () {
@@ -121,14 +123,16 @@ void main() {
                 ..name = 'My Movie'
                 ..year = '1981')
               .build(),
-          video: vtH265UhdSdr);
+          targetResolution: VideoResolution.uhd,
+          isHdr: false);
       expect(got, '"My Movie (1981)"/"My Movie (1981) - 2160p.mkv"');
     });
     test('for UHD SDR without year', () {
       var got = makeOutputName(
           letterPrefix: false,
           movieTitle: (MovieTitleBuilder()..name = 'My Movie').build(),
-          video: vtH265UhdSdr);
+          targetResolution: VideoResolution.uhd,
+          isHdr: false);
       expect(got, '"My Movie"/"My Movie - 2160p.mkv"');
     });
     test('for HD HDR with year', () {
@@ -138,14 +142,16 @@ void main() {
                 ..name = 'My Movie'
                 ..year = '1981')
               .build(),
-          video: vtH265HdHdr);
+          targetResolution: VideoResolution.hd,
+          isHdr: true);
       expect(got, '"My Movie (1981)"/"My Movie (1981) - 1080p-HDR.mkv"');
     });
     test('for HD HDR without year', () {
       var got = makeOutputName(
           letterPrefix: false,
           movieTitle: (MovieTitleBuilder()..name = 'My Movie').build(),
-          video: vtH265HdHdr);
+          targetResolution: VideoResolution.hd,
+          isHdr: true);
       expect(got, '"My Movie"/"My Movie - 1080p-HDR.mkv"');
     });
     test('for HD SDR with year', () {
@@ -155,14 +161,16 @@ void main() {
                 ..name = 'My Movie'
                 ..year = '1981')
               .build(),
-          video: vtH265HdSdr);
+          targetResolution: VideoResolution.hd,
+          isHdr: false);
       expect(got, '"My Movie (1981)"/"My Movie (1981) - 1080p.mkv"');
     });
     test('for HD SDR without year', () {
       var got = makeOutputName(
           letterPrefix: false,
           movieTitle: (MovieTitleBuilder()..name = 'My Movie').build(),
-          video: vtH265HdSdr);
+          targetResolution: VideoResolution.hd,
+          isHdr: false);
       expect(got, '"My Movie"/"My Movie - 1080p.mkv"');
     });
   });
@@ -175,7 +183,8 @@ void main() {
                 ..name = 'The First Movie'
                 ..year = '1981')
               .build(),
-          video: vtH265UhdHdr);
+          targetResolution: VideoResolution.uhd,
+          isHdr: true);
       expect(got, 'F/"The First Movie (1981)"/"The First Movie (1981) - 2160p-HDR.mkv"');
     });
   });
@@ -186,7 +195,8 @@ void main() {
           letterPrefix: false,
           movieTitle: (MovieTitleBuilder()..name = 'The First Movie').build(),
           outputFolder: 'my/test/folder',
-          video: vtH265UhdHdr);
+          targetResolution: VideoResolution.uhd,
+          isHdr: true);
       expect(got, 'my/test/folder/"The First Movie"/"The First Movie - 2160p-HDR.mkv"');
     });
     test('for UHD HDR with Bash variable output folder name', () {
@@ -194,7 +204,8 @@ void main() {
           letterPrefix: false,
           movieTitle: (MovieTitleBuilder()..name = 'The First Movie').build(),
           outputFolder: '\$MOVIES',
-          video: vtH265UhdHdr);
+          targetResolution: VideoResolution.uhd,
+          isHdr: true);
       expect(got, '\$MOVIES/"The First Movie"/"The First Movie - 2160p-HDR.mkv"');
     });
     test('for UHD HDR with Bash variable output folder name and prefix', () {
@@ -202,7 +213,8 @@ void main() {
           letterPrefix: true,
           movieTitle: (MovieTitleBuilder()..name = 'The First Movie').build(),
           outputFolder: '\$MOVIES',
-          video: vtH265UhdHdr);
+          targetResolution: VideoResolution.uhd,
+          isHdr: true);
       expect(got, '\$MOVIES/F/"The First Movie"/"The First Movie - 2160p-HDR.mkv"');
     });
   });
@@ -233,19 +245,20 @@ void main() {
           ..episodeNumber = 3)
         .build();
     test('1080p SDR', () {
-      expect(makeTvOutputName(episode: episode, video: vtH265HdSdr),
+      expect(makeTvOutputName(episode: episode, targetResolution: VideoResolution.hd, isHdr: false),
           '"Another TV Series (1986)"/season1/"Another TV Series (1986) - s01e03.mkv"');
     });
     test('1080p HDR', () {
-      expect(makeTvOutputName(episode: episode, video: vtH265HdHdr),
+      expect(makeTvOutputName(episode: episode, targetResolution: VideoResolution.hd, isHdr: true),
           '"Another TV Series (1986)"/season1/"Another TV Series (1986) - s01e03 - [HDR].mkv"');
     });
     test('4k SDR', () {
-      expect(makeTvOutputName(episode: episode, video: vtH265UhdSdr),
+      expect(
+          makeTvOutputName(episode: episode, targetResolution: VideoResolution.uhd, isHdr: false),
           '"Another TV Series (1986)"/season1/"Another TV Series (1986) - s01e03 - [2160p].mkv"');
     });
     test('4k HDR', () {
-      expect(makeTvOutputName(episode: episode, video: vtH265UhdHdr),
+      expect(makeTvOutputName(episode: episode, targetResolution: VideoResolution.uhd, isHdr: true),
           '"Another TV Series (1986)"/season1/"Another TV Series (1986) - s01e03 - [2160p HDR].mkv"');
     });
   });
