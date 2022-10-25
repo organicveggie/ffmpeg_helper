@@ -540,6 +540,10 @@ String makeTvOutputName(
 }
 
 int maxAudioKbRate(AudioTrack track, int defaultMaxKbRate) {
+  if (track.bitRateMode == BitRateMode.variable) {
+    return defaultMaxKbRate;
+  }
+
   if (track.bitRateLimit != null) {
     int kbRateLimit = track.bitRateLimit! ~/ 1024;
     return (kbRateLimit < defaultMaxKbRate) ? kbRateLimit : defaultMaxKbRate;
