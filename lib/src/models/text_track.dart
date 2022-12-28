@@ -13,7 +13,8 @@ class TextTrack extends Track with EquatableMixin {
   final String? codecId;
   @JsonKey(name: 'extra')
   final Map<String, String>? extra;
-  @JsonKey(name: '@typeorder', fromJson: jsonStringToInt, toJson: jsonIntToString)
+  @JsonKey(
+      name: '@typeorder', fromJson: jsonStringToInt, toJson: jsonIntToString)
   final int typeOrder;
   @JsonKey(name: 'ID')
   final String id;
@@ -21,6 +22,7 @@ class TextTrack extends Track with EquatableMixin {
   final String? uniqueId;
 
   final String? format;
+  @JsonKey(defaultValue: 'en')
   final String language;
   final String? title;
 
@@ -29,13 +31,23 @@ class TextTrack extends Track with EquatableMixin {
   @JsonKey(name: 'Forced', fromJson: jsonStringToBool)
   final bool isForced;
 
-  const TextTrack(super.type, this.typeOrder, this.id, this.uniqueId, this.extra, this.title,
-      this.language, this.isDefault, this.isForced, this.format, this.codecId);
+  const TextTrack(
+      super.type,
+      this.typeOrder,
+      this.id,
+      this.uniqueId,
+      this.extra,
+      this.title,
+      this.language,
+      this.isDefault,
+      this.isForced,
+      this.format,
+      this.codecId);
 
   const TextTrack.fromParams(
       {required int typeOrder,
       required String id,
-      required String language,
+      String language = 'en',
       bool isDefault = false,
       bool isForced = false,
       String? codecId,
@@ -43,17 +55,28 @@ class TextTrack extends Track with EquatableMixin {
       String? format,
       String? title,
       String? uniqueId})
-      : this(TrackType.text, typeOrder, id, uniqueId, extra, title, language, isDefault, isForced,
-            format, codecId);
+      : this(TrackType.text, typeOrder, id, uniqueId, extra, title, language,
+            isDefault, isForced, format, codecId);
 
-  factory TextTrack.fromJson(Map<String, dynamic> json) => _$TextTrackFromJson(json);
+  factory TextTrack.fromJson(Map<String, dynamic> json) =>
+      _$TextTrackFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$TextTrackToJson(this);
 
   @override
-  List<Object?> get props =>
-      [codecId, typeOrder, id, uniqueId, extra, format, language, title, isDefault, isForced];
+  List<Object?> get props => [
+        codecId,
+        typeOrder,
+        id,
+        uniqueId,
+        extra,
+        format,
+        language,
+        title,
+        isDefault,
+        isForced
+      ];
 
   String get languageName {
     switch (language) {
