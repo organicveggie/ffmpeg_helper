@@ -22,7 +22,7 @@ class TextTrack extends Track with EquatableMixin {
   final String? uniqueId;
 
   final String? format;
-  @JsonKey(defaultValue: 'en')
+  @JsonKey(defaultValue: 'und')
   final String language;
   final String? title;
 
@@ -92,6 +92,8 @@ class TextTrack extends Track with EquatableMixin {
       case 'fr':
       case 'fra':
         return 'French';
+      case 'und':
+        return 'Undetermined';
       default:
         return 'Unknown';
     }
