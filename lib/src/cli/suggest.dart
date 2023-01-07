@@ -462,6 +462,54 @@ MovieTitle extractMovieTitle(String sourcePathname) {
       .build();
 }
 
+final _tvRegex = RegExp(
+    r'(?<title>(\w)+(([.]|\s+)(\w)+)*)([.]|\s+)[Ss](?<season>\d\d)[Ee](?<episode>\d\d)[.].*');
+
+TvSeries extractTvSeries(String sourcePathname) {
+  final sourceFilename = p.basename(sourcePathname);
+
+  var name = 'unknown';
+  var match = _tvRegex.firstMatch(sourceFilename);
+  if (match != null) {
+    final rawTitle = match.namedGroup('title');
+    if (rawTitle != null) {
+      name = rawTitle.replaceAll('.', ' ').trim();
+    }
+  }
+
+  return (TvSeriesBuilder()..name = name).build();
+}
+
+TvEpisode extractTvEpisode(String sourcePathname) {
+  final sourceFilename = p.basename(sourcePathname);
+
+  var seriesTitle = 'unknown';
+  var season = 1;
+  var episode = 1;
+
+  var match = _tvRegex.firstMatch(sourceFilename);
+  if (match != null) {
+    final rawTitle = match.namedGroup('title');
+    if (rawTitle != null) {
+      seriesTitle = rawTitle.replaceAll('.', ' ').trim();
+    }
+    final rawSeason = match.namedGroup('season');
+    if (rawSeason != null) {
+      season = int.parse(rawSeason);
+    }
+    final rawEpisode = match.namedGroup('episode');
+    if (rawEpisode != null) {
+      episode = int.parse(rawEpisode);
+    }
+  }
+
+  return (TvEpisodeBuilder()
+        ..season = season
+        ..episodeNumber = episode
+        ..series = (TvSeriesBuilder()..name = seriesTitle))
+      .build();
+}
+
 final _movieTitleStopWords = BuiltSet<String>(['a', 'an', 'the']);
 final _movieNumberRegex = RegExp(r'[0-9]');
 

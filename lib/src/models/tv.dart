@@ -35,7 +35,6 @@ abstract class TvSeries with EquatableMixin implements Built<TvSeries, TvSeriesB
 
 abstract class TvEpisode with EquatableMixin implements Built<TvEpisode, TvEpisodeBuilder> {
   TvSeries get series;
-  String? get episodeName;
   int get episodeNumber;
   int get season;
 
@@ -43,7 +42,7 @@ abstract class TvEpisode with EquatableMixin implements Built<TvEpisode, TvEpiso
   factory TvEpisode([void Function(TvEpisodeBuilder) updates]) = _$TvEpisode;
 
   @override
-  List<Object?> get props => [series, episodeName, episodeNumber, season];
+  List<Object?> get props => [series, episodeNumber, season];
 
   @override
   bool get stringify => true;
@@ -59,10 +58,6 @@ abstract class TvEpisode with EquatableMixin implements Built<TvEpisode, TvEpiso
     var paddedEpisode = episodeNumber.toString().padLeft(2, '0');
     var paddedSeason = season.toString().padLeft(2, '0');
     sb.write(' - s${paddedSeason}e$paddedEpisode');
-
-    if (episodeName != null) {
-      sb.write(' - $episodeName');
-    }
 
     return sb.toString();
   }

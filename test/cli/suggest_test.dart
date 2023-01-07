@@ -96,6 +96,46 @@ void main() {
     });
   });
 
+  group('Extract TV data', () {
+    final unknownEpisode = (TvEpisodeBuilder()
+          ..season = 1
+          ..episodeNumber = 1
+          ..series = (TvSeriesBuilder()..name = 'unknown'))
+        .build();
+    test('unknown', () {
+      final got = extractTvEpisode('not-a-tv-episode.mp4');
+      expect(got, unknownEpisode);
+    });
+    test('from period delimited', () {
+      final got = extractTvEpisode('the.tv.show.S03E14.mp4');
+      final want = (TvEpisodeBuilder()
+            ..season = 3
+            ..episodeNumber = 14
+            ..series = (TvSeriesBuilder()..name = 'the tv show'))
+          .build();
+      expect(got, want);
+    });
+    test('from space delimited', () {
+      final got = extractTvEpisode('the tv show  S02E03.mp4');
+      final want = (TvEpisodeBuilder()
+            ..season = 2
+            ..episodeNumber = 3
+            ..series = (TvSeriesBuilder()..name = 'the tv show'))
+          .build();
+      expect(got, want);
+    });
+
+    test('with extra data', () {
+      final got = extractTvEpisode('The.Test.Show.S04E01.iNTERNAL.HDR.2160p.WEB.h265-SKGTV.mkv');
+      final want = (TvEpisodeBuilder()
+            ..season = 4
+            ..episodeNumber = 1
+            ..series = (TvSeriesBuilder()..name = 'The Test Show'))
+          .build();
+      expect(got, want);
+    });
+  });
+
   group('Make output filename without prefix', () {
     test('for UHD HDR with year', () {
       var got = makeOutputName(
