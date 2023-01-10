@@ -1,10 +1,17 @@
 // ignore: depend_on_referenced_packages
+import 'dart:io';
+
+import 'package:args/command_runner.dart';
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:equatable/equatable.dart';
-import 'package:ffmpeg_helper/models.dart';
+import 'package:glob/glob.dart';
+import 'package:glob/list_local_fs.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
+
+import 'package:ffmpeg_helper/mediainfo_runner.dart';
+import 'package:ffmpeg_helper/models.dart';
 
 import '../cli/audio_finder.dart';
 import '../cli/conversions.dart';
@@ -44,6 +51,10 @@ abstract class SuggestOptions
   String? get outputFile;
   String? get outputFolder;
   VideoResolution? get targetResolution;
+  String? get year;
+
+  String? get tmdbShowId;
+  String? get tvdbShowId;
 
   SuggestOptions._();
   factory SuggestOptions([void Function(SuggestOptionsBuilder) updates]) = _$SuggestOptions;
@@ -56,7 +67,10 @@ abstract class SuggestOptions
       String? outputFile,
       String? outputFolder,
       bool? overwriteOutputFile,
-      VideoResolution? targetResolution}) {
+      VideoResolution? targetResolution,
+      String? tmdbShowId,
+      String? tvdbShowId,
+      String? year}) {
     return (SuggestOptionsBuilder()
           ..forceUpscaling = force
           ..generateDPL2 = dpl2
@@ -65,7 +79,10 @@ abstract class SuggestOptions
           ..outputFile = outputFile
           ..outputFolder = outputFolder
           ..overwriteOutputFile = overwriteOutputFile ?? false
-          ..targetResolution = targetResolution)
+          ..targetResolution = targetResolution
+          ..tmdbShowId = tmdbShowId
+          ..tvdbShowId = tvdbShowId
+          ..year = year)
         .build();
   }
 
@@ -78,7 +95,10 @@ abstract class SuggestOptions
         mediaType,
         outputFile,
         outputFolder,
-        targetResolution
+        targetResolution,
+        tmdbShowId,
+        tvdbShowId,
+        year
       ];
 }
 
@@ -125,18 +145,28 @@ BuiltList<String> processFile(SuggestOptions opts, String filename, TrackList tr
   var buffer = <String>[];
   buffer.add('ffmpeg -i $filename \\');
 
-  var movieTitle = extractMovieTitle(filename);
-  streamOptions.add((GlobalMetadataBuilder()
-        ..name = 'title'
-        ..value = movieTitle.name)
-      .build());
-
-  String outputFilename = makeOutputName(
-      isHdr: video.isHDR,
-      letterPrefix: opts.movieOutputLetterPrefix,
-      movieTitle: movieTitle,
-      outputFolder: opts.outputFolder,
-      targetResolution: opts.targetResolution ?? video.videoResolution);
+  var outputFilename = '';
+  if (opts.mediaType == MediaType.movie) {
+    var movieTitle = extractMovieTitle(filename, yearOverride: opts.year);
+    streamOptions.add((GlobalMetadataBuilder()
+          ..name = 'title'
+          ..value = movieTitle.name)
+        .build());
+    outputFilename = makeMovieOutputName(
+        isHdr: video.isHDR,
+        letterPrefix: opts.movieOutputLetterPrefix,
+        movieTitle: movieTitle,
+        outputFolder: opts.outputFolder,
+        targetResolution: opts.targetResolution ?? video.videoResolution);
+  } else {
+    TvEpisode tvEpisode = extractTvEpisode(filename,
+        tmdbId: opts.tmdbShowId, tvdbId: opts.tvdbShowId, yearOverride: opts.year);
+    outputFilename = makeTvOutputName(
+        episode: tvEpisode,
+        isHdr: video.isHDR,
+        outputFolder: opts.outputFolder,
+        targetResolution: opts.targetResolution ?? video.videoResolution);
+  }
 
   for (var opt in streamOptions) {
     buffer.add(' ${opt.toString()} \\');
@@ -438,7 +468,7 @@ extension CapitalExtension on String {
   }
 }
 
-MovieTitle extractMovieTitle(String sourcePathname) {
+MovieTitle extractMovieTitle(String sourcePathname, {String? yearOverride}) {
   final sourceFilename = p.basename(sourcePathname);
 
   var name = 'unknown';
@@ -455,6 +485,10 @@ MovieTitle extractMovieTitle(String sourcePathname) {
     }
   }
 
+  if (yearOverride != null) {
+    year = yearOverride;
+  }
+
   name = name.capitalizeEveryWord;
   return (MovieTitleBuilder()
         ..name = name
@@ -465,7 +499,7 @@ MovieTitle extractMovieTitle(String sourcePathname) {
 final _tvRegex = RegExp(
     r'(?<title>(\w)+(([.]|\s+)(\w)+)*)([.]|\s+)[Ss](?<season>\d\d)[Ee](?<episode>\d\d)[.].*');
 
-TvSeries extractTvSeries(String sourcePathname) {
+TvSeries extractTvSeries(String sourcePathname, {String? yearOverride}) {
   final sourceFilename = p.basename(sourcePathname);
 
   var name = 'unknown';
@@ -477,10 +511,14 @@ TvSeries extractTvSeries(String sourcePathname) {
     }
   }
 
-  return (TvSeriesBuilder()..name = name).build();
+  return (TvSeriesBuilder()
+        ..name = name
+        ..year = yearOverride)
+      .build();
 }
 
-TvEpisode extractTvEpisode(String sourcePathname) {
+TvEpisode extractTvEpisode(String sourcePathname,
+    {String? tmdbId, String? tvdbId, String? yearOverride}) {
   final sourceFilename = p.basename(sourcePathname);
 
   var seriesTitle = 'unknown';
@@ -506,7 +544,11 @@ TvEpisode extractTvEpisode(String sourcePathname) {
   return (TvEpisodeBuilder()
         ..season = season
         ..episodeNumber = episode
-        ..series = (TvSeriesBuilder()..name = seriesTitle))
+        ..series = (TvSeriesBuilder()
+          ..name = seriesTitle
+          ..tmdbShowId = tmdbId
+          ..tvdbShowId = tvdbId
+          ..year = yearOverride))
       .build();
 }
 
@@ -532,7 +574,7 @@ String getMovieTitleFirstLetter(String title) {
   return firstLetter.toUpperCase();
 }
 
-String makeOutputName(
+String makeMovieOutputName(
     {required MovieTitle movieTitle,
     bool isHdr = false,
     bool letterPrefix = false,
@@ -568,7 +610,7 @@ String makeTvOutputName(
   StringBuffer buffer = StringBuffer(episode.asFullName());
 
   if ((targetResolution == VideoResolution.uhd || isHdr)) {
-    buffer.write(' - [');
+    buffer.write(' [');
     if (targetResolution == VideoResolution.uhd) {
       buffer.write(targetResolution!.toSizeName());
       if (isHdr) {
@@ -598,4 +640,122 @@ int maxAudioKbRate(AudioTrack track, int defaultMaxKbRate) {
   }
 
   return defaultMaxKbRate;
+}
+
+////////////////////
+// Classes
+////////////////////
+
+class SuggestFlags {
+  static const String dpl2 = 'dpl2';
+  static const String file = 'file';
+  static const String fileOverwrite = 'file_overwrite';
+  static const String force = 'force';
+  static const String outputFolder = 'output_folder';
+  static const String targetResolution = 'target_resolution';
+  static const String year = 'year';
+}
+
+abstract class BaseSuggestCommand extends Command {
+  final log = Logger('BaseSuggestcommand');
+
+  String getDefaultOutputFolder();
+  MediaType getMediaType();
+  SuggestOptions addOptions(SuggestOptions opts);
+
+  // [run] may also return a Future.
+  @override
+  void run() async {
+    if (globalResults?['verbose']) {
+      Logger.root.level = Level.ALL;
+    }
+
+    var argResults = this.argResults;
+    if ((argResults == null) || (argResults.rest.isEmpty)) {
+      throw const MissingRequiredArgumentException('filename');
+    }
+
+    var parentArgs = parent!.argResults!;
+
+    var outputFolder = parentArgs[SuggestFlags.outputFolder] ?? getDefaultOutputFolder();
+    var outputFilename = parentArgs[SuggestFlags.file];
+    var overwriteOutputFile = parentArgs[SuggestFlags.fileOverwrite];
+
+    if (outputFilename != null) {
+      var outputFile = File(outputFilename);
+      if (outputFile.existsSync() && !overwriteOutputFile) {
+        log.severe('Output file already exists: $outputFilename. Use '
+            '--${SuggestFlags.fileOverwrite} to overwrite the file.');
+        return;
+      }
+    }
+
+    var opts = SuggestOptions.withDefaults(
+        force: parentArgs[SuggestFlags.force],
+        dpl2: parentArgs[SuggestFlags.dpl2],
+        mediaType: getMediaType(),
+        outputFile: outputFilename,
+        outputFolder: outputFolder,
+        overwriteOutputFile: overwriteOutputFile,
+        targetResolution: VideoResolution.byNameOrAlias(parentArgs[SuggestFlags.targetResolution]),
+        year: parentArgs[SuggestFlags.year]);
+    opts = addOptions(opts);
+
+    var mediainfoRunner = MediainfoRunner(mediainfoBinary: globalResults?['mediainfo_bin']);
+
+    var output = makeOutputSink(opts);
+
+    for (var fileGlob in argResults.rest) {
+      for (var file in Glob(fileGlob).listSync()) {
+        final f = File(file.path);
+        if (!f.existsSync()) {
+          throw FileNotFoundException(file.path);
+        }
+        log.info('Found file: ${f.path}');
+
+        TrackList tracks = await getTrackList(mediainfoRunner, file.path);
+        var suggestedCmdline = processFile(opts, file.path, tracks);
+
+        for (var line in suggestedCmdline) {
+          output.writeln(line);
+        }
+        output.writeln();
+      }
+    }
+
+    await output.close();
+  }
+
+  Future<TrackList> getTrackList(MediainfoRunner runner, String filename) async {
+    log.info('Running mediainfo on $filename...');
+    MediaRoot root = await runner.run(filename);
+    if (root.media.trackList.tracks.isEmpty) {
+      throw InvalidMetadataException('no tracks found', filename);
+    }
+
+    TrackList tl = root.media.trackList;
+    if (tl.generalTrack == null) {
+      throw InvalidMetadataException('no General track found', filename);
+    }
+    if (tl.audioTracks.isEmpty) {
+      throw InvalidMetadataException('no audio tracks found', filename);
+    }
+    if (tl.videoTracks.isEmpty) {
+      throw InvalidMetadataException('no video tracks found', filename);
+    }
+
+    return tl;
+  }
+
+  IOSink makeOutputSink(SuggestOptions opts) {
+    if (opts.outputFile != null) {
+      var outputFile = File(opts.outputFile!);
+      if (outputFile.existsSync() && !opts.overwriteOutputFile) {
+        throw OutputFileExistsException(opts.outputFile!, SuggestFlags.fileOverwrite);
+      }
+      return outputFile.openWrite(mode: FileMode.writeOnly);
+    }
+
+    return stdout;
+  }
 }

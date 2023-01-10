@@ -138,7 +138,7 @@ void main() {
 
   group('Make output filename without prefix', () {
     test('for UHD HDR with year', () {
-      var got = makeOutputName(
+      var got = makeMovieOutputName(
           letterPrefix: false,
           movieTitle: (MovieTitleBuilder()
                 ..name = 'My Movie'
@@ -149,7 +149,7 @@ void main() {
       expect(got, '"My Movie (1981)"/"My Movie (1981) - 2160p-HDR.mkv"');
     });
     test('for UHD HDR without year', () {
-      var got = makeOutputName(
+      var got = makeMovieOutputName(
           letterPrefix: false,
           movieTitle: (MovieTitleBuilder()..name = 'My Movie').build(),
           targetResolution: VideoResolution.uhd,
@@ -157,7 +157,7 @@ void main() {
       expect(got, '"My Movie"/"My Movie - 2160p-HDR.mkv"');
     });
     test('for UHD SDR with year', () {
-      var got = makeOutputName(
+      var got = makeMovieOutputName(
           letterPrefix: false,
           movieTitle: (MovieTitleBuilder()
                 ..name = 'My Movie'
@@ -168,7 +168,7 @@ void main() {
       expect(got, '"My Movie (1981)"/"My Movie (1981) - 2160p.mkv"');
     });
     test('for UHD SDR without year', () {
-      var got = makeOutputName(
+      var got = makeMovieOutputName(
           letterPrefix: false,
           movieTitle: (MovieTitleBuilder()..name = 'My Movie').build(),
           targetResolution: VideoResolution.uhd,
@@ -176,7 +176,7 @@ void main() {
       expect(got, '"My Movie"/"My Movie - 2160p.mkv"');
     });
     test('for HD HDR with year', () {
-      var got = makeOutputName(
+      var got = makeMovieOutputName(
           letterPrefix: false,
           movieTitle: (MovieTitleBuilder()
                 ..name = 'My Movie'
@@ -187,7 +187,7 @@ void main() {
       expect(got, '"My Movie (1981)"/"My Movie (1981) - 1080p-HDR.mkv"');
     });
     test('for HD HDR without year', () {
-      var got = makeOutputName(
+      var got = makeMovieOutputName(
           letterPrefix: false,
           movieTitle: (MovieTitleBuilder()..name = 'My Movie').build(),
           targetResolution: VideoResolution.hd,
@@ -195,7 +195,7 @@ void main() {
       expect(got, '"My Movie"/"My Movie - 1080p-HDR.mkv"');
     });
     test('for HD SDR with year', () {
-      var got = makeOutputName(
+      var got = makeMovieOutputName(
           letterPrefix: false,
           movieTitle: (MovieTitleBuilder()
                 ..name = 'My Movie'
@@ -206,7 +206,7 @@ void main() {
       expect(got, '"My Movie (1981)"/"My Movie (1981) - 1080p.mkv"');
     });
     test('for HD SDR without year', () {
-      var got = makeOutputName(
+      var got = makeMovieOutputName(
           letterPrefix: false,
           movieTitle: (MovieTitleBuilder()..name = 'My Movie').build(),
           targetResolution: VideoResolution.hd,
@@ -217,7 +217,7 @@ void main() {
 
   group('Make output filename with first letter prefix', () {
     test('for UHD HDR with year', () {
-      var got = makeOutputName(
+      var got = makeMovieOutputName(
           letterPrefix: true,
           movieTitle: (MovieTitleBuilder()
                 ..name = 'The First Movie'
@@ -231,7 +231,7 @@ void main() {
 
   group('Make output filename with output folder', () {
     test('for UHD HDR with regular output folder name', () {
-      var got = makeOutputName(
+      var got = makeMovieOutputName(
           letterPrefix: false,
           movieTitle: (MovieTitleBuilder()..name = 'The First Movie').build(),
           outputFolder: 'my/test/folder',
@@ -240,7 +240,7 @@ void main() {
       expect(got, 'my/test/folder/"The First Movie"/"The First Movie - 2160p-HDR.mkv"');
     });
     test('for UHD HDR with Bash variable output folder name', () {
-      var got = makeOutputName(
+      var got = makeMovieOutputName(
           letterPrefix: false,
           movieTitle: (MovieTitleBuilder()..name = 'The First Movie').build(),
           outputFolder: '\$MOVIES',
@@ -249,7 +249,7 @@ void main() {
       expect(got, '\$MOVIES/"The First Movie"/"The First Movie - 2160p-HDR.mkv"');
     });
     test('for UHD HDR with Bash variable output folder name and prefix', () {
-      var got = makeOutputName(
+      var got = makeMovieOutputName(
           letterPrefix: true,
           movieTitle: (MovieTitleBuilder()..name = 'The First Movie').build(),
           outputFolder: '\$MOVIES',
