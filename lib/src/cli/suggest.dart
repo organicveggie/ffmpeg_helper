@@ -626,7 +626,8 @@ String makeTvOutputName(
 
   var season = 'season${episode.season}';
 
-  return p.join('"${episode.series.asFullName()}"', season, '"${buffer.toString()}"');
+  return p.join(
+      outputFolder ?? '', '"${episode.series.asFullName()}"', season, '"${buffer.toString()}"');
 }
 
 int maxAudioKbRate(AudioTrack track, int defaultMaxKbRate) {
