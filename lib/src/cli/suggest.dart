@@ -23,22 +23,6 @@ part 'suggest.g.dart';
 // Data Models
 ////////////////////
 
-abstract class MovieTitle with EquatableMixin implements Built<MovieTitle, MovieTitleBuilder> {
-  MovieTitle._();
-  factory MovieTitle([void Function(MovieTitleBuilder) updates]) = _$MovieTitle;
-
-  String get name;
-  String? get year;
-
-  @override
-  List<Object?> get props => [name, year];
-
-  @override
-  String toString() {
-    return (year == null) ? name : '$name ($year)';
-  }
-}
-
 abstract class SuggestOptions
     with EquatableMixin
     implements Built<SuggestOptions, SuggestOptionsBuilder> {
@@ -53,8 +37,9 @@ abstract class SuggestOptions
   VideoResolution? get targetResolution;
   String? get year;
 
-  String? get tmdbShowId;
-  String? get tvdbShowId;
+  String? get imdbId;
+  String? get tmdbId;
+  String? get tvdbId;
 
   SuggestOptions._();
   factory SuggestOptions([void Function(SuggestOptionsBuilder) updates]) = _$SuggestOptions;
@@ -68,20 +53,22 @@ abstract class SuggestOptions
       String? outputFolder,
       bool? overwriteOutputFile,
       VideoResolution? targetResolution,
-      String? tmdbShowId,
-      String? tvdbShowId,
+      String? imdbId,
+      String? tmdbId,
+      String? tvdbId,
       String? year}) {
     return (SuggestOptionsBuilder()
           ..forceUpscaling = force
           ..generateDPL2 = dpl2
+          ..imdbId = imdbId
           ..mediaType = mediaType
           ..movieOutputLetterPrefix = movieOutputLetterPrefix ?? false
           ..outputFile = outputFile
           ..outputFolder = outputFolder
           ..overwriteOutputFile = overwriteOutputFile ?? false
           ..targetResolution = targetResolution
-          ..tmdbShowId = tmdbShowId
-          ..tvdbShowId = tvdbShowId
+          ..tmdbId = tmdbId
+          ..tvdbId = tvdbId
           ..year = year)
         .build();
   }
@@ -90,14 +77,15 @@ abstract class SuggestOptions
   List<Object?> get props => [
         forceUpscaling,
         generateDPL2,
+        imdbId,
         movieOutputLetterPrefix,
         overwriteOutputFile,
         mediaType,
         outputFile,
         outputFolder,
         targetResolution,
-        tmdbShowId,
-        tvdbShowId,
+        tmdbId,
+        tvdbId,
         year
       ];
 }
@@ -160,7 +148,7 @@ BuiltList<String> processFile(SuggestOptions opts, String filename, TrackList tr
         targetResolution: opts.targetResolution ?? video.videoResolution);
   } else {
     TvEpisode tvEpisode = extractTvEpisode(filename,
-        tmdbId: opts.tmdbShowId, tvdbId: opts.tvdbShowId, yearOverride: opts.year);
+        tmdbId: opts.tmdbId, tvdbId: opts.tvdbId, yearOverride: opts.year);
     outputFilename = makeTvOutputName(
         episode: tvEpisode,
         isHdr: video.isHDR,

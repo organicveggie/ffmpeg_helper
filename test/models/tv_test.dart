@@ -87,21 +87,20 @@ void main() {
           'My TV Series - s01e03');
       expect(
           (TvEpisodeBuilder()
-                ..series.replace(seriesYear)
-                ..episodeNumber = 3
-                ..season = 1)
-              .build()
-              .asFullName(),
-          'My TV Series (1977) - s01e03');
-
-      expect(
-          (TvEpisodeBuilder()
                 ..series.replace(series)
                 ..episodeNumber = 3
                 ..season = 10)
               .build()
               .asFullName(),
           'My TV Series - s10e03');
+      expect(
+          (TvEpisodeBuilder()
+                ..series.replace(seriesYear)
+                ..episodeNumber = 3
+                ..season = 1)
+              .build()
+              .asFullName(),
+          'My TV Series (1977) - s01e03');
       expect(
           (TvEpisodeBuilder()
                 ..series.replace(seriesYear)

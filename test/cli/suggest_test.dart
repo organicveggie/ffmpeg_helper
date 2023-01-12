@@ -290,16 +290,16 @@ void main() {
     });
     test('1080p HDR', () {
       expect(makeTvOutputName(episode: episode, targetResolution: VideoResolution.hd, isHdr: true),
-          '"Another TV Series (1986)"/season1/"Another TV Series (1986) - s01e03 - [HDR].mkv"');
+          '"Another TV Series (1986)"/season1/"Another TV Series (1986) - s01e03 [HDR].mkv"');
     });
     test('4k SDR', () {
       expect(
           makeTvOutputName(episode: episode, targetResolution: VideoResolution.uhd, isHdr: false),
-          '"Another TV Series (1986)"/season1/"Another TV Series (1986) - s01e03 - [2160p].mkv"');
+          '"Another TV Series (1986)"/season1/"Another TV Series (1986) - s01e03 [2160p].mkv"');
     });
     test('4k HDR', () {
       expect(makeTvOutputName(episode: episode, targetResolution: VideoResolution.uhd, isHdr: true),
-          '"Another TV Series (1986)"/season1/"Another TV Series (1986) - s01e03 - [2160p HDR].mkv"');
+          '"Another TV Series (1986)"/season1/"Another TV Series (1986) - s01e03 [2160p HDR].mkv"');
     });
   });
 }

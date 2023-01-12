@@ -6,8 +6,8 @@ import 'package:ffmpeg_helper/src/models/enums.dart';
 class SuggestTvCommand extends BaseSuggestCommand {
   static const String defaultOutputFolder = r'$TV';
 
-  static const String flagTmdb = 'tmdb_show_id';
-  static const String flagTvdb = 'tvdb_show_id';
+  static const String flagTmdb = 'tmdb_id';
+  static const String flagTvdb = 'tvdb_id';
 
   @override
   final name = 'tv';
@@ -28,7 +28,7 @@ class SuggestTvCommand extends BaseSuggestCommand {
   @override
   SuggestOptions addOptions(SuggestOptions opts) {
     return opts.rebuild((o) => o
-      ..tmdbShowId = argResults?[flagTmdb]
-      ..tvdbShowId = argResults?[flagTvdb]);
+      ..tmdbId = argResults?[flagTmdb]
+      ..tvdbId = argResults?[flagTvdb]);
   }
 }
