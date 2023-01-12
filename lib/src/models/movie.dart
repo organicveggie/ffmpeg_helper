@@ -3,9 +3,9 @@ import 'package:equatable/equatable.dart';
 
 part 'movie.g.dart';
 
-abstract class MovieTitle with EquatableMixin implements Built<MovieTitle, MovieTitleBuilder> {
-  MovieTitle._();
-  factory MovieTitle([void Function(MovieTitleBuilder) updates]) = _$MovieTitle;
+abstract class Movie with EquatableMixin implements Built<Movie, MovieBuilder> {
+  Movie._();
+  factory Movie([void Function(MovieBuilder) updates]) = _$Movie;
 
   String get name;
   String? get year;

@@ -456,7 +456,7 @@ extension CapitalExtension on String {
   }
 }
 
-MovieTitle extractMovieTitle(String sourcePathname, {String? yearOverride}) {
+Movie extractMovieTitle(String sourcePathname, {String? yearOverride}) {
   final sourceFilename = p.basename(sourcePathname);
 
   var name = 'unknown';
@@ -478,7 +478,7 @@ MovieTitle extractMovieTitle(String sourcePathname, {String? yearOverride}) {
   }
 
   name = name.capitalizeEveryWord;
-  return (MovieTitleBuilder()
+  return (MovieBuilder()
         ..name = name
         ..year = year)
       .build();
@@ -563,7 +563,7 @@ String getMovieTitleFirstLetter(String title) {
 }
 
 String makeMovieOutputName(
-    {required MovieTitle movieTitle,
+    {required Movie movieTitle,
     bool isHdr = false,
     bool letterPrefix = false,
     String? outputFolder,
