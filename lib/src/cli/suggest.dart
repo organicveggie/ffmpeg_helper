@@ -456,11 +456,12 @@ extension CapitalExtension on String {
   }
 }
 
-Movie extractMovieTitle(String sourcePathname, {String? yearOverride}) {
+Movie extractMovieTitle(String sourcePathname,
+    {String? imdbOverride, String? tmdbOverride, String? yearOverride}) {
   final sourceFilename = p.basename(sourcePathname);
 
   var name = 'unknown';
-  String? year;
+  String? imdb, tmdb, year;
 
   // Try to identify the name and year of the movie.
   var regex = RegExp(r'^(?<name>(\w+[.]?)+?)[.]?(?<year>(19\d\d|20\d\d))?[.].*[.](mkv|mp4|m4v)$');
@@ -473,13 +474,21 @@ Movie extractMovieTitle(String sourcePathname, {String? yearOverride}) {
     }
   }
 
+  if (imdbOverride != null) {
+    imdb = imdbOverride;
+  }
+  if (tmdbOverride != null) {
+    tmdb = tmdbOverride;
+  }
   if (yearOverride != null) {
     year = yearOverride;
   }
 
   name = name.capitalizeEveryWord;
   return (MovieBuilder()
+        ..imdbId = imdb
         ..name = name
+        ..tmdbId = tmdb
         ..year = year)
       .build();
 }

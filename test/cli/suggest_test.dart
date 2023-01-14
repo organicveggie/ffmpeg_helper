@@ -4,50 +4,6 @@ import 'package:test/test.dart';
 import 'package:tuple/tuple.dart';
 
 void main() {
-  const VideoTrack vtH265HdHdr = VideoTrack.createFromParams(
-    codecId: 'V_MPEGH/ISO/HEVC',
-    format: 'HEVC',
-    hdrFormat: 'SMPTE ST 2086',
-    hdrFormatCompatibility: 'HDR10',
-    height: 1080,
-    id: '0',
-    streamOrder: '0',
-    uniqueId: '1',
-    width: 1920,
-  );
-
-  const VideoTrack vtH265HdSdr = VideoTrack.createFromParams(
-    codecId: 'V_MPEGH/ISO/HEVC',
-    format: 'HEVC',
-    height: 1080,
-    id: '0',
-    streamOrder: '0',
-    uniqueId: '1',
-    width: 1920,
-  );
-
-  const VideoTrack vtH265UhdHdr = VideoTrack.createFromParams(
-    codecId: 'V_MPEGH/ISO/HEVC',
-    format: 'HEVC',
-    hdrFormat: 'SMPTE ST 2086',
-    hdrFormatCompatibility: 'HDR10',
-    height: 2160,
-    id: '1',
-    streamOrder: '1',
-    uniqueId: '2',
-    width: 3840,
-  );
-
-  const VideoTrack vtH265UhdSdr = VideoTrack.createFromParams(
-    codecId: 'V_MPEGH/ISO/HEVC',
-    format: 'HEVC',
-    height: 2160,
-    id: '1',
-    streamOrder: '1',
-    uniqueId: '2',
-    width: 3840,
-  );
-
   group('CapitalExtension', () {
     test('capitalizeFirstLetter', () {
       expect('soon'.capitalizeFirstLetter, 'Soon');
@@ -141,86 +97,93 @@ void main() {
     });
   });
 
-  group('Make output filename without prefix', () {
-    test('for UHD HDR with year', () {
-      var got = makeMovieOutputName(
-          letterPrefix: false,
-          movie: (MovieBuilder()
-                ..name = 'My Movie'
-                ..year = '1981')
-              .build(),
-          targetResolution: VideoResolution.uhd,
-          isHdr: true);
-      expect(got, '"My Movie (1981)"/"My Movie (1981) - 2160p-HDR.mkv"');
+  group('Make movie output filename without prefix', () {
+    var movie = (MovieBuilder()..name = 'My Movie').build();
+    var movieWithYear = movie.rebuild((m) => m.year = '1981');
+    group('without year', () {
+      group('without imdb or tvdb', () {
+        const tests = <Tuple3>[
+          Tuple3(VideoResolution.uhd, true, '"My Movie"/"My Movie - 2160p-HDR.mkv"'),
+          Tuple3(VideoResolution.uhd, false, '"My Movie"/"My Movie - 2160p.mkv"'),
+          Tuple3(VideoResolution.hd, true, '"My Movie"/"My Movie - 1080p-HDR.mkv"'),
+          Tuple3(VideoResolution.hd, false, '"My Movie"/"My Movie - 1080p.mkv"'),
+        ];
+        for (var t in tests) {
+          var testName = '${t.item1.toString()} ${t.item2 ? "HDR" : "SDR"}';
+          test(testName, () {
+            var got = makeMovieOutputName(
+                letterPrefix: false, movie: movie, targetResolution: t.item1, isHdr: t.item2);
+            expect(got, t.item3);
+          });
+        }
+      });
+      group('with imdb', () {
+        var movieImdb = movie.rebuild((m) => m.imdbId = 'tt1234');
+        const tests = <Tuple3>[
+          Tuple3(VideoResolution.uhd, true,
+              '"My Movie {imdb-tt1234}"/"My Movie {imdb-tt1234} - 2160p-HDR.mkv"'),
+          Tuple3(VideoResolution.uhd, false,
+              '"My Movie {imdb-tt1234}"/"My Movie {imdb-tt1234} - 2160p.mkv"'),
+          Tuple3(VideoResolution.hd, true,
+              '"My Movie {imdb-tt1234}"/"My Movie {imdb-tt1234} - 1080p-HDR.mkv"'),
+          Tuple3(VideoResolution.hd, false,
+              '"My Movie {imdb-tt1234}"/"My Movie {imdb-tt1234} - 1080p.mkv"'),
+        ];
+        for (var t in tests) {
+          var testName = '${t.item1.toString()} ${t.item2 ? "HDR" : "SDR"}';
+          test(testName, () {
+            var got = makeMovieOutputName(
+                letterPrefix: false, movie: movieImdb, targetResolution: t.item1, isHdr: t.item2);
+            expect(got, t.item3);
+          });
+        }
+      });
+      group('with tmdb', () {
+        var movieTmdb = movie.rebuild((m) => m.tmdbId = '01234');
+        const tests = <Tuple3>[
+          Tuple3(VideoResolution.uhd, true,
+              '"My Movie {tmdb-01234}"/"My Movie {tmdb-01234} - 2160p-HDR.mkv"'),
+          Tuple3(VideoResolution.uhd, false,
+              '"My Movie {tmdb-01234}"/"My Movie {tmdb-01234} - 2160p.mkv"'),
+          Tuple3(VideoResolution.hd, true,
+              '"My Movie {tmdb-01234}"/"My Movie {tmdb-01234} - 1080p-HDR.mkv"'),
+          Tuple3(VideoResolution.hd, false,
+              '"My Movie {tmdb-01234}"/"My Movie {tmdb-01234} - 1080p.mkv"'),
+        ];
+        for (var t in tests) {
+          var testName = '${t.item1.toString()} ${t.item2 ? "HDR" : "SDR"}';
+          test(testName, () {
+            var got = makeMovieOutputName(
+                letterPrefix: false, movie: movieTmdb, targetResolution: t.item1, isHdr: t.item2);
+            expect(got, t.item3);
+          });
+        }
+      });
     });
-    test('for UHD HDR without year', () {
-      var got = makeMovieOutputName(
-          letterPrefix: false,
-          movie: (MovieBuilder()..name = 'My Movie').build(),
-          targetResolution: VideoResolution.uhd,
-          isHdr: true);
-      expect(got, '"My Movie"/"My Movie - 2160p-HDR.mkv"');
-    });
-    test('for UHD SDR with year', () {
-      var got = makeMovieOutputName(
-          letterPrefix: false,
-          movie: (MovieBuilder()
-                ..name = 'My Movie'
-                ..year = '1981')
-              .build(),
-          targetResolution: VideoResolution.uhd,
-          isHdr: false);
-      expect(got, '"My Movie (1981)"/"My Movie (1981) - 2160p.mkv"');
-    });
-    test('for UHD SDR without year', () {
-      var got = makeMovieOutputName(
-          letterPrefix: false,
-          movie: (MovieBuilder()..name = 'My Movie').build(),
-          targetResolution: VideoResolution.uhd,
-          isHdr: false);
-      expect(got, '"My Movie"/"My Movie - 2160p.mkv"');
-    });
-    test('for HD HDR with year', () {
-      var got = makeMovieOutputName(
-          letterPrefix: false,
-          movie: (MovieBuilder()
-                ..name = 'My Movie'
-                ..year = '1981')
-              .build(),
-          targetResolution: VideoResolution.hd,
-          isHdr: true);
-      expect(got, '"My Movie (1981)"/"My Movie (1981) - 1080p-HDR.mkv"');
-    });
-    test('for HD HDR without year', () {
-      var got = makeMovieOutputName(
-          letterPrefix: false,
-          movie: (MovieBuilder()..name = 'My Movie').build(),
-          targetResolution: VideoResolution.hd,
-          isHdr: true);
-      expect(got, '"My Movie"/"My Movie - 1080p-HDR.mkv"');
-    });
-    test('for HD SDR with year', () {
-      var got = makeMovieOutputName(
-          letterPrefix: false,
-          movie: (MovieBuilder()
-                ..name = 'My Movie'
-                ..year = '1981')
-              .build(),
-          targetResolution: VideoResolution.hd,
-          isHdr: false);
-      expect(got, '"My Movie (1981)"/"My Movie (1981) - 1080p.mkv"');
-    });
-    test('for HD SDR without year', () {
-      var got = makeMovieOutputName(
-          letterPrefix: false,
-          movie: (MovieBuilder()..name = 'My Movie').build(),
-          targetResolution: VideoResolution.hd,
-          isHdr: false);
-      expect(got, '"My Movie"/"My Movie - 1080p.mkv"');
+    group('with year', () {
+      group('without imdb or tvdb', () {
+        const tests = <Tuple3>[
+          Tuple3(VideoResolution.uhd, true, '"My Movie (1981)"/"My Movie (1981) - 2160p-HDR.mkv"'),
+          Tuple3(VideoResolution.uhd, false, '"My Movie (1981)"/"My Movie (1981) - 2160p.mkv"'),
+          Tuple3(VideoResolution.hd, true, '"My Movie (1981)"/"My Movie (1981) - 1080p-HDR.mkv"'),
+          Tuple3(VideoResolution.hd, false, '"My Movie (1981)"/"My Movie (1981) - 1080p.mkv"'),
+        ];
+        for (var t in tests) {
+          var testName = '${t.item1.toString()} ${t.item2 ? "HDR" : "SDR"}';
+          test(testName, () {
+            var got = makeMovieOutputName(
+                letterPrefix: false,
+                movie: movieWithYear,
+                targetResolution: t.item1,
+                isHdr: t.item2);
+            expect(got, t.item3);
+          });
+        }
+      });
     });
   });
 
-  group('Make output filename with first letter prefix', () {
+  group('Make movie output filename with first letter prefix', () {
     test('for UHD HDR with year', () {
       var got = makeMovieOutputName(
           letterPrefix: true,
@@ -234,7 +197,7 @@ void main() {
     });
   });
 
-  group('Make output filename with output folder', () {
+  group('Make movie output filename with output folder', () {
     test('for UHD HDR with regular output folder name', () {
       var got = makeMovieOutputName(
           letterPrefix: false,
@@ -279,7 +242,7 @@ void main() {
     }
   });
 
-  group('makeTvOutputName', () {
+  group('make tv output filename', () {
     final series = (TvSeriesBuilder()
           ..name = 'Another TV Series'
           ..year = '1986')
