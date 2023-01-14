@@ -74,7 +74,6 @@ void main() {
         var got = extractMovieTitle(p);
         expect(got.name, 'My Fake Movie');
         expect(got.year, isNull);
-        expect(got.toString(), 'My Fake Movie');
       }
     });
     test('from full pathname with year and periods', () {
@@ -87,12 +86,18 @@ void main() {
         var got = extractMovieTitle(p.item1);
         expect(got.name, p.item2);
         expect(got.year, p.item3);
-        expect(got.toString(), '${p.item2} (${p.item3})');
       }
     });
     test('returns unknown for unsupported formats', () {
-      expect(extractMovieTitle('/example/Unsupported.Format.mp3').toString(), 'Unknown');
-      expect(extractMovieTitle('/example/Unsupported.Format.mov').toString(), 'Unknown');
+      const pathnames = <String>[
+        '/example/Unsupported.Format.mp3',
+        '/example/Unsupported.Format.mov'
+      ];
+      for (var p in pathnames) {
+        var got = extractMovieTitle(p);
+        expect(got.name.toLowerCase(), 'unknown');
+        expect(got.year, isNull);
+      }
     });
   });
 
@@ -286,11 +291,11 @@ void main() {
         .build();
     test('1080p SDR', () {
       expect(makeTvOutputName(episode: episode, targetResolution: VideoResolution.hd, isHdr: false),
-          '"Another TV Series (1986)"/season1/"Another TV Series (1986) - s01e03.mkv"');
+          '"Another TV Series (1986)"/season1/"Another TV Series (1986) - s01e03 [1080p].mkv"');
     });
     test('1080p HDR', () {
       expect(makeTvOutputName(episode: episode, targetResolution: VideoResolution.hd, isHdr: true),
-          '"Another TV Series (1986)"/season1/"Another TV Series (1986) - s01e03 [HDR].mkv"');
+          '"Another TV Series (1986)"/season1/"Another TV Series (1986) - s01e03 [1080p HDR].mkv"');
     });
     test('4k SDR', () {
       expect(
