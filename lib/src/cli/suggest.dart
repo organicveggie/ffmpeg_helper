@@ -131,7 +131,7 @@ BuiltList<String> processFile(SuggestOptions opts, String filename, TrackList tr
   streamOptions.addAll(audioStreamOpts);
 
   var buffer = <String>[];
-  buffer.add('ffmpeg -i $filename \\');
+  buffer.add('ffmpeg -i "$filename" \\');
 
   var outputFilename = '';
   if (opts.mediaType == MediaType.movie) {
@@ -594,19 +594,12 @@ String makeTvOutputName(
     VideoResolution? targetResolution}) {
   StringBuffer buffer = StringBuffer(episode.asFullName());
 
-  if ((targetResolution == VideoResolution.uhd || isHdr)) {
-    buffer.write(' [');
-    if (targetResolution == VideoResolution.uhd) {
-      buffer.write(targetResolution!.toSizeName());
-      if (isHdr) {
-        buffer.write(' ');
-      }
-    }
-    if (isHdr) {
-      buffer.write('HDR');
-    }
-    buffer.write(']');
+  buffer.write(' [');
+  buffer.write(targetResolution!.toSizeName());
+  if (isHdr) {
+    buffer.write(' HDR');
   }
+  buffer.write(']');
   buffer.write('.mkv');
 
   var season = 'season${episode.season}';
