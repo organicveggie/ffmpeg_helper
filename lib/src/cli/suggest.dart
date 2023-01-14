@@ -143,7 +143,7 @@ BuiltList<String> processFile(SuggestOptions opts, String filename, TrackList tr
     outputFilename = makeMovieOutputName(
         isHdr: video.isHDR,
         letterPrefix: opts.movieOutputLetterPrefix,
-        movieTitle: movieTitle,
+        movie: movieTitle,
         outputFolder: opts.outputFolder,
         targetResolution: opts.targetResolution ?? video.videoResolution);
   } else {
@@ -563,15 +563,12 @@ String getMovieTitleFirstLetter(String title) {
 }
 
 String makeMovieOutputName(
-    {required Movie movieTitle,
+    {required Movie movie,
     bool isHdr = false,
     bool letterPrefix = false,
     String? outputFolder,
     VideoResolution? targetResolution}) {
-  final baseNameBuffer = StringBuffer(movieTitle.name);
-  if (movieTitle.year != null) {
-    baseNameBuffer.write(' (${movieTitle.year})');
-  }
+  final baseNameBuffer = StringBuffer(movie.asFullName());
 
   final fileNameBuffer = StringBuffer(baseNameBuffer);
   if (targetResolution != null) {
@@ -584,7 +581,7 @@ String makeMovieOutputName(
 
   var firstLetter = '';
   if (letterPrefix) {
-    firstLetter = getMovieTitleFirstLetter(movieTitle.name);
+    firstLetter = getMovieTitleFirstLetter(movie.name);
   }
   return p.join(outputFolder ?? '', firstLetter, '"${baseNameBuffer.toString()}"',
       '"${fileNameBuffer.toString()}"');

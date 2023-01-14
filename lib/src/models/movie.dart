@@ -16,17 +16,17 @@ abstract class Movie with EquatableMixin implements Built<Movie, MovieBuilder> {
   @override
   List<Object?> get props => [name, year, imdbId, tmdbId];
 
-  @override
-  String toString() {
+  String asFullName() {
     StringBuffer b = StringBuffer(name);
     if (year != null) {
       b.write(' ($year)');
     }
-    if (imdbId != null) {
-      b.write(' {imdb-$imdbId}');
-    }
+
+    // Prefer TMDB over IMDB.
     if (tmdbId != null) {
       b.write(' {tmdb-$tmdbId}');
+    } else if (imdbId != null) {
+      b.write(' {imdb-$imdbId}');
     }
     return b.toString();
   }
