@@ -5,8 +5,6 @@ import 'package:args/command_runner.dart';
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:equatable/equatable.dart';
-import 'package:glob/glob.dart';
-import 'package:glob/list_local_fs.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 
@@ -707,21 +705,19 @@ abstract class BaseSuggestCommand extends Command {
     var output = makeOutputSink(opts);
 
     for (var fileGlob in argResults.rest) {
-      for (var file in Glob(fileGlob).listSync()) {
-        final f = File(file.path);
-        if (!f.existsSync()) {
-          throw FileNotFoundException(file.path);
-        }
-        log.info('Found file: ${f.path}');
-
-        TrackList tracks = await getTrackList(mediainfoRunner, file.path);
-        var suggestedCmdline = processFile(opts, file.path, tracks);
-
-        for (var line in suggestedCmdline) {
-          output.writeln(line);
-        }
-        output.writeln();
+      final f = File(fileGlob);
+      if (!f.existsSync()) {
+        throw FileNotFoundException(fileGlob);
       }
+      log.info('Found file: ${f.path}');
+
+      TrackList tracks = await getTrackList(mediainfoRunner, f.path);
+      var suggestedCmdline = processFile(opts, f.path, tracks);
+
+      for (var line in suggestedCmdline) {
+        output.writeln(line);
+      }
+      output.writeln();
     }
 
     await output.close();
