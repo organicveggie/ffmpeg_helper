@@ -36,6 +36,8 @@ abstract class MovieOverrides implements Built<MovieOverrides, MovieOverridesBui
   MovieOverrides._();
   factory MovieOverrides([void Function(MovieOverridesBuilder) updates]) = _$MovieOverrides;
 
+  String? get name;
+
   String? get imdbId;
   String? get tmdbId;
   String? get year;

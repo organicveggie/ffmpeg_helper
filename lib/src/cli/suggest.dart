@@ -32,6 +32,7 @@ abstract class SuggestOptions
   bool get overwriteOutputFile;
 
   MediaType get mediaType;
+  String? get name;
   String? get outputFile;
   String? get outputFolder;
   VideoResolution? get targetResolution;
@@ -49,6 +50,7 @@ abstract class SuggestOptions
       required bool dpl2,
       required MediaType mediaType,
       bool? movieOutputLetterPrefix,
+      String? name,
       String? outputFile,
       String? outputFolder,
       bool? overwriteOutputFile,
@@ -63,6 +65,7 @@ abstract class SuggestOptions
           ..imdbId = imdbId
           ..mediaType = mediaType
           ..movieOutputLetterPrefix = movieOutputLetterPrefix ?? false
+          ..name = name
           ..outputFile = outputFile
           ..outputFolder = outputFolder
           ..overwriteOutputFile = overwriteOutputFile ?? false
@@ -79,6 +82,7 @@ abstract class SuggestOptions
         generateDPL2,
         imdbId,
         movieOutputLetterPrefix,
+        name,
         overwriteOutputFile,
         mediaType,
         outputFile,
@@ -137,6 +141,7 @@ BuiltList<String> processFile(SuggestOptions opts, String filename, TrackList tr
   if (opts.mediaType == MediaType.movie) {
     var overrides = (MovieOverridesBuilder()
           ..imdbId = opts.imdbId
+          ..name = opts.name
           ..tmdbId = opts.tmdbId
           ..year = opts.year)
         .build();
@@ -153,6 +158,7 @@ BuiltList<String> processFile(SuggestOptions opts, String filename, TrackList tr
         targetResolution: opts.targetResolution ?? video.videoResolution);
   } else {
     var overrides = (TvOverridesBuilder()
+          ..name = opts.name
           ..tmdbId = opts.tmdbId
           ..tvdbId = opts.tvdbId
           ..year = opts.year)
@@ -482,6 +488,8 @@ Movie extractMovieTitle(String sourcePathname, MovieOverrides overrides) {
     }
   }
 
+  name = (overrides.name == null) ? name : overrides.name!;
+
   imdb = (overrides.imdbId == null) ? imdb : overrides.imdbId;
   tmdb = (overrides.tmdbId == null) ? tmdb : overrides.tmdbId;
   year = (overrides.year == null) ? year : overrides.year;
@@ -538,6 +546,8 @@ TvEpisode extractTvEpisode(String sourcePathname, TvOverrides overrides) {
       episode = int.parse(rawEpisode);
     }
   }
+
+  seriesTitle = (overrides.name == null) ? seriesTitle : overrides.name!;
 
   return (TvEpisodeBuilder()
         ..season = season
@@ -640,6 +650,7 @@ class SuggestFlags {
   static const String file = 'file';
   static const String fileOverwrite = 'file_overwrite';
   static const String force = 'force';
+  static const String name = 'name';
   static const String outputFolder = 'output_folder';
   static const String targetResolution = 'target_resolution';
   static const String year = 'year';
@@ -683,6 +694,7 @@ abstract class BaseSuggestCommand extends Command {
         force: parentArgs[SuggestFlags.force],
         dpl2: parentArgs[SuggestFlags.dpl2],
         mediaType: getMediaType(),
+        name: parentArgs[SuggestFlags.name],
         outputFile: outputFilename,
         outputFolder: outputFolder,
         overwriteOutputFile: overwriteOutputFile,

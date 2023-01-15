@@ -67,6 +67,7 @@ abstract class TvOverrides implements Built<TvOverrides, TvOverridesBuilder> {
   TvOverrides._();
   factory TvOverrides([void Function(TvOverridesBuilder) updates]) = _$TvOverrides;
 
+  String? get name;
   String? get tmdbId;
   String? get tvdbId;
   String? get year;

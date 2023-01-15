@@ -158,6 +158,37 @@ void main() {
           }
         });
       });
+      group('for name', () {
+        var overrides = (MovieOverridesBuilder()..name = 'A Different Fake Movie').build();
+        test('from full pathname with periods but without year', () {
+          var pathnames = <String>[
+            '/home/user/example/My.Fake.Movie.1080p-SDR.mkv',
+            '/home/user/example/My.Fake.Movie.2160p-HDR.mp4',
+            '/home/user/example/My.Fake.Movie.m4v',
+          ];
+          for (var p in pathnames) {
+            var got = extractMovieTitle(p, overrides);
+            expect(got.imdbId, isNull);
+            expect(got.name, 'A Different Fake Movie');
+            expect(got.tmdbId, isNull);
+            expect(got.year, isNull);
+          }
+        });
+        test('from full pathname with year and periods', () {
+          const pathnames = <Tuple2<String, String>>[
+            Tuple2('/home/user/example/My.Fake.Movie.1977.1080p-SDR.mkv', '1977'),
+            Tuple2('/home/user/example/My.Fake.Movie.1978.HDR.mkv', '1978'),
+            Tuple2('/home/user/example/My.Fake.Movie.1979.2160p.mkv', '1979'),
+          ];
+          for (var p in pathnames) {
+            var got = extractMovieTitle(p.item1, overrides);
+            expect(got.imdbId, isNull);
+            expect(got.name, 'A Different Fake Movie');
+            expect(got.tmdbId, isNull);
+            expect(got.year, p.item2);
+          }
+        });
+      });
     });
   });
 

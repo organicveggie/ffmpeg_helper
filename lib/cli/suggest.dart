@@ -25,6 +25,11 @@ class SuggestCommand extends Command {
             'specified.',
         valueHelp: 'TEXTFILE');
 
+    argParser.addOption(SuggestFlags.name,
+        help: 'Name of the movie or TV series. Default behavior is to try to extract the name from '
+            'the filename.',
+        valueHelp: 'NAME');
+
     argParser.addOption(SuggestFlags.outputFolder,
         abbr: 'o',
         help: 'Base output folder. Defaults to "${SuggestMovieCommand.defaultOutputFolder}" for '
