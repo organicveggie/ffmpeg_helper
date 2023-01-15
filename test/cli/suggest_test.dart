@@ -19,41 +19,145 @@ void main() {
     });
   });
 
-  group('Extract movie title', () {
-    test('from full pathname with periods but without year', () {
-      var pathnames = <String>[
-        '/home/user/example/My.Fake.Movie.1080p-SDR.mkv',
-        '/home/user/example/My.Fake.Movie.1080p-SDR.mp4',
-        '/home/user/example/My.Fake.Movie.1080p-SDR.m4v',
-      ];
-      for (var p in pathnames) {
-        var got = extractMovieTitle(p);
-        expect(got.name, 'My Fake Movie');
-        expect(got.year, isNull);
-      }
+  group('Extract movie data from filename', () {
+    group('without overrides', () {
+      var overrides = MovieOverridesBuilder().build();
+      test('from full pathname with periods but without year', () {
+        var pathnames = <String>[
+          '/home/user/example/My.Fake.Movie.1080p-SDR.mkv',
+          '/home/user/example/My.Fake.Movie.1080p-SDR.mp4',
+          '/home/user/example/My.Fake.Movie.1080p-SDR.m4v',
+        ];
+        for (var p in pathnames) {
+          var got = extractMovieTitle(p, overrides);
+          expect(got.imdbId, isNull);
+          expect(got.name, 'My Fake Movie');
+          expect(got.tmdbId, isNull);
+          expect(got.year, isNull);
+        }
+      });
+      test('from full pathname with year and periods', () {
+        const pathnames = <Tuple3<String, String, String>>[
+          Tuple3('/home/user/example/My.Fake.Movie.1977.1080p-SDR.mkv', 'My Fake Movie', '1977'),
+          Tuple3('/home/user/example/My.Fake.Movie.1978.1080p-SDR.mkv', 'My Fake Movie', '1978'),
+          Tuple3('/home/user/example/My.Fake.Movie.1979.1080p-SDR.mkv', 'My Fake Movie', '1979'),
+        ];
+        for (var p in pathnames) {
+          var got = extractMovieTitle(p.item1, overrides);
+          expect(got.imdbId, isNull);
+          expect(got.name, p.item2);
+          expect(got.tmdbId, isNull);
+          expect(got.year, p.item3);
+        }
+      });
+      test('returns unknown for unsupported formats', () {
+        const pathnames = <String>[
+          '/example/Unsupported.Format.mp3',
+          '/example/Unsupported.Format.mov'
+        ];
+        for (var p in pathnames) {
+          var got = extractMovieTitle(p, overrides);
+          expect(got.imdbId, isNull);
+          expect(got.name.toLowerCase(), 'unknown');
+          expect(got.tmdbId, isNull);
+          expect(got.year, isNull);
+        }
+      });
     });
-    test('from full pathname with year and periods', () {
-      const pathnames = <Tuple3<String, String, String>>[
-        Tuple3('/home/user/example/My.Fake.Movie.1977.1080p-SDR.mkv', 'My Fake Movie', '1977'),
-        Tuple3('/home/user/example/My.Fake.Movie.1978.1080p-SDR.mkv', 'My Fake Movie', '1978'),
-        Tuple3('/home/user/example/My.Fake.Movie.1979.1080p-SDR.mkv', 'My Fake Movie', '1979'),
-      ];
-      for (var p in pathnames) {
-        var got = extractMovieTitle(p.item1);
-        expect(got.name, p.item2);
-        expect(got.year, p.item3);
-      }
-    });
-    test('returns unknown for unsupported formats', () {
-      const pathnames = <String>[
-        '/example/Unsupported.Format.mp3',
-        '/example/Unsupported.Format.mov'
-      ];
-      for (var p in pathnames) {
-        var got = extractMovieTitle(p);
-        expect(got.name.toLowerCase(), 'unknown');
-        expect(got.year, isNull);
-      }
+    group('with overrides', () {
+      group('for imdb', () {
+        var overrides = (MovieOverridesBuilder()..imdbId = 'tt1234').build();
+        test('from full pathname with periods but without year', () {
+          var pathnames = <String>[
+            '/home/user/example/My.Fake.Movie.1080p-SDR.mkv',
+            '/home/user/example/My.Fake.Movie.1080p-SDR.mp4',
+            '/home/user/example/My.Fake.Movie.1080p-SDR.m4v',
+          ];
+          for (var p in pathnames) {
+            var got = extractMovieTitle(p, overrides);
+            expect(got.imdbId, overrides.imdbId);
+            expect(got.name, 'My Fake Movie');
+            expect(got.tmdbId, isNull);
+            expect(got.year, isNull);
+          }
+        });
+        test('from full pathname with year and periods', () {
+          const pathnames = <Tuple3<String, String, String>>[
+            Tuple3('/home/user/example/My.Fake.Movie.1977.1080p-SDR.mkv', 'My Fake Movie', '1977'),
+            Tuple3('/home/user/example/My.Fake.Movie.1978.1080p-SDR.mkv', 'My Fake Movie', '1978'),
+            Tuple3('/home/user/example/My.Fake.Movie.1979.1080p-SDR.mkv', 'My Fake Movie', '1979'),
+          ];
+          for (var p in pathnames) {
+            var got = extractMovieTitle(p.item1, overrides);
+            expect(got.imdbId, overrides.imdbId);
+            expect(got.name, p.item2);
+            expect(got.tmdbId, isNull);
+            expect(got.year, p.item3);
+          }
+        });
+      });
+      group('for tmdb', () {
+        var overrides = (MovieOverridesBuilder()..tmdbId = '01234').build();
+        test('from full pathname with periods but without year', () {
+          var pathnames = <String>[
+            '/home/user/example/My.Fake.Movie.1080p-SDR.mkv',
+            '/home/user/example/My.Fake.Movie.1080p-SDR.mp4',
+            '/home/user/example/My.Fake.Movie.1080p-SDR.m4v',
+          ];
+          for (var p in pathnames) {
+            var got = extractMovieTitle(p, overrides);
+            expect(got.imdbId, isNull);
+            expect(got.name, 'My Fake Movie');
+            expect(got.tmdbId, overrides.tmdbId);
+            expect(got.year, isNull);
+          }
+        });
+        test('from full pathname with year and periods', () {
+          const pathnames = <Tuple3<String, String, String>>[
+            Tuple3('/home/user/example/My.Fake.Movie.1977.1080p-SDR.mkv', 'My Fake Movie', '1977'),
+            Tuple3('/home/user/example/My.Fake.Movie.1978.1080p-SDR.mkv', 'My Fake Movie', '1978'),
+            Tuple3('/home/user/example/My.Fake.Movie.1979.1080p-SDR.mkv', 'My Fake Movie', '1979'),
+          ];
+          for (var p in pathnames) {
+            var got = extractMovieTitle(p.item1, overrides);
+            expect(got.imdbId, isNull);
+            expect(got.name, p.item2);
+            expect(got.tmdbId, overrides.tmdbId);
+            expect(got.year, p.item3);
+          }
+        });
+      });
+      group('for year', () {
+        var overrides = (MovieOverridesBuilder()..year = '1977').build();
+        test('from full pathname with periods but without year', () {
+          var pathnames = <String>[
+            '/home/user/example/My.Fake.Movie.1080p-SDR.mkv',
+            '/home/user/example/My.Fake.Movie.1080p-SDR.mp4',
+            '/home/user/example/My.Fake.Movie.1080p-SDR.m4v',
+          ];
+          for (var p in pathnames) {
+            var got = extractMovieTitle(p, overrides);
+            expect(got.imdbId, isNull);
+            expect(got.name, 'My Fake Movie');
+            expect(got.tmdbId, isNull);
+            expect(got.year, '1977');
+          }
+        });
+        test('from full pathname with year and periods', () {
+          const pathnames = <Tuple2<String, String>>[
+            Tuple2('/home/user/example/My.Fake.Movie.1977.1080p-SDR.mkv', 'My Fake Movie'),
+            Tuple2('/home/user/example/My.Fake.Movie.1978.1080p-SDR.mkv', 'My Fake Movie'),
+            Tuple2('/home/user/example/My.Fake.Movie.1979.1080p-SDR.mkv', 'My Fake Movie'),
+          ];
+          for (var p in pathnames) {
+            var got = extractMovieTitle(p.item1, overrides);
+            expect(got.imdbId, isNull);
+            expect(got.name, p.item2);
+            expect(got.tmdbId, isNull);
+            expect(got.year, '1977');
+          }
+        });
+      });
     });
   });
 
@@ -63,12 +167,13 @@ void main() {
           ..episodeNumber = 1
           ..series = (TvSeriesBuilder()..name = 'unknown'))
         .build();
+    final overrides = TvOverridesBuilder().build();
     test('unknown', () {
-      final got = extractTvEpisode('not-a-tv-episode.mp4');
+      final got = extractTvEpisode('not-a-tv-episode.mp4', overrides);
       expect(got, unknownEpisode);
     });
     test('from period delimited', () {
-      final got = extractTvEpisode('the.tv.show.S03E14.mp4');
+      final got = extractTvEpisode('the.tv.show.S03E14.mp4', overrides);
       final want = (TvEpisodeBuilder()
             ..season = 3
             ..episodeNumber = 14
@@ -77,7 +182,7 @@ void main() {
       expect(got, want);
     });
     test('from space delimited', () {
-      final got = extractTvEpisode('the tv show  S02E03.mp4');
+      final got = extractTvEpisode('the tv show  S02E03.mp4', overrides);
       final want = (TvEpisodeBuilder()
             ..season = 2
             ..episodeNumber = 3
@@ -87,7 +192,8 @@ void main() {
     });
 
     test('with extra data', () {
-      final got = extractTvEpisode('The.Test.Show.S04E01.iNTERNAL.HDR.2160p.WEB.h265-SKGTV.mkv');
+      final got =
+          extractTvEpisode('The.Test.Show.S04E01.iNTERNAL.HDR.2160p.WEB.h265-SKGTV.mkv', overrides);
       final want = (TvEpisodeBuilder()
             ..season = 4
             ..episodeNumber = 1

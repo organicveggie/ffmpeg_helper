@@ -62,3 +62,12 @@ abstract class TvEpisode with EquatableMixin implements Built<TvEpisode, TvEpiso
     return sb.toString();
   }
 }
+
+abstract class TvOverrides implements Built<TvOverrides, TvOverridesBuilder> {
+  TvOverrides._();
+  factory TvOverrides([void Function(TvOverridesBuilder) updates]) = _$TvOverrides;
+
+  String? get tmdbId;
+  String? get tvdbId;
+  String? get year;
+}

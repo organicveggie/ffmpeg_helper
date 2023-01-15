@@ -135,7 +135,12 @@ BuiltList<String> processFile(SuggestOptions opts, String filename, TrackList tr
 
   var outputFilename = '';
   if (opts.mediaType == MediaType.movie) {
-    var movieTitle = extractMovieTitle(filename, yearOverride: opts.year);
+    var overrides = (MovieOverridesBuilder()
+          ..imdbId = opts.imdbId
+          ..tmdbId = opts.tmdbId
+          ..year = opts.year)
+        .build();
+    var movieTitle = extractMovieTitle(filename, overrides);
     streamOptions.add((GlobalMetadataBuilder()
           ..name = 'title'
           ..value = movieTitle.name)
@@ -147,8 +152,12 @@ BuiltList<String> processFile(SuggestOptions opts, String filename, TrackList tr
         outputFolder: opts.outputFolder,
         targetResolution: opts.targetResolution ?? video.videoResolution);
   } else {
-    TvEpisode tvEpisode = extractTvEpisode(filename,
-        tmdbId: opts.tmdbId, tvdbId: opts.tvdbId, yearOverride: opts.year);
+    var overrides = (TvOverridesBuilder()
+          ..tmdbId = opts.tmdbId
+          ..tvdbId = opts.tvdbId
+          ..year = opts.year)
+        .build();
+    TvEpisode tvEpisode = extractTvEpisode(filename, overrides);
     outputFilename = makeTvOutputName(
         episode: tvEpisode,
         isHdr: video.isHDR,
@@ -456,8 +465,7 @@ extension CapitalExtension on String {
   }
 }
 
-Movie extractMovieTitle(String sourcePathname,
-    {String? imdbOverride, String? tmdbOverride, String? yearOverride}) {
+Movie extractMovieTitle(String sourcePathname, MovieOverrides overrides) {
   final sourceFilename = p.basename(sourcePathname);
 
   var name = 'unknown';
@@ -474,15 +482,9 @@ Movie extractMovieTitle(String sourcePathname,
     }
   }
 
-  if (imdbOverride != null) {
-    imdb = imdbOverride;
-  }
-  if (tmdbOverride != null) {
-    tmdb = tmdbOverride;
-  }
-  if (yearOverride != null) {
-    year = yearOverride;
-  }
+  imdb = (overrides.imdbId == null) ? imdb : overrides.imdbId;
+  tmdb = (overrides.tmdbId == null) ? tmdb : overrides.tmdbId;
+  year = (overrides.year == null) ? year : overrides.year;
 
   name = name.capitalizeEveryWord;
   return (MovieBuilder()
@@ -514,8 +516,7 @@ TvSeries extractTvSeries(String sourcePathname, {String? yearOverride}) {
       .build();
 }
 
-TvEpisode extractTvEpisode(String sourcePathname,
-    {String? tmdbId, String? tvdbId, String? yearOverride}) {
+TvEpisode extractTvEpisode(String sourcePathname, TvOverrides overrides) {
   final sourceFilename = p.basename(sourcePathname);
 
   var seriesTitle = 'unknown';
@@ -543,9 +544,9 @@ TvEpisode extractTvEpisode(String sourcePathname,
         ..episodeNumber = episode
         ..series = (TvSeriesBuilder()
           ..name = seriesTitle
-          ..tmdbShowId = tmdbId
-          ..tvdbShowId = tvdbId
-          ..year = yearOverride))
+          ..tmdbShowId = overrides.tmdbId
+          ..tvdbShowId = overrides.tvdbId
+          ..year = overrides.year))
       .build();
 }
 
