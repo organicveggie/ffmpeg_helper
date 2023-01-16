@@ -78,6 +78,19 @@ enum MediaType {
   tv;
 }
 
+enum OutputFileMode {
+  append,
+  fail,
+  overwrite;
+
+  String get name {
+    final String description = toString();
+    final int indexOfDot = description.indexOf('.');
+    assert(indexOfDot != -1 && indexOfDot < description.length - 1);
+    return description.substring(indexOfDot + 1);
+  }
+}
+
 @JsonEnum(fieldRename: FieldRename.pascal)
 enum TrackType {
   audio('a'),

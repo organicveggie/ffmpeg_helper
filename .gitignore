@@ -49,3 +49,5 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 *.g.dart
+
+macos/ffmpeg_helper_cli

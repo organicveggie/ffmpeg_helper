@@ -55,15 +55,15 @@ class MissingRequiredArgumentException extends CliException with EquatableMixin 
 
 class OutputFileExistsException extends CliException with EquatableMixin {
   final String filename;
-  final String overwriteFileFlagName;
-  const OutputFileExistsException(this.filename, this.overwriteFileFlagName);
+  final String fileModeFlagName;
+  const OutputFileExistsException(this.filename, this.fileModeFlagName);
 
   @override
-  List<Object> get props => [filename, overwriteFileFlagName];
+  List<Object> get props => [filename, fileModeFlagName];
 
   @override
   String toString() =>
-      'Output file already exists: $filename. Use --$overwriteFileFlagName to overwrite the file.';
+      'Output file already exists: $filename. Use --$fileModeFlagName to append to it or overwrite it.';
 }
 
 class UpscalingRequiredException extends CliException with EquatableMixin {

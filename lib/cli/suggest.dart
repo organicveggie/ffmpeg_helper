@@ -21,8 +21,8 @@ class SuggestCommand extends Command {
     argParser.addOption(SuggestFlags.file,
         abbr: 'f',
         help: 'Write the suggested commandlines to the specified file instead of stdout. Will fail '
-            'if the destination file already exists, unless --${SuggestFlags.fileOverwrite} is '
-            'specified.',
+            'if the destination file already exists, unless --${SuggestFlags.fileMode} instructs '
+            'otherwise.',
         valueHelp: 'TEXTFILE');
 
     argParser.addOption(SuggestFlags.name,
@@ -51,8 +51,12 @@ class SuggestCommand extends Command {
             'the filename.',
         valueHelp: 'YYYY');
 
-    argParser.addFlag(SuggestFlags.fileOverwrite,
-        help: 'Overwrite output file, if it exists.', defaultsTo: false, negatable: true);
+    argParser.addOption(SuggestFlags.fileMode,
+        help: 'Indicates what to do if --${SuggestFlags.file} is specified and the file already '
+            'exists. Default is to fail with an error.',
+        valueHelp: 'MODE',
+        defaultsTo: OutputFileMode.fail.name,
+        allowed: OutputFileMode.values.names());
 
     argParser.addFlag(SuggestFlags.force,
         help: 'Force upscaling.', defaultsTo: false, negatable: true);

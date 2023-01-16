@@ -27,7 +27,8 @@ abstract class SuggestOptions
   bool get forceUpscaling;
   bool get generateDPL2;
   bool get movieOutputLetterPrefix;
-  bool get overwriteOutputFile;
+
+  OutputFileMode get outputFileMode;
 
   MediaType get mediaType;
   String? get name;
@@ -50,8 +51,8 @@ abstract class SuggestOptions
       bool? movieOutputLetterPrefix,
       String? name,
       String? outputFile,
+      OutputFileMode? outputFileMode,
       String? outputFolder,
-      bool? overwriteOutputFile,
       VideoResolution? targetResolution,
       String? imdbId,
       String? tmdbId,
@@ -65,8 +66,8 @@ abstract class SuggestOptions
           ..movieOutputLetterPrefix = movieOutputLetterPrefix ?? false
           ..name = name
           ..outputFile = outputFile
+          ..outputFileMode = outputFileMode ?? OutputFileMode.fail
           ..outputFolder = outputFolder
-          ..overwriteOutputFile = overwriteOutputFile ?? false
           ..targetResolution = targetResolution
           ..tmdbId = tmdbId
           ..tvdbId = tvdbId
@@ -79,11 +80,11 @@ abstract class SuggestOptions
         forceUpscaling,
         generateDPL2,
         imdbId,
+        mediaType,
         movieOutputLetterPrefix,
         name,
-        overwriteOutputFile,
-        mediaType,
         outputFile,
+        outputFileMode,
         outputFolder,
         targetResolution,
         tmdbId,
@@ -646,7 +647,7 @@ int maxAudioKbRate(AudioTrack track, int defaultMaxKbRate) {
 class SuggestFlags {
   static const String dpl2 = 'dpl2';
   static const String file = 'file';
-  static const String fileOverwrite = 'file_overwrite';
+  static const String fileMode = 'file_mode';
   static const String force = 'force';
   static const String name = 'name';
   static const String outputFolder = 'output_folder';
@@ -677,13 +678,15 @@ abstract class BaseSuggestCommand extends Command {
 
     var outputFolder = parentArgs[SuggestFlags.outputFolder] ?? getDefaultOutputFolder();
     var outputFilename = parentArgs[SuggestFlags.file];
-    var overwriteOutputFile = parentArgs[SuggestFlags.fileOverwrite];
+
+    var outputFileMode =
+        OutputFileMode.values.byNameDefault(parentArgs[SuggestFlags.fileMode], OutputFileMode.fail);
 
     if (outputFilename != null) {
       var outputFile = File(outputFilename);
-      if (outputFile.existsSync() && !overwriteOutputFile) {
-        log.severe('Output file already exists: $outputFilename. Use '
-            '--${SuggestFlags.fileOverwrite} to overwrite the file.');
+      if (outputFile.existsSync() && outputFileMode == OutputFileMode.fail) {
+        log.severe('Output file already exists: $outputFilename. Use --${SuggestFlags.fileMode} '
+            'to append to it or overwrite it.');
         return;
       }
     }
@@ -694,8 +697,8 @@ abstract class BaseSuggestCommand extends Command {
         mediaType: getMediaType(),
         name: parentArgs[SuggestFlags.name],
         outputFile: outputFilename,
+        outputFileMode: outputFileMode,
         outputFolder: outputFolder,
-        overwriteOutputFile: overwriteOutputFile,
         targetResolution: VideoResolution.byNameOrAlias(parentArgs[SuggestFlags.targetResolution]),
         year: parentArgs[SuggestFlags.year]);
     opts = addOptions(opts);
@@ -747,10 +750,13 @@ abstract class BaseSuggestCommand extends Command {
   IOSink makeOutputSink(SuggestOptions opts) {
     if (opts.outputFile != null) {
       var outputFile = File(opts.outputFile!);
-      if (outputFile.existsSync() && !opts.overwriteOutputFile) {
-        throw OutputFileExistsException(opts.outputFile!, SuggestFlags.fileOverwrite);
+      if (outputFile.existsSync() && opts.outputFileMode == OutputFileMode.fail) {
+        throw OutputFileExistsException(opts.outputFile!, SuggestFlags.fileMode);
       }
-      return outputFile.openWrite(mode: FileMode.writeOnly);
+      var openMode = (opts.outputFileMode == OutputFileMode.append)
+          ? FileMode.writeOnlyAppend
+          : FileMode.writeOnly;
+      return outputFile.openWrite(mode: openMode);
     }
 
     return stdout;
