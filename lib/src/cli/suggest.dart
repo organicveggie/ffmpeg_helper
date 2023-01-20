@@ -750,12 +750,18 @@ abstract class BaseSuggestCommand extends Command {
   IOSink makeOutputSink(SuggestOptions opts) {
     if (opts.outputFile != null) {
       var outputFile = File(opts.outputFile!);
-      if (outputFile.existsSync() && opts.outputFileMode == OutputFileMode.fail) {
-        throw OutputFileExistsException(opts.outputFile!, SuggestFlags.fileMode);
+      if (outputFile.existsSync()) {
+        if (opts.outputFileMode != OutputFileMode.append &&
+            opts.outputFileMode != OutputFileMode.overwrite) {
+          throw OutputFileExistsException(opts.outputFile!, SuggestFlags.fileMode);
+        }
       }
-      var openMode = (opts.outputFileMode == OutputFileMode.append)
-          ? FileMode.writeOnlyAppend
-          : FileMode.writeOnly;
+
+      var openMode = FileMode.writeOnly;
+      if (opts.outputFileMode == OutputFileMode.append) {
+        openMode = FileMode.writeOnlyAppend;
+      }
+
       return outputFile.openWrite(mode: openMode);
     }
 
