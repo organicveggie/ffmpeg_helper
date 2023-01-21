@@ -412,10 +412,7 @@ List<StreamOption> processVideoTrack(SuggestOptions opts, VideoTrack video) {
       throw UpscalingRequiredException(opts.targetResolution!, video.width);
     }
     log.info('Upscaling from width of ${video.width} to ${opts.targetResolution!.name}.');
-    streamOpts.add((ScaleFilterBuilder()
-          ..width = 3840
-          ..height = -1)
-        .build());
+    streamOpts.add(ScaleFilter.withDefaultHeight(3840));
     // Convert to H.265
     streamOpts.add((VideoStreamConvertBuilder()
           ..inputFileId = 0
@@ -424,10 +421,7 @@ List<StreamOption> processVideoTrack(SuggestOptions opts, VideoTrack video) {
         .build());
   } else if (opts.targetResolution == VideoResolution.hd && video.width > 1920) {
     log.info('Downscaling from width of ${video.width} to ${opts.targetResolution!.name}.');
-    streamOpts.add((ScaleFilterBuilder()
-          ..width = 1920
-          ..height = -1)
-        .build());
+    streamOpts.add(ScaleFilter.withDefaultHeight(1920));
     // Convert to H.265
     streamOpts.add((VideoStreamConvertBuilder()
           ..inputFileId = 0

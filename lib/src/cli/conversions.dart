@@ -174,6 +174,7 @@ abstract class ScaleFilter
     implements StreamFilter, Built<ScaleFilter, ScaleFilterBuilder> {
   ScaleFilter._();
   factory ScaleFilter([void Function(ScaleFilterBuilder) updates]) = _$ScaleFilter;
+  factory ScaleFilter.withDefaultHeight(int width) => _$ScaleFilter._(width: width, height: -2);
 
   String? get algorithm;
   int get height;
