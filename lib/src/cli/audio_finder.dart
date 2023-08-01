@@ -8,9 +8,12 @@ import 'exceptions.dart';
 
 part 'audio_finder.g.dart';
 
-abstract class AudioFinder with EquatableMixin implements Built<AudioFinder, AudioFinderBuilder> {
+abstract class AudioFinder
+    with EquatableMixin
+    implements Built<AudioFinder, AudioFinderBuilder> {
   AudioFinder._();
-  factory AudioFinder([void Function(AudioFinderBuilder) updates]) = _$AudioFinder;
+  factory AudioFinder([void Function(AudioFinderBuilder) updates]) =
+      _$AudioFinder;
 
   BuiltMap<AudioFormat, AudioTrackWrapper> get tracksByFormat;
 
@@ -19,6 +22,17 @@ abstract class AudioFinder with EquatableMixin implements Built<AudioFinder, Aud
 
   @override
   bool get stringify => true;
+
+  AudioTrackWrapper? bestLossless() {
+    if (tracksByFormat.containsKey(AudioFormat.trueHD)) {
+      return tracksByFormat[AudioFormat.trueHD];
+    }
+    if (tracksByFormat.containsKey(AudioFormat.dtsHDMA)) {
+      return tracksByFormat[AudioFormat.dtsHDMA];
+    }
+
+    return null;
+  }
 
   /// Finds the best source audio track for outputting E-AC3 (Dolby Digital or Dolby Digital Plus).
   AudioTrackWrapper bestForEAC3() {
@@ -65,7 +79,8 @@ abstract class AudioFinder with EquatableMixin implements Built<AudioFinder, Aud
       return tracksByFormat[AudioFormat.mono]!;
     }
 
-    throw MissingAudioSourceException('primary multichannel', tracksByFormat.keys.toList());
+    throw MissingAudioSourceException(
+        'primary multichannel', tracksByFormat.keys.toList());
   }
 
   /// Finds the best source audio track for multi-channel AAC output.
@@ -106,7 +121,8 @@ abstract class AudioFinder with EquatableMixin implements Built<AudioFinder, Aud
       return tracksByFormat[AudioFormat.mono]!;
     }
 
-    throw MissingAudioSourceException('AAC multichannel', tracksByFormat.keys.toList());
+    throw MissingAudioSourceException(
+        'AAC multichannel', tracksByFormat.keys.toList());
   }
 
   AudioTrackWrapper bestForDolbyProLogic2() {
@@ -143,6 +159,7 @@ abstract class AudioFinder with EquatableMixin implements Built<AudioFinder, Aud
       return tracksByFormat[AudioFormat.mono]!;
     }
 
-    throw MissingAudioSourceException('Dolby Pro Logic II', tracksByFormat.keys.toList());
+    throw MissingAudioSourceException(
+        'Dolby Pro Logic II', tracksByFormat.keys.toList());
   }
 }

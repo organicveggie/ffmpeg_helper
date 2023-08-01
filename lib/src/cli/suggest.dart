@@ -42,7 +42,8 @@ abstract class SuggestOptions
   String? get tvdbId;
 
   SuggestOptions._();
-  factory SuggestOptions([void Function(SuggestOptionsBuilder) updates]) = _$SuggestOptions;
+  factory SuggestOptions([void Function(SuggestOptionsBuilder) updates]) =
+      _$SuggestOptions;
 
   factory SuggestOptions.withDefaults(
       {required bool force,
@@ -117,7 +118,8 @@ String langToISO639_2(String lang) {
   }
 }
 
-BuiltList<String> processFile(SuggestOptions opts, String filename, TrackList tracks) {
+BuiltList<String> processFile(
+    SuggestOptions opts, String filename, TrackList tracks) {
   var streamOptions = <StreamOption>[];
 
   // Check video track
@@ -178,7 +180,8 @@ BuiltList<String> processFile(SuggestOptions opts, String filename, TrackList tr
   return buffer.build();
 }
 
-List<StreamOption> processAudioTracks(SuggestOptions opts, BuiltList<AudioTrack> tracks) {
+List<StreamOption> processAudioTracks(
+    SuggestOptions opts, BuiltList<AudioTrack> tracks) {
   final log = Logger('processAudioTracks');
 
   log.info('Analyzing ${tracks.length} audio tracks.');
@@ -196,50 +199,84 @@ List<StreamOption> processAudioTracks(SuggestOptions opts, BuiltList<AudioTrack>
 
   var streamOpts = <StreamOption>[];
 
-  // Find the best audio source track for the main multichannel audio track.
-  var audioFinder = AudioFinder((af) => af..tracksByFormat.addAll(tracksByFormat));
-  var source = audioFinder.bestForEAC3();
-
-  if (source.format == AudioFormat.mono || source.format == AudioFormat.stereo) {
-    // No multichannel audio tracks available, so skip dealing with multichannel audio entirely
-    // and include only this track.
-    log.fine('Only available source is ${source.format.name}.');
+  // Find the best lossless format.
+  var streamCount = 0;
+  var audioFinder =
+      AudioFinder((af) => af..tracksByFormat.addAll(tracksByFormat));
+  var source = audioFinder.bestLossless();
+  if (source != null) {
+    log.fine('Copying ${source.format} (track #${source.orderId}) to '
+        'track #$streamCount');
     streamOpts.addAll([
       (StreamCopyBuilder()
             ..trackType = TrackType.audio
             ..inputFileId = 0
             ..srcStreamId = source.orderId
-            ..dstStreamId = 0)
+            ..dstStreamId = streamCount)
           .build(),
       (StreamDispositionBuilder()
             ..trackType = TrackType.audio
-            ..streamId = 0
+            ..streamId = streamCount
             ..isDefault = true)
           .build(),
       (StreamMetadataBuilder()
             ..trackType = TrackType.audio
-            ..streamId = 0
+            ..streamId = streamCount
+            ..name = 'title'
+            ..value = '(${source.format.name})')
+          .build(),
+    ]);
+    streamCount++;
+  }
+
+  // Find the best audio source track for the main multichannel audio track.
+  source = audioFinder.bestForEAC3();
+
+  if (source.format == AudioFormat.mono ||
+      source.format == AudioFormat.stereo) {
+    // No multichannel audio tracks available, so skip dealing with multichannel audio entirely
+    // and include only this track.
+    log.fine(
+        'Only available source is ${source.format.name} (track #$streamCount)');
+    streamOpts.addAll([
+      (StreamCopyBuilder()
+            ..trackType = TrackType.audio
+            ..inputFileId = 0
+            ..srcStreamId = source.orderId
+            ..dstStreamId = streamCount)
+          .build(),
+      (StreamDispositionBuilder()
+            ..trackType = TrackType.audio
+            ..streamId = streamCount
+            ..isDefault = (streamCount == 0))
+          .build(),
+      (StreamMetadataBuilder()
+            ..trackType = TrackType.audio
+            ..streamId = streamCount
             ..name = 'title'
             ..value = 'AAC (${source.format.name})')
           .build(),
     ]);
   } else {
     // Multichannel audio tracks.
-    // First track should be Dolby Digital Plus or Dolby Digital, if possible.
-    // Prefer using a Dolby Digital Plus or Dolby Digital track as the source for the first track.
+    //
+    // Next track should be Dolby Digital Plus or Dolby Digital, if possible.
+    // Prefer using a Dolby Digital Plus or Dolby Digital track as the source for the Dolby
+    // Digital track.
     AudioFormat firstTrackFormat = AudioFormat.unknown;
     if (source.format == AudioFormat.dolbyDigitalPlus ||
         source.format == AudioFormat.dolbyDigital) {
       // Note: ffmpeg EAC3 encoder can't handle > 5.1 channels.
       if (source.track.channels != null && source.track.channels! > 6) {
         // Force transcoding to 5.1
-        log.info('Source track is ${source.format} with ${source.track.channels}, but ffmpeg only '
-            'supports 5.1. Transcoding to 5.1.');
+        log.info('Source is ${source.format} (track ${source.orderId}) with '
+            '${source.track.channels}, but ffmpeg only supports 5.1. Transcoding '
+            'to 5.1.');
         firstTrackFormat = AudioFormat.dolbyDigitalPlus;
         streamOpts.add((AudioStreamConvertBuilder()
               ..inputFileId = 0
               ..srcStreamId = source.orderId
-              ..dstStreamId = 0
+              ..dstStreamId = streamCount
               ..format = AudioFormat.dolbyDigitalPlus
               ..channels = 6
               ..kbRate = maxAudioKbRate(source.track, 384))
@@ -247,12 +284,13 @@ List<StreamOption> processAudioTracks(SuggestOptions opts, BuiltList<AudioTrack>
       } else {
         // Already 5.1 or lower.
         firstTrackFormat = source.format;
-        log.fine('Copying ${source.format.name} (track #${source.orderId}) to track #0.');
+        log.fine('Copying ${source.format.name} (track #${source.orderId}) '
+            'to #$streamCount.');
         streamOpts.add((StreamCopyBuilder()
               ..trackType = TrackType.audio
               ..inputFileId = 0
               ..srcStreamId = source.orderId
-              ..dstStreamId = 0)
+              ..dstStreamId = streamCount)
             .build());
       }
     } else {
@@ -265,10 +303,12 @@ List<StreamOption> processAudioTracks(SuggestOptions opts, BuiltList<AudioTrack>
         channels = 6;
       }
 
+      log.fine('Transcoding ${source.format} (track #${source.orderId}) to '
+          '${AudioFormat.dolbyDigitalPlus} in #$streamCount');
       streamOpts.add((AudioStreamConvertBuilder()
             ..inputFileId = 0
             ..srcStreamId = source.orderId
-            ..dstStreamId = 0
+            ..dstStreamId = streamCount
             ..format = AudioFormat.dolbyDigitalPlus
             ..channels = channels
             ..kbRate = maxAudioKbRate(source.track, 384))
@@ -277,38 +317,41 @@ List<StreamOption> processAudioTracks(SuggestOptions opts, BuiltList<AudioTrack>
     streamOpts.addAll([
       (StreamDispositionBuilder()
             ..trackType = TrackType.audio
-            ..streamId = 0
-            ..isDefault = true)
+            ..streamId = streamCount
+            ..isDefault = (streamCount == 0))
           .build(),
       (StreamMetadataBuilder()
             ..trackType = TrackType.audio
-            ..streamId = 0
+            ..streamId = streamCount
             ..name = 'title'
             ..value = firstTrackFormat.name)
           .build(),
     ]);
+    streamCount++;
 
     // Find the best audio source track for the multichannel AAC track.
     source = audioFinder.bestForMultiChannelAAC();
     if (source.format == AudioFormat.aacMulti) {
-      log.fine('Copying ${source.format.name} (track #${source.orderId}) to track #1.');
+      log.fine('Copying ${source.format.name} (track #${source.orderId}) to '
+          'track #$streamCount.');
       streamOpts.add((StreamCopyBuilder()
             ..trackType = TrackType.audio
             ..inputFileId = 0
             ..srcStreamId = source.orderId
-            ..dstStreamId = 1)
+            ..dstStreamId = streamCount)
           .build());
     } else {
       int kbRate = maxAudioKbRate(source.track, 384);
-      int channels = (source.track.channels != null && source.track.channels! < 6)
-          ? source.track.channels!
-          : 6;
+      int channels =
+          (source.track.channels != null && source.track.channels! < 6)
+              ? source.track.channels!
+              : 6;
       log.fine('Transcoding ${source.format.name} (track #${source.orderId}) '
-          'to AAC ($channels channels) $kbRate kbps as track #1.');
+          'to AAC ($channels channels) $kbRate kbps as track #$streamCount.');
       streamOpts.add((AudioStreamConvertBuilder()
             ..inputFileId = 0
             ..srcStreamId = source.orderId
-            ..dstStreamId = 1
+            ..dstStreamId = streamCount
             ..format = AudioFormat.aacMulti
             ..channels = channels
             ..kbRate = kbRate)
@@ -317,29 +360,32 @@ List<StreamOption> processAudioTracks(SuggestOptions opts, BuiltList<AudioTrack>
     streamOpts.addAll([
       (StreamDispositionBuilder()
             ..trackType = TrackType.audio
-            ..streamId = 1
+            ..streamId = streamCount
             ..isDefault = false)
           .build(),
       (StreamMetadataBuilder()
             ..trackType = TrackType.audio
-            ..streamId = 1
+            ..streamId = streamCount
             ..name = 'title'
             ..value = 'AAC (5.1)')
           .build(),
     ]);
+    streamCount++;
 
     // Dolby Pro Logic II
     if (opts.generateDPL2) {
-      streamOpts.add(ComplexFilter.fromFilter('[0:a]aresample=matrix_encoding=dplii[a]'));
+      streamOpts.add(
+          ComplexFilter.fromFilter('[0:a]aresample=matrix_encoding=dplii[a]'));
       // Find the best audio source track for the Dolby Pro Logic II AAC track.
       source = audioFinder.bestForDolbyProLogic2();
       int kbRate = maxAudioKbRate(source.track, 256);
-      log.fine('Transcoding ${source.format.name} (track #${source.orderId}) to '
-          'AAC (Dolby Pro Logic II) $kbRate kbps as track #2.');
+      log.fine(
+          'Transcoding ${source.format.name} (track #${source.orderId}) to '
+          'AAC (Dolby Pro Logic II) $kbRate kbps as track #$streamCount.');
       streamOpts.add((DolbyProLogicAudioStreamConvertBuilder()
             ..inputFileId = 0
             ..srcStreamId = source.orderId
-            ..dstStreamId = 2
+            ..dstStreamId = streamCount
             ..format = AudioFormat.stereo
             ..channels = 2
             ..kbRate = kbRate)
@@ -347,12 +393,12 @@ List<StreamOption> processAudioTracks(SuggestOptions opts, BuiltList<AudioTrack>
       streamOpts.addAll([
         (StreamDispositionBuilder()
               ..trackType = TrackType.audio
-              ..streamId = 2
+              ..streamId = streamCount
               ..isDefault = false)
             .build(),
         (StreamMetadataBuilder()
               ..trackType = TrackType.audio
-              ..streamId = 2
+              ..streamId = streamCount
               ..name = 'title'
               ..value = 'AAC (Dolby Pro Logic II)')
             .build(),
@@ -368,7 +414,8 @@ List<StreamOption> processSubtitles(BuiltList<TextTrack> subtitles) {
   var streamOpts = <StreamOption>[];
 
   log.info('Analyzing ${subtitles.length} subtitle tracks.');
-  var subLangs = Set.unmodifiable(['en', 'eng', 'es', 'esp', 'fr', 'fra', 'de', 'deu']);
+  var subLangs =
+      Set.unmodifiable(['en', 'eng', 'es', 'esp', 'fr', 'fra', 'de', 'deu']);
   var destStreamId = 0;
   for (int i = 0; i < subtitles.length; i++) {
     TextTrack tt = subtitles[i];
@@ -411,7 +458,8 @@ List<StreamOption> processVideoTrack(SuggestOptions opts, VideoTrack video) {
     if (!opts.forceUpscaling) {
       throw UpscalingRequiredException(opts.targetResolution!, video.width);
     }
-    log.info('Upscaling from width of ${video.width} to ${opts.targetResolution!.name}.');
+    log.info(
+        'Upscaling from width of ${video.width} to ${opts.targetResolution!.name}.');
     streamOpts.add(ScaleFilter.withDefaultHeight(3840));
     // Convert to H.265
     streamOpts.add((VideoStreamConvertBuilder()
@@ -419,8 +467,10 @@ List<StreamOption> processVideoTrack(SuggestOptions opts, VideoTrack video) {
           ..srcStreamId = 0
           ..dstStreamId = 0)
         .build());
-  } else if (opts.targetResolution == VideoResolution.hd && video.width > 1920) {
-    log.info('Downscaling from width of ${video.width} to ${opts.targetResolution!.name}.');
+  } else if (opts.targetResolution == VideoResolution.hd &&
+      video.width > 1920) {
+    log.info(
+        'Downscaling from width of ${video.width} to ${opts.targetResolution!.name}.');
     streamOpts.add(ScaleFilter.withDefaultHeight(1920));
     // Convert to H.265
     streamOpts.add((VideoStreamConvertBuilder()
@@ -471,7 +521,8 @@ Movie extractMovieTitle(String sourcePathname, MovieOverrides overrides) {
   String? imdb, tmdb, year;
 
   // Try to identify the name and year of the movie.
-  var regex = RegExp(r'^(?<name>(\w+[.]?)+?)[.]?(?<year>(19\d\d|20\d\d))?[.].*[.](mkv|mp4|m4v)$');
+  var regex = RegExp(
+      r'^(?<name>(\w+[.]?)+?)[.]?(?<year>(19\d\d|20\d\d))?[.].*[.](mkv|mp4|m4v)$');
   var match = regex.firstMatch(sourceFilename);
   if (match != null) {
     final rawName = match.namedGroup('name');
@@ -596,8 +647,8 @@ String makeMovieOutputName(
   if (letterPrefix) {
     firstLetter = getMovieTitleFirstLetter(movie.name);
   }
-  return p.join(outputFolder ?? '', firstLetter, '"${baseNameBuffer.toString()}"',
-      '"${fileNameBuffer.toString()}"');
+  return p.join(outputFolder ?? '', firstLetter,
+      '"${baseNameBuffer.toString()}"', '"${fileNameBuffer.toString()}"');
 }
 
 String makeTvOutputName(
@@ -617,8 +668,8 @@ String makeTvOutputName(
 
   var season = 'season${episode.season}';
 
-  return p.join(
-      outputFolder ?? '', '"${episode.series.asFullName()}"', season, '"${buffer.toString()}"');
+  return p.join(outputFolder ?? '', '"${episode.series.asFullName()}"', season,
+      '"${buffer.toString()}"');
 }
 
 int maxAudioKbRate(AudioTrack track, int defaultMaxKbRate) {
@@ -670,16 +721,18 @@ abstract class BaseSuggestCommand extends Command {
 
     var parentArgs = parent!.argResults!;
 
-    var outputFolder = parentArgs[SuggestFlags.outputFolder] ?? getDefaultOutputFolder();
+    var outputFolder =
+        parentArgs[SuggestFlags.outputFolder] ?? getDefaultOutputFolder();
     var outputFilename = parentArgs[SuggestFlags.file];
 
-    var outputFileMode =
-        OutputFileMode.values.byNameDefault(parentArgs[SuggestFlags.fileMode], OutputFileMode.fail);
+    var outputFileMode = OutputFileMode.values
+        .byNameDefault(parentArgs[SuggestFlags.fileMode], OutputFileMode.fail);
 
     if (outputFilename != null) {
       var outputFile = File(outputFilename);
       if (outputFile.existsSync() && outputFileMode == OutputFileMode.fail) {
-        log.severe('Output file already exists: $outputFilename. Use --${SuggestFlags.fileMode} '
+        log.severe(
+            'Output file already exists: $outputFilename. Use --${SuggestFlags.fileMode} '
             'to append to it or overwrite it.');
         return;
       }
@@ -693,11 +746,13 @@ abstract class BaseSuggestCommand extends Command {
         outputFile: outputFilename,
         outputFileMode: outputFileMode,
         outputFolder: outputFolder,
-        targetResolution: VideoResolution.byNameOrAlias(parentArgs[SuggestFlags.targetResolution]),
+        targetResolution: VideoResolution.byNameOrAlias(
+            parentArgs[SuggestFlags.targetResolution]),
         year: parentArgs[SuggestFlags.year]);
     opts = addOptions(opts);
 
-    var mediainfoRunner = MediainfoRunner(mediainfoBinary: globalResults?['mediainfo_bin']);
+    var mediainfoRunner =
+        MediainfoRunner(mediainfoBinary: globalResults?['mediainfo_bin']);
 
     var output = makeOutputSink(opts);
 
@@ -720,7 +775,8 @@ abstract class BaseSuggestCommand extends Command {
     await output.close();
   }
 
-  Future<TrackList> getTrackList(MediainfoRunner runner, String filename) async {
+  Future<TrackList> getTrackList(
+      MediainfoRunner runner, String filename) async {
     log.info('Running mediainfo on $filename...');
     MediaRoot root = await runner.run(filename);
     if (root.media.trackList.tracks.isEmpty) {
@@ -747,7 +803,8 @@ abstract class BaseSuggestCommand extends Command {
       if (outputFile.existsSync()) {
         if (opts.outputFileMode != OutputFileMode.append &&
             opts.outputFileMode != OutputFileMode.overwrite) {
-          throw OutputFileExistsException(opts.outputFile!, SuggestFlags.fileMode);
+          throw OutputFileExistsException(
+              opts.outputFile!, SuggestFlags.fileMode);
         }
       }
 
