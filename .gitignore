@@ -51,3 +51,5 @@ app.*.map.json
 *.g.dart
 
 macos/ffmpeg_helper_cli
+
+linux/ffmpeg_helper_cli
