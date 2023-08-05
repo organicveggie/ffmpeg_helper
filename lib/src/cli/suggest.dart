@@ -215,6 +215,9 @@ List<StreamOption> processAudioTracks(SuggestOptions opts, BuiltList<AudioTrack>
   // If a specific target language was request, filter out tracks in other languages.
   BuiltMap<AudioFormat, AudioTrackWrapper> tracksByFormat =
       filterTracks(tracks: tracks, languageCode: opts.language?.iso);
+  if (tracksByFormat.length == 0) {
+    throw const NoTracksFoundException(TrackType.audio);
+  }
 
   var streamOpts = <StreamOption>[];
 
@@ -770,12 +773,13 @@ abstract class BaseSuggestCommand extends Command {
       log.info('Found file: ${f.path}');
 
       TrackList tracks = await getTrackList(mediainfoRunner, f.path);
-      var suggestedCmdline = processFile(opts, f.path, tracks);
-
-      for (var line in suggestedCmdline) {
-        output.writeln(line);
+      try {
+        final suggestedCmdline = processFile(opts, f.path, tracks);
+        suggestedCmdline.forEach(output.writeln);
+        output.writeln();
+      } on SuggestException catch (e) {
+        log.severe('***** Error processing ${f.path}: $e');
       }
-      output.writeln();
     }
 
     await output.close();

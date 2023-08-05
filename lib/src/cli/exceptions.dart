@@ -90,3 +90,19 @@ class ArgParsingFailedException with EquatableMixin implements Exception {
   @override
   String toString() => '$value cannot be parsed to $targetType';
 }
+
+abstract class SuggestException implements Exception {
+  const SuggestException();
+}
+
+class NoTracksFoundException extends SuggestException with EquatableMixin {
+  final TrackType trackType;
+
+  const NoTracksFoundException(this.trackType);
+
+  @override
+  List<Object> get props => [trackType];
+
+  @override
+  String toString() => 'No ${trackType.name} tracks found';
+}
