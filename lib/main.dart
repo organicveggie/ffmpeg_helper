@@ -129,7 +129,7 @@ class _HelperHomePageState extends State<HelperHomePage> {
 
   void _selectMediaFile() async {
     var model = context.read<MediaModel>();
-    final XTypeGroup typeGroup = XTypeGroup(
+    const XTypeGroup typeGroup = XTypeGroup(
       label: 'movies',
       extensions: <String>['mkv', 'mp4', 'm4v'],
     );
@@ -236,7 +236,7 @@ class MediaInfoPanel extends StatelessWidget {
 
   DataRow _videoTrackAsDataRow(VideoTrack t) {
     return DataRow(cells: <DataCell>[
-      DataCell(Row(children: const <Widget>[Icon(Icons.videocam), Text('Video')])),
+      const DataCell(Row(children: <Widget>[Icon(Icons.videocam), Text('Video')])),
       DataCell(Text(t.format)),
       const DataCell(Text('n/a')),
       DataCell(Text('${t.sizeName}, ${t.hdrName}'))
@@ -247,7 +247,7 @@ class MediaInfoPanel extends StatelessWidget {
     var bitRateMax = t.bitRateMaxAsKbps;
     var bitRate = (bitRateMax != null && bitRateMax > 0) ? bitRateMax : t.bitRateAsKbps;
     return DataRow(cells: <DataCell>[
-      DataCell(Row(children: const <Widget>[Icon(Icons.audiotrack), Text('Audio')])),
+      const DataCell(Row(children: <Widget>[Icon(Icons.audiotrack), Text('Audio')])),
       DataCell(Text(t.format)),
       DataCell(Text(t.language ?? 'unknown')),
       DataCell(Text('${t.channels} channels, $bitRate kbps'))
@@ -267,7 +267,7 @@ class MediaInfoPanel extends StatelessWidget {
     }
 
     return DataRow(cells: <DataCell>[
-      DataCell(Row(children: const <Widget>[Icon(Icons.subtitles), Text('Subtitle')])),
+      const DataCell(Row(children: <Widget>[Icon(Icons.subtitles), Text('Subtitle')])),
       DataCell(Text(t.format ?? 'unknown')),
       DataCell(Text(t.language)),
       DataCell(Text(notes.join(', '))),
