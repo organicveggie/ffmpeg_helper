@@ -41,6 +41,8 @@ abstract class SuggestOptions
   String? get tmdbId;
   String? get tvdbId;
 
+  Language? get language;
+
   SuggestOptions._();
   factory SuggestOptions([void Function(SuggestOptionsBuilder) updates]) = _$SuggestOptions;
 
@@ -57,11 +59,13 @@ abstract class SuggestOptions
       String? imdbId,
       String? tmdbId,
       String? tvdbId,
-      String? year}) {
+      String? year,
+      Language? language}) {
     return (SuggestOptionsBuilder()
           ..forceUpscaling = force
           ..generateDPL2 = dpl2
           ..imdbId = imdbId
+          ..language = language
           ..mediaType = mediaType
           ..movieOutputLetterPrefix = movieOutputLetterPrefix ?? false
           ..name = name
@@ -80,6 +84,7 @@ abstract class SuggestOptions
         forceUpscaling,
         generateDPL2,
         imdbId,
+        language,
         mediaType,
         movieOutputLetterPrefix,
         name,
@@ -178,27 +183,44 @@ BuiltList<String> processFile(SuggestOptions opts, String filename, TrackList tr
   return buffer.build();
 }
 
-List<StreamOption> processAudioTracks(SuggestOptions opts, BuiltList<AudioTrack> tracks) {
-  final log = Logger('processAudioTracks');
-
-  log.info('Analyzing ${tracks.length} audio tracks.');
-
-  // Organize audio tracks by format and filter out any commentary tracks.
+BuiltMap<AudioFormat, AudioTrackWrapper> filterTracks(
+    {required BuiltList<AudioTrack> tracks, String? languageCode}) {
+  final log = Logger('filterTracks');
   Map<AudioFormat, AudioTrackWrapper> tracksByFormat = {};
+
   for (int i = 0; i < tracks.length; i++) {
     AudioTrack t = tracks[i];
     if (t.title != null && t.title!.toLowerCase().contains('commentary')) {
+      log.fine('Skipping commentary track #$i: "${t.title}"');
+      continue;
+    }
+    final trackLang = t.language?.toLowerCase();
+    if (languageCode != null && trackLang != null && trackLang != languageCode) {
+      log.fine('Skipping audio track #$i ($trackLang). Need: $languageCode.');
       continue;
     }
     var af = t.toAudioFormat();
     tracksByFormat[af] = AudioTrackWrapper(i, t);
   }
 
+  return BuiltMap.of(tracksByFormat);
+}
+
+List<StreamOption> processAudioTracks(SuggestOptions opts, BuiltList<AudioTrack> tracks) {
+  final log = Logger('processAudioTracks');
+
+  log.info('Analyzing ${tracks.length} audio tracks.');
+
+  // Organize audio tracks by format and filter out any commentary tracks.
+  // If a specific target language was request, filter out tracks in other languages.
+  BuiltMap<AudioFormat, AudioTrackWrapper> tracksByFormat =
+      filterTracks(tracks: tracks, languageCode: opts.language?.iso);
+
   var streamOpts = <StreamOption>[];
 
   // Find the best lossless format.
   var streamCount = 0;
-  var audioFinder = AudioFinder((af) => af..tracksByFormat.addAll(tracksByFormat));
+  var audioFinder = AudioFinder((af) => af..tracksByFormat = tracksByFormat.toBuilder());
   var source = audioFinder.bestLossless();
   if (source != null) {
     log.fine('Copying ${source.format} (track #${source.orderId}) to '
@@ -726,6 +748,7 @@ abstract class BaseSuggestCommand extends Command {
     var opts = SuggestOptions.withDefaults(
         force: parentArgs[SuggestFlags.force],
         dpl2: parentArgs[SuggestFlags.dpl2],
+        language: parentArgs[SuggestFlags.language],
         mediaType: getMediaType(),
         name: parentArgs[SuggestFlags.name],
         outputFile: outputFilename,

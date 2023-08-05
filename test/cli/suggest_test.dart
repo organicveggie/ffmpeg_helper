@@ -1,3 +1,4 @@
+import 'package:built_collection/built_collection.dart';
 import 'package:ffmpeg_helper/models.dart';
 import 'package:ffmpeg_helper/src/cli/suggest.dart';
 import 'package:test/test.dart';
@@ -405,6 +406,102 @@ void main() {
     test('4k HDR', () {
       expect(makeTvOutputName(episode: episode, targetResolution: VideoResolution.uhd, isHdr: true),
           '"Another TV Series (1986)"/season1/"Another TV Series (1986) - s01e03 [2160p HDR].mkv"');
+    });
+  });
+
+  group('filter tracks', () {
+    test('excludes commentary tracks', () {
+      final tracks = BuiltList<AudioTrack>.of([
+        AudioTrack.fromParams(
+            id: '0',
+            codecId: AudioFormat.dolbyDigitalPlus.codecId,
+            format: AudioFormat.dolbyDigitalPlus.format,
+            streamOrder: '1',
+            typeOrder: 0),
+        AudioTrack.fromParams(
+            id: '1',
+            codecId: AudioFormat.dts.codecId,
+            format: AudioFormat.dts.format,
+            streamOrder: '2',
+            typeOrder: 1),
+        AudioTrack.fromParams(
+            id: '2',
+            codecId: AudioFormat.stereo.codecId,
+            format: AudioFormat.stereo.format,
+            streamOrder: '3',
+            typeOrder: 2,
+            title: 'Director\'s commentary'),
+        AudioTrack.fromParams(
+            id: '3',
+            codecId: AudioFormat.stereo.codecId,
+            format: AudioFormat.stereo.format,
+            streamOrder: '4',
+            typeOrder: 3,
+            title: 'Actor Commentary'),
+      ]);
+      final filteredTracks = filterTracks(tracks: tracks);
+      expect(filteredTracks.length, equals(2));
+    });
+
+    test('ignores null language code', () {
+      final tracks = BuiltList<AudioTrack>.of([
+        AudioTrack.fromParams(
+            id: '0',
+            codecId: AudioFormat.dolbyDigitalPlus.codecId,
+            format: AudioFormat.dolbyDigitalPlus.format,
+            streamOrder: '1',
+            typeOrder: 0),
+        AudioTrack.fromParams(
+            id: '1',
+            codecId: AudioFormat.dts.codecId,
+            format: AudioFormat.dts.format,
+            streamOrder: '2',
+            typeOrder: 1,
+            language: Language.german.iso)
+      ]);
+      final filteredTracks = filterTracks(tracks: tracks);
+      expect(filteredTracks.length, equals(2));
+    });
+
+    test('filters by language', () {
+      final tracks = BuiltList<AudioTrack>.of([
+        AudioTrack.fromParams(
+            id: '0',
+            codecId: AudioFormat.dolbyDigitalPlus.codecId,
+            format: AudioFormat.dolbyDigitalPlus.format,
+            streamOrder: '1',
+            typeOrder: 0,
+            language: Language.english.iso),
+        AudioTrack.fromParams(
+            id: '1',
+            codecId: AudioFormat.dts.codecId,
+            format: AudioFormat.dts.format,
+            streamOrder: '2',
+            typeOrder: 1,
+            language: Language.german.iso)
+      ]);
+      final filteredTracks = filterTracks(tracks: tracks, languageCode: Language.german.iso);
+      expect(filteredTracks.length, equals(1));
+    });
+
+    test('does not filter tracks without language', () {
+      final tracks = BuiltList<AudioTrack>.of([
+        AudioTrack.fromParams(
+            id: '0',
+            codecId: AudioFormat.dolbyDigitalPlus.codecId,
+            format: AudioFormat.dolbyDigitalPlus.format,
+            streamOrder: '1',
+            typeOrder: 0),
+        AudioTrack.fromParams(
+            id: '1',
+            codecId: AudioFormat.dts.codecId,
+            format: AudioFormat.dts.format,
+            streamOrder: '2',
+            typeOrder: 1,
+            language: Language.german.iso)
+      ]);
+      final filteredTracks = filterTracks(tracks: tracks, languageCode: Language.german.iso);
+      expect(filteredTracks.length, equals(2));
     });
   });
 }
