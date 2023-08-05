@@ -130,33 +130,33 @@ String langToISO639_2(String lang) {
 }
 
 BuiltList<String> processFile(SuggestOptions opts, String filename, TrackList tracks) {
-  var streamOptions = <StreamOption>[];
+  final streamOptions = <StreamOption>[];
 
   // Check video track
-  var video = tracks.videoTracks.first;
-  var videoStreamOpts = processVideoTrack(opts, video);
+  final video = tracks.videoTracks.first;
+  final videoStreamOpts = processVideoTrack(opts, video);
   streamOptions.addAll(videoStreamOpts);
 
   // Check subtitles
-  var subtitleStreamOpts = processSubtitles(tracks.textTracks.build());
+  final subtitleStreamOpts = processSubtitles(tracks.textTracks.build());
   streamOptions.addAll(subtitleStreamOpts);
 
   // Check audio tracks
-  var audioStreamOpts = processAudioTracks(opts, tracks.audioTracks.build());
+  final audioStreamOpts = processAudioTracks(opts, tracks.audioTracks.build());
   streamOptions.addAll(audioStreamOpts);
 
-  var buffer = <String>[];
+  final buffer = <String>[];
   buffer.add('ffmpeg -i "$filename" \\');
 
   var outputFilename = '';
   if (opts.mediaType == MediaType.movie) {
-    var overrides = (MovieOverridesBuilder()
+    final overrides = (MovieOverridesBuilder()
           ..imdbId = opts.imdbId
           ..name = opts.name
           ..tmdbId = opts.tmdbId
           ..year = opts.year)
         .build();
-    var movieTitle = extractMovieTitle(filename, overrides);
+    final movieTitle = extractMovieTitle(filename, overrides);
     streamOptions.add((GlobalMetadataBuilder()
           ..name = 'title'
           ..value = movieTitle.name)
@@ -168,7 +168,7 @@ BuiltList<String> processFile(SuggestOptions opts, String filename, TrackList tr
         outputFolder: opts.outputFolder,
         targetResolution: opts.targetResolution ?? video.videoResolution);
   } else {
-    var overrides = (TvOverridesBuilder()
+    final overrides = (TvOverridesBuilder()
           ..name = opts.name
           ..tmdbId = opts.tmdbId
           ..tvdbId = opts.tvdbId
@@ -182,7 +182,7 @@ BuiltList<String> processFile(SuggestOptions opts, String filename, TrackList tr
         targetResolution: opts.targetResolution ?? video.videoResolution);
   }
 
-  for (var opt in streamOptions) {
+  for (final opt in streamOptions) {
     buffer.add(' ${opt.toString()} \\');
   }
   buffer.add(outputFilename);
@@ -193,10 +193,10 @@ BuiltList<String> processFile(SuggestOptions opts, String filename, TrackList tr
 BuiltMap<AudioFormat, AudioTrackWrapper> filterTracks(
     {required BuiltList<AudioTrack> tracks, String? languageCode}) {
   final log = Logger('filterTracks');
-  Map<AudioFormat, AudioTrackWrapper> tracksByFormat = {};
+  final Map<AudioFormat, AudioTrackWrapper> tracksByFormat = {};
 
   for (int i = 0; i < tracks.length; i++) {
-    AudioTrack t = tracks[i];
+    final AudioTrack t = tracks[i];
     if (t.title != null && t.title!.toLowerCase().contains('commentary')) {
       log.fine('Skipping commentary track #$i: "${t.title}"');
       continue;
@@ -206,7 +206,7 @@ BuiltMap<AudioFormat, AudioTrackWrapper> filterTracks(
       log.fine('Skipping audio track #$i ($trackLang). Need: $languageCode.');
       continue;
     }
-    var af = t.toAudioFormat();
+    final af = t.toAudioFormat();
     tracksByFormat[af] = AudioTrackWrapper(i, t);
   }
 
@@ -220,17 +220,17 @@ List<StreamOption> processAudioTracks(SuggestOptions opts, BuiltList<AudioTrack>
 
   // Organize audio tracks by format and filter out any commentary tracks.
   // If a specific target language was request, filter out tracks in other languages.
-  BuiltMap<AudioFormat, AudioTrackWrapper> tracksByFormat =
+  final BuiltMap<AudioFormat, AudioTrackWrapper> tracksByFormat =
       filterTracks(tracks: tracks, languageCode: opts.language?.iso);
   if (tracksByFormat.length == 0) {
     throw const NoTracksFoundException(TrackType.audio);
   }
 
-  var streamOpts = <StreamOption>[];
+  final streamOpts = <StreamOption>[];
 
   // Find the best lossless format.
   var streamCount = 0;
-  var audioFinder = AudioFinder((af) => af..tracksByFormat = tracksByFormat.toBuilder());
+  final audioFinder = AudioFinder((af) => af..tracksByFormat = tracksByFormat.toBuilder());
   var source = audioFinder.bestLossless();
   if (source != null) {
     log.fine('Copying ${source.format} (track #${source.orderId}) to '
@@ -367,8 +367,8 @@ List<StreamOption> processAudioTracks(SuggestOptions opts, BuiltList<AudioTrack>
             ..dstStreamId = streamCount)
           .build());
     } else {
-      int kbRate = maxAudioKbRate(source.track, 384);
-      int channels = (source.track.channels != null && source.track.channels! < 6)
+      final kbRate = maxAudioKbRate(source.track, 384);
+      final channels = (source.track.channels != null && source.track.channels! < 6)
           ? source.track.channels!
           : 6;
       log.fine('Transcoding ${source.format.name} (track #${source.orderId}) '
@@ -402,7 +402,7 @@ List<StreamOption> processAudioTracks(SuggestOptions opts, BuiltList<AudioTrack>
       streamOpts.add(ComplexFilter.fromFilter('[0:a]aresample=matrix_encoding=dplii[a]'));
       // Find the best audio source track for the Dolby Pro Logic II AAC track.
       source = audioFinder.bestForDolbyProLogic2();
-      int kbRate = maxAudioKbRate(source.track, 256);
+      final kbRate = maxAudioKbRate(source.track, 256);
       log.fine('Transcoding ${source.format.name} (track #${source.orderId}) to '
           'AAC (Dolby Pro Logic II) $kbRate kbps as track #$streamCount.');
       streamOpts.add((DolbyProLogicAudioStreamConvertBuilder()
@@ -434,13 +434,13 @@ List<StreamOption> processAudioTracks(SuggestOptions opts, BuiltList<AudioTrack>
 
 List<StreamOption> processSubtitles(BuiltList<TextTrack> subtitles) {
   final log = Logger('processSubtitles');
-  var streamOpts = <StreamOption>[];
+  final streamOpts = <StreamOption>[];
 
   log.info('Analyzing ${subtitles.length} subtitle tracks.');
-  var subLangs = Set.unmodifiable(['en', 'eng', 'es', 'esp', 'fr', 'fra', 'de', 'deu']);
+  final subLangs = Set.unmodifiable(['en', 'eng', 'es', 'esp', 'fr', 'fra', 'de', 'deu']);
   var destStreamId = 0;
-  for (int i = 0; i < subtitles.length; i++) {
-    TextTrack tt = subtitles[i];
+  for (final i in Iterable.generate(subtitles.length)) {
+    final TextTrack tt = subtitles[i];
     if (!subLangs.contains(tt.language)) {
       continue;
     }
@@ -473,7 +473,7 @@ List<StreamOption> processSubtitles(BuiltList<TextTrack> subtitles) {
 
 List<StreamOption> processVideoTrack(SuggestOptions opts, VideoTrack video) {
   final log = Logger('processVideoTrack');
-  var streamOpts = <StreamOption>[];
+  final streamOpts = <StreamOption>[];
 
   // Check if we need to apply a scaling filter.
   if (opts.targetResolution == VideoResolution.uhd && video.width < 3840) {
@@ -540,8 +540,8 @@ Movie extractMovieTitle(String sourcePathname, MovieOverrides overrides) {
   String? imdb, tmdb, year;
 
   // Try to identify the name and year of the movie.
-  var regex = RegExp(r'^(?<name>(\w+[.]?)+?)[.]?(?<year>(19\d\d|20\d\d))?[.].*[.](mkv|mp4|m4v)$');
-  var match = regex.firstMatch(sourceFilename);
+  final regex = RegExp(r'^(?<name>(\w+[.]?)+?)[.]?(?<year>(19\d\d|20\d\d))?[.].*[.](mkv|mp4|m4v)$');
+  final match = regex.firstMatch(sourceFilename);
   if (match != null) {
     final rawName = match.namedGroup('name');
     if (rawName != null) {
@@ -572,7 +572,7 @@ TvSeries extractTvSeries(String sourcePathname, {String? yearOverride}) {
   final sourceFilename = p.basename(sourcePathname);
 
   var name = 'unknown';
-  var match = _tvRegex.firstMatch(sourceFilename);
+  final match = _tvRegex.firstMatch(sourceFilename);
   if (match != null) {
     final rawTitle = match.namedGroup('title');
     if (rawTitle != null) {
@@ -593,7 +593,7 @@ TvEpisode extractTvEpisode(String sourcePathname, TvOverrides overrides) {
   var season = 1;
   var episode = 1;
 
-  var match = _tvRegex.firstMatch(sourceFilename);
+  final match = _tvRegex.firstMatch(sourceFilename);
   if (match != null) {
     final rawTitle = match.namedGroup('title');
     if (rawTitle != null) {
@@ -626,10 +626,10 @@ final _movieTitleStopWords = BuiltSet<String>(['a', 'an', 'the']);
 final _movieNumberRegex = RegExp(r'[0-9]');
 
 String getMovieTitleFirstLetter(String title) {
-  var titleWords = title.toLowerCase().split(' ');
+  final titleWords = title.toLowerCase().split(' ');
   var firstLetter = titleWords[0][0];
 
-  for (var w in titleWords) {
+  for (final w in titleWords) {
     if (_movieTitleStopWords.contains(w)) {
       continue;
     }
@@ -674,7 +674,7 @@ String makeTvOutputName(
     bool isHdr = false,
     String? outputFolder,
     VideoResolution? targetResolution}) {
-  StringBuffer buffer = StringBuffer(episode.asFullName());
+  final StringBuffer buffer = StringBuffer(episode.asFullName());
 
   buffer.write(' [');
   buffer.write(targetResolution!.toSizeName());
@@ -684,7 +684,7 @@ String makeTvOutputName(
   buffer.write(']');
   buffer.write('.mkv');
 
-  var season = 'season${episode.season}';
+  final season = 'season${episode.season}';
 
   return p.join(
       outputFolder ?? '', '"${episode.series.asFullName()}"', season, '"${buffer.toString()}"');
@@ -696,7 +696,7 @@ int maxAudioKbRate(AudioTrack track, int defaultMaxKbRate) {
   }
 
   if (track.bitRateLimit != null) {
-    int kbRateLimit = track.bitRateLimit! ~/ 1024;
+    final kbRateLimit = track.bitRateLimit! ~/ 1024;
     return (kbRateLimit < defaultMaxKbRate) ? kbRateLimit : defaultMaxKbRate;
   }
 
@@ -733,21 +733,21 @@ abstract class BaseSuggestCommand extends Command {
       Logger.root.level = Level.ALL;
     }
 
-    var argResults = this.argResults;
+    final argResults = this.argResults;
     if ((argResults == null) || (argResults.rest.isEmpty)) {
       throw const MissingRequiredArgumentException('filename');
     }
 
-    var parentArgs = parent!.argResults!;
+    final parentArgs = parent!.argResults!;
 
-    var outputFolder = parentArgs[SuggestFlags.outputFolder] ?? getDefaultOutputFolder();
-    var outputFilename = parentArgs[SuggestFlags.file];
+    final outputFolder = parentArgs[SuggestFlags.outputFolder] ?? getDefaultOutputFolder();
+    final outputFilename = parentArgs[SuggestFlags.file];
 
-    var outputFileMode =
+    final outputFileMode =
         OutputFileMode.values.byNameDefault(parentArgs[SuggestFlags.fileMode], OutputFileMode.fail);
 
     if (outputFilename != null) {
-      var outputFile = File(outputFilename);
+      final outputFile = File(outputFilename);
       if (outputFile.existsSync() && outputFileMode == OutputFileMode.fail) {
         log.severe('Output file already exists: $outputFilename. Use --${SuggestFlags.fileMode} '
             'to append to it or overwrite it.');
@@ -768,18 +768,18 @@ abstract class BaseSuggestCommand extends Command {
         year: parentArgs[SuggestFlags.year]);
     opts = addOptions(opts);
 
-    var mediainfoRunner = MediainfoRunner(mediainfoBinary: globalResults?['mediainfo_bin']);
+    final mediainfoRunner = MediainfoRunner(mediainfoBinary: globalResults?['mediainfo_bin']);
 
-    var output = makeOutputSink(opts);
+    final output = makeOutputSink(opts);
 
-    for (var fileGlob in argResults.rest) {
+    for (final fileGlob in argResults.rest) {
       final f = File(fileGlob);
       if (!f.existsSync()) {
         throw FileNotFoundException(fileGlob);
       }
       log.info('Found file: ${f.path}');
 
-      TrackList tracks = await getTrackList(mediainfoRunner, f.path);
+      final TrackList tracks = await getTrackList(mediainfoRunner, f.path);
       try {
         final suggestedCmdline = processFile(opts, f.path, tracks);
         suggestedCmdline.forEach(output.writeln);
@@ -794,12 +794,12 @@ abstract class BaseSuggestCommand extends Command {
 
   Future<TrackList> getTrackList(MediainfoRunner runner, String filename) async {
     log.info('Running mediainfo on $filename...');
-    MediaRoot root = await runner.run(filename);
+    final MediaRoot root = await runner.run(filename);
     if (root.media.trackList.tracks.isEmpty) {
       throw InvalidMetadataException('no tracks found', filename);
     }
 
-    TrackList tl = root.media.trackList;
+    final TrackList tl = root.media.trackList;
     if (tl.generalTrack == null) {
       throw InvalidMetadataException('no General track found', filename);
     }
@@ -815,7 +815,7 @@ abstract class BaseSuggestCommand extends Command {
 
   IOSink makeOutputSink(SuggestOptions opts) {
     if (opts.outputFile != null) {
-      var outputFile = File(opts.outputFile!);
+      final outputFile = File(opts.outputFile!);
       if (outputFile.existsSync()) {
         if (opts.outputFileMode != OutputFileMode.append &&
             opts.outputFileMode != OutputFileMode.overwrite) {
@@ -823,10 +823,9 @@ abstract class BaseSuggestCommand extends Command {
         }
       }
 
-      var openMode = FileMode.writeOnly;
-      if (opts.outputFileMode == OutputFileMode.append) {
-        openMode = FileMode.writeOnlyAppend;
-      }
+      final openMode = (opts.outputFileMode == OutputFileMode.append)
+          ? FileMode.writeOnlyAppend
+          : FileMode.writeOnly;
 
       return outputFile.openWrite(mode: openMode);
     }
