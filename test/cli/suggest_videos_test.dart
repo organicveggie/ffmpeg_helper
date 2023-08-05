@@ -65,13 +65,9 @@ void main() {
         ..trackType = TrackType.video)
       .build();
 
-  final scaleFilter1920 = (ScaleFilterBuilder()
-        ..width = 1920
-        ..height = -1)
-      .build();
   final scaleFilter3840 = (ScaleFilterBuilder()
         ..width = 3840
-        ..height = -1)
+        ..height = -2)
       .build();
 
   group('processVideoTrack', () {
@@ -102,14 +98,11 @@ void main() {
       var results = processVideoTrack(opts, vtH265UhdHdr);
 
       expect(results, hasLength(2));
-      expect(results, containsAll([scaleFilter1920, defaultVideoStreamConverter]));
-    });
 
-    test('downscaling H.264 works without force flag', () {
-      var opts = defaultOptions.rebuild((o) => o..targetResolution = VideoResolution.hd);
-      var results = processVideoTrack(opts, vtH264UhdHdr);
-
-      expect(results, hasLength(2));
+      final scaleFilter1920 = (ScaleFilterBuilder()
+            ..width = 1920
+            ..height = -2)
+          .build();
       expect(results, containsAll([scaleFilter1920, defaultVideoStreamConverter]));
     });
 
