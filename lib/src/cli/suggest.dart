@@ -18,6 +18,13 @@ import 'exceptions.dart';
 part 'suggest.g.dart';
 
 ////////////////////
+// Constants
+////////////////////
+
+const audioTitleAacMulti = 'AAC (5.1)';
+const audioTitleDPL = 'AAC (Dolby Pro Logic II)';
+
+////////////////////
 // Data Models
 ////////////////////
 
