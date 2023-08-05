@@ -150,13 +150,14 @@ BuiltList<String> processFile(SuggestOptions opts, String filename, TrackList tr
 
   var outputFilename = '';
   if (opts.mediaType == MediaType.movie) {
-    final overrides = (MovieOverridesBuilder()
-          ..imdbId = opts.imdbId
-          ..name = opts.name
-          ..tmdbId = opts.tmdbId
-          ..year = opts.year)
-        .build();
-    final movieTitle = extractMovieTitle(filename, overrides);
+    final movieTitle = extractMovieTitle(
+        filename,
+        (MovieOverridesBuilder()
+              ..imdbId = opts.imdbId
+              ..name = opts.name
+              ..tmdbId = opts.tmdbId
+              ..year = opts.year)
+            .build());
     streamOptions.add((GlobalMetadataBuilder()
           ..name = 'title'
           ..value = movieTitle.name)
@@ -168,13 +169,14 @@ BuiltList<String> processFile(SuggestOptions opts, String filename, TrackList tr
         outputFolder: opts.outputFolder,
         targetResolution: opts.targetResolution ?? video.videoResolution);
   } else {
-    final overrides = (TvOverridesBuilder()
-          ..name = opts.name
-          ..tmdbId = opts.tmdbId
-          ..tvdbId = opts.tvdbId
-          ..year = opts.year)
-        .build();
-    TvEpisode tvEpisode = extractTvEpisode(filename, overrides);
+    TvEpisode tvEpisode = extractTvEpisode(
+        filename,
+        (TvOverridesBuilder()
+              ..name = opts.name
+              ..tmdbId = opts.tmdbId
+              ..tvdbId = opts.tvdbId
+              ..year = opts.year)
+            .build());
     outputFilename = makeTvOutputName(
         episode: tvEpisode,
         isHdr: video.isHDR,
@@ -231,10 +233,12 @@ List<StreamOption> processAudioTracks(SuggestOptions opts, BuiltList<AudioTrack>
   // Find the best lossless format.
   var streamCount = 0;
   final audioFinder = AudioFinder((af) => af..tracksByFormat = tracksByFormat.toBuilder());
+
+  log.info('Looking for best lossless track...');
   final srcLossless = audioFinder.bestLossless();
   if (srcLossless != null) {
-    log.fine('Copying ${srcLossless.format} (track #${srcLossless.orderId}) to '
-        'track #$streamCount');
+    log.info('Copying ${srcLossless.format} (track #${srcLossless.orderId}) '
+        '[${srcLossless.track.language}] to track #$streamCount');
     streamOpts.addAll([
       (StreamCopyBuilder()
             ..trackType = TrackType.audio
@@ -258,6 +262,7 @@ List<StreamOption> processAudioTracks(SuggestOptions opts, BuiltList<AudioTrack>
   }
 
   // Find the best audio source track for the main multichannel audio track.
+  log.info('Looking for best source for main multichannel audio track...');
   final srcEAC3 = audioFinder.bestForEAC3();
 
   if (srcEAC3.format == AudioFormat.mono || srcEAC3.format == AudioFormat.stereo) {
@@ -310,8 +315,8 @@ List<StreamOption> processAudioTracks(SuggestOptions opts, BuiltList<AudioTrack>
       } else {
         // Already 5.1 or lower.
         firstTrackFormat = srcEAC3.format;
-        log.fine('Copying ${srcEAC3.format.name} (track #${srcEAC3.orderId}) '
-            'to #$streamCount.');
+        log.info('Copying ${srcEAC3.format.name} (track #${srcEAC3.orderId}) '
+            '[${srcEAC3.track.language}] #$streamCount.');
         streamOpts.add((StreamCopyBuilder()
               ..trackType = TrackType.audio
               ..inputFileId = 0
@@ -329,8 +334,8 @@ List<StreamOption> processAudioTracks(SuggestOptions opts, BuiltList<AudioTrack>
         channels = 6;
       }
 
-      log.fine('Transcoding ${srcEAC3.format} (track #${srcEAC3.orderId}) to '
-          '${AudioFormat.dolbyDigitalPlus} in #$streamCount');
+      log.info('Transcoding ${srcEAC3.format} (track #${srcEAC3.orderId}) to '
+          '[${srcEAC3.track.language}] ${AudioFormat.dolbyDigitalPlus} in #$streamCount');
       streamOpts.add((AudioStreamConvertBuilder()
             ..inputFileId = 0
             ..srcStreamId = srcEAC3.orderId
@@ -356,10 +361,11 @@ List<StreamOption> processAudioTracks(SuggestOptions opts, BuiltList<AudioTrack>
     streamCount++;
 
     // Find the best audio source track for the multichannel AAC track.
+    log.info('Looking for best source multi-channel AAC...');
     final srcAacMulti = audioFinder.bestForMultiChannelAAC();
     if (srcAacMulti.format == AudioFormat.aacMulti) {
-      log.fine('Copying ${srcAacMulti.format.name} (track #${srcAacMulti.orderId}) to '
-          'track #$streamCount.');
+      log.info('Copying ${srcAacMulti.format.name} (track #${srcAacMulti.orderId}) to '
+          '[${srcAacMulti.track.language}] track #$streamCount.');
       streamOpts.add((StreamCopyBuilder()
             ..trackType = TrackType.audio
             ..inputFileId = 0
@@ -371,8 +377,9 @@ List<StreamOption> processAudioTracks(SuggestOptions opts, BuiltList<AudioTrack>
       final channels = (srcAacMulti.track.channels != null && srcAacMulti.track.channels! < 6)
           ? srcAacMulti.track.channels!
           : 6;
-      log.fine('Transcoding ${srcAacMulti.format.name} (track #${srcAacMulti.orderId}) '
-          'to AAC ($channels channels) $kbRate kbps as track #$streamCount.');
+      log.info('Transcoding ${srcAacMulti.format.name} (track #${srcAacMulti.orderId}) '
+          '[${srcAacMulti.track.language}] to AAC ($channels channels) $kbRate kbps as '
+          'track #$streamCount.');
       streamOpts.add((AudioStreamConvertBuilder()
             ..inputFileId = 0
             ..srcStreamId = srcAacMulti.orderId
@@ -403,7 +410,7 @@ List<StreamOption> processAudioTracks(SuggestOptions opts, BuiltList<AudioTrack>
       // Find the best audio source track for the Dolby Pro Logic II AAC track.
       final srcDPL2 = audioFinder.bestForDolbyProLogic2();
       final kbRate = maxAudioKbRate(srcDPL2.track, 256);
-      log.fine('Transcoding ${srcDPL2.format.name} (track #${srcDPL2.orderId}) to '
+      log.info('Transcoding ${srcDPL2.format.name} (track #${srcDPL2.orderId}) to '
           'AAC (Dolby Pro Logic II) $kbRate kbps as track #$streamCount.');
       streamOpts.add((DolbyProLogicAudioStreamConvertBuilder()
             ..inputFileId = 0
