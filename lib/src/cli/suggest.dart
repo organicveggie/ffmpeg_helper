@@ -694,6 +694,7 @@ class SuggestFlags {
   static const String file = 'file';
   static const String fileMode = 'file_mode';
   static const String force = 'force';
+  static const String language = 'lang';
   static const String name = 'name';
   static const String outputFolder = 'output_folder';
   static const String targetResolution = 'target_resolution';

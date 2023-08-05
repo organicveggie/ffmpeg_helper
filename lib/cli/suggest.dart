@@ -20,26 +20,30 @@ class SuggestCommand extends Command {
   SuggestCommand() {
     argParser.addOption(SuggestFlags.file,
         abbr: 'f',
-        help: 'Write the suggested commandlines to the specified file instead of stdout. Will fail '
+        help:
+            'Write the suggested commandlines to the specified file instead of stdout. Will fail '
             'if the destination file already exists, unless --${SuggestFlags.fileMode} instructs '
             'otherwise.',
         valueHelp: 'TEXTFILE');
 
     argParser.addOption(SuggestFlags.name,
-        help: 'Name of the movie or TV series. Default behavior is to try to extract the name from '
+        help:
+            'Name of the movie or TV series. Default behavior is to try to extract the name from '
             'the filename.',
         valueHelp: 'NAME');
 
     argParser.addOption(SuggestFlags.outputFolder,
         abbr: 'o',
-        help: 'Base output folder. Defaults to "${SuggestMovieCommand.defaultOutputFolder}" for '
+        help:
+            'Base output folder. Defaults to "${SuggestMovieCommand.defaultOutputFolder}" for '
             'movies and "${SuggestTvCommand.defaultOutputFolder}" for TV episodes.',
         valueHelp: 'FOLDER');
 
     argParser.addOption(
       SuggestFlags.targetResolution,
       abbr: 't',
-      help: 'Target video resolution for the output file. Defaults to matching the resolution of '
+      help:
+          'Target video resolution for the output file. Defaults to matching the resolution of '
           'the input file. Will warn when trying to upconvert.',
       valueHelp: 'RES',
       allowed: VideoResolution.namesAndAliases(),
@@ -47,12 +51,14 @@ class SuggestCommand extends Command {
 
     argParser.addOption(SuggestFlags.year,
         abbr: 'y',
-        help: 'Four digit year the content was released. Default is to try to deduce the year from '
+        help:
+            'Four digit year the content was released. Default is to try to deduce the year from '
             'the filename.',
         valueHelp: 'YYYY');
 
     argParser.addOption(SuggestFlags.fileMode,
-        help: 'Indicates what to do if --${SuggestFlags.file} is specified and the file already '
+        help:
+            'Indicates what to do if --${SuggestFlags.file} is specified and the file already '
             'exists. Default is to fail with an error.',
         valueHelp: 'MODE',
         defaultsTo: OutputFileMode.fail.name,
@@ -66,6 +72,14 @@ class SuggestCommand extends Command {
         defaultsTo: true,
         negatable: true,
         aliases: ['dolbyprologic2', 'dplii', 'dolbyprologicii']);
+
+    argParser.addOption(SuggestFlags.language,
+        abbr: 'l',
+        help:
+            'Only include audio in this language. Specified as an ISO 639-2/T '
+            'code.',
+        valueHelp: 'ISO_CODE',
+        allowed: Language.codes());
 
     addSubcommand(SuggestMovieCommand());
     addSubcommand(SuggestTvCommand());

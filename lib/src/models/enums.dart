@@ -24,19 +24,36 @@ extension EnumByNameWithDefault<T extends Enum> on Iterable<T> {
 }
 
 enum AudioFormat {
-  unknown(name: 'unknown', codecId: 'unknown', codec: 'unknown', format: 'unknown'),
-  trueHD(name: 'Dolby TrueHD', codecId: 'A_TRUEHD', codec: 'truehd', format: 'MLP FBA'),
+  unknown(
+      name: 'unknown', codecId: 'unknown', codec: 'unknown', format: 'unknown'),
+  trueHD(
+      name: 'Dolby TrueHD',
+      codecId: 'A_TRUEHD',
+      codec: 'truehd',
+      format: 'MLP FBA'),
   dtsHDMA(name: 'DTS-HD MA', codecId: 'A_DTS', codec: 'dts', format: 'DTS'),
-  dolbyDigitalPlus(name: 'Dolby Digital Plus', codecId: 'A_EAC3', codec: 'eac3', format: 'E-AC-3'),
-  dolbyDigital(name: 'Dolby Digital', codecId: 'A_AC3', codec: 'ac3', format: 'AC-3'),
+  dolbyDigitalPlus(
+      name: 'Dolby Digital Plus',
+      codecId: 'A_EAC3',
+      codec: 'eac3',
+      format: 'E-AC-3'),
+  dolbyDigital(
+      name: 'Dolby Digital', codecId: 'A_AC3', codec: 'ac3', format: 'AC-3'),
   dtsX(name: 'DTS:X', codecId: 'A_DTS', codec: 'dts', format: 'DTS'),
   dts(name: 'DTS', codecId: 'A_DTS', codec: 'dts', format: 'DTS'),
-  aacMulti(name: 'AAC multichannel', codecId: 'A_AAC-2', codec: 'aac', format: 'AAC'),
+  aacMulti(
+      name: 'AAC multichannel',
+      codecId: 'A_AAC-2',
+      codec: 'aac',
+      format: 'AAC'),
   stereo(name: 'stereo', codecId: 'A_AAC-2', codec: 'aac', format: 'AAC'),
   mono(name: 'mono', codecId: 'A_AAC-2', codec: 'aac', format: 'AAC');
 
   const AudioFormat(
-      {required this.name, required this.codecId, required this.codec, required this.format});
+      {required this.name,
+      required this.codecId,
+      required this.codec,
+      required this.format});
 
   final String codecId;
   final String codec;
@@ -71,6 +88,60 @@ enum BitRateMode {
 
   @override
   String toString() => name;
+}
+
+enum Language {
+  arabic('ara'), // Arabic
+  bengali('ben'), // Bengali
+  czech('ces'), // Czech
+  chinese('chi'), // Chinese
+  danish('dan'), // Danish
+  german('deu'), // German
+  dutch('dut'), // Dutch
+  greek('ell'), // Greek
+  english('eng'), // English
+  persian('fas'), // Persian
+  finnish('fin'), // Finnish
+  french('fra'), // French
+  gujarati('guj'), // Gujarati
+  hindi('hin'), // Hindi
+  hungarian('hun'), // Hungarian
+  indonesian('ind'), // Indonesian
+  italian('ita'), // Italian
+  japanese('jpn'), // Japanese
+  kannada('kan'), // Kannada
+  korean('kor'), // Korean
+  malayalam('mal'), // Malayalam
+  marathi('mar'), // Marathi
+  nepali('nep'), // Nepali
+  norwegian('nor'), // Norwegian
+  oriya('ori'), // Oriya
+  punjabi('pan'), // Punjabi
+  polish('pol'), // Polish
+  portuguese('por'), // Portuguese
+  russian('rus'), // Russian
+  sinhalese('sin'), // Sinhalese
+  spanish('spa'), // Spanish
+  swahili('swa'), // Swahili
+  swedish('swe'), // Swedish
+  tamil('tam'), // Tamil
+  telugu('tel'), // Telugu
+  thai('tha'), // Thai
+  turkish('tur'), // Turkish
+  ukrainian('ukr'), // Ukrainian
+  urdu('urd'), // Urdu
+  vietnamese('vie'), // Vietnamese
+  unknown('unknown');
+
+  const Language(this.iso);
+
+  /// ISO 639-2/T code
+  final String iso;
+
+  @override
+  String toString() => name;
+
+  static Iterable<String> codes() => values.map((e) => e.iso);
 }
 
 enum MediaType {
