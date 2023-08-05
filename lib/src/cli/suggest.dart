@@ -231,15 +231,15 @@ List<StreamOption> processAudioTracks(SuggestOptions opts, BuiltList<AudioTrack>
   // Find the best lossless format.
   var streamCount = 0;
   final audioFinder = AudioFinder((af) => af..tracksByFormat = tracksByFormat.toBuilder());
-  var source = audioFinder.bestLossless();
-  if (source != null) {
-    log.fine('Copying ${source.format} (track #${source.orderId}) to '
+  final srcLossless = audioFinder.bestLossless();
+  if (srcLossless != null) {
+    log.fine('Copying ${srcLossless.format} (track #${srcLossless.orderId}) to '
         'track #$streamCount');
     streamOpts.addAll([
       (StreamCopyBuilder()
             ..trackType = TrackType.audio
             ..inputFileId = 0
-            ..srcStreamId = source.orderId
+            ..srcStreamId = srcLossless.orderId
             ..dstStreamId = streamCount)
           .build(),
       (StreamDispositionBuilder()
@@ -251,24 +251,24 @@ List<StreamOption> processAudioTracks(SuggestOptions opts, BuiltList<AudioTrack>
             ..trackType = TrackType.audio
             ..streamId = streamCount
             ..name = 'title'
-            ..value = '(${source.format.name})')
+            ..value = '(${srcLossless.format.name})')
           .build(),
     ]);
     streamCount++;
   }
 
   // Find the best audio source track for the main multichannel audio track.
-  source = audioFinder.bestForEAC3();
+  final srcEAC3 = audioFinder.bestForEAC3();
 
-  if (source.format == AudioFormat.mono || source.format == AudioFormat.stereo) {
+  if (srcEAC3.format == AudioFormat.mono || srcEAC3.format == AudioFormat.stereo) {
     // No multichannel audio tracks available, so skip dealing with multichannel audio entirely
     // and include only this track.
-    log.fine('Only available source is ${source.format.name} (track #$streamCount)');
+    log.fine('Only available source is ${srcEAC3.format.name} (track #$streamCount)');
     streamOpts.addAll([
       (StreamCopyBuilder()
             ..trackType = TrackType.audio
             ..inputFileId = 0
-            ..srcStreamId = source.orderId
+            ..srcStreamId = srcEAC3.orderId
             ..dstStreamId = streamCount)
           .build(),
       (StreamDispositionBuilder()
@@ -280,7 +280,7 @@ List<StreamOption> processAudioTracks(SuggestOptions opts, BuiltList<AudioTrack>
             ..trackType = TrackType.audio
             ..streamId = streamCount
             ..name = 'title'
-            ..value = 'AAC (${source.format.name})')
+            ..value = 'AAC (${srcEAC3.format.name})')
           .build(),
     ]);
   } else {
@@ -290,32 +290,32 @@ List<StreamOption> processAudioTracks(SuggestOptions opts, BuiltList<AudioTrack>
     // Prefer using a Dolby Digital Plus or Dolby Digital track as the source for the Dolby
     // Digital track.
     AudioFormat firstTrackFormat = AudioFormat.unknown;
-    if (source.format == AudioFormat.dolbyDigitalPlus ||
-        source.format == AudioFormat.dolbyDigital) {
+    if (srcEAC3.format == AudioFormat.dolbyDigitalPlus ||
+        srcEAC3.format == AudioFormat.dolbyDigital) {
       // Note: ffmpeg EAC3 encoder can't handle > 5.1 channels.
-      if (source.track.channels != null && source.track.channels! > 6) {
+      if (srcEAC3.track.channels != null && srcEAC3.track.channels! > 6) {
         // Force transcoding to 5.1
-        log.info('Source is ${source.format} (track ${source.orderId}) with '
-            '${source.track.channels}, but ffmpeg only supports 5.1. Transcoding '
+        log.info('Source is ${srcEAC3.format} (track ${srcEAC3.orderId}) with '
+            '${srcEAC3.track.channels}, but ffmpeg only supports 5.1. Transcoding '
             'to 5.1.');
         firstTrackFormat = AudioFormat.dolbyDigitalPlus;
         streamOpts.add((AudioStreamConvertBuilder()
               ..inputFileId = 0
-              ..srcStreamId = source.orderId
+              ..srcStreamId = srcEAC3.orderId
               ..dstStreamId = streamCount
               ..format = AudioFormat.dolbyDigitalPlus
               ..channels = 6
-              ..kbRate = maxAudioKbRate(source.track, 384))
+              ..kbRate = maxAudioKbRate(srcEAC3.track, 384))
             .build());
       } else {
         // Already 5.1 or lower.
-        firstTrackFormat = source.format;
-        log.fine('Copying ${source.format.name} (track #${source.orderId}) '
+        firstTrackFormat = srcEAC3.format;
+        log.fine('Copying ${srcEAC3.format.name} (track #${srcEAC3.orderId}) '
             'to #$streamCount.');
         streamOpts.add((StreamCopyBuilder()
               ..trackType = TrackType.audio
               ..inputFileId = 0
-              ..srcStreamId = source.orderId
+              ..srcStreamId = srcEAC3.orderId
               ..dstStreamId = streamCount)
             .build());
       }
@@ -324,20 +324,20 @@ List<StreamOption> processAudioTracks(SuggestOptions opts, BuiltList<AudioTrack>
       firstTrackFormat = AudioFormat.dolbyDigitalPlus;
 
       // Note: ffmpeg EAC3 encoder can't handle > 5.1 channels.
-      var channels = source.track.channels;
-      if (source.track.channels != null && source.track.channels! > 6) {
+      var channels = srcEAC3.track.channels;
+      if (srcEAC3.track.channels != null && srcEAC3.track.channels! > 6) {
         channels = 6;
       }
 
-      log.fine('Transcoding ${source.format} (track #${source.orderId}) to '
+      log.fine('Transcoding ${srcEAC3.format} (track #${srcEAC3.orderId}) to '
           '${AudioFormat.dolbyDigitalPlus} in #$streamCount');
       streamOpts.add((AudioStreamConvertBuilder()
             ..inputFileId = 0
-            ..srcStreamId = source.orderId
+            ..srcStreamId = srcEAC3.orderId
             ..dstStreamId = streamCount
             ..format = AudioFormat.dolbyDigitalPlus
             ..channels = channels
-            ..kbRate = maxAudioKbRate(source.track, 384))
+            ..kbRate = maxAudioKbRate(srcEAC3.track, 384))
           .build());
     }
     streamOpts.addAll([
@@ -356,26 +356,26 @@ List<StreamOption> processAudioTracks(SuggestOptions opts, BuiltList<AudioTrack>
     streamCount++;
 
     // Find the best audio source track for the multichannel AAC track.
-    source = audioFinder.bestForMultiChannelAAC();
-    if (source.format == AudioFormat.aacMulti) {
-      log.fine('Copying ${source.format.name} (track #${source.orderId}) to '
+    final srcAacMulti = audioFinder.bestForMultiChannelAAC();
+    if (srcAacMulti.format == AudioFormat.aacMulti) {
+      log.fine('Copying ${srcAacMulti.format.name} (track #${srcAacMulti.orderId}) to '
           'track #$streamCount.');
       streamOpts.add((StreamCopyBuilder()
             ..trackType = TrackType.audio
             ..inputFileId = 0
-            ..srcStreamId = source.orderId
+            ..srcStreamId = srcAacMulti.orderId
             ..dstStreamId = streamCount)
           .build());
     } else {
-      final kbRate = maxAudioKbRate(source.track, 384);
-      final channels = (source.track.channels != null && source.track.channels! < 6)
-          ? source.track.channels!
+      final kbRate = maxAudioKbRate(srcAacMulti.track, 384);
+      final channels = (srcAacMulti.track.channels != null && srcAacMulti.track.channels! < 6)
+          ? srcAacMulti.track.channels!
           : 6;
-      log.fine('Transcoding ${source.format.name} (track #${source.orderId}) '
+      log.fine('Transcoding ${srcAacMulti.format.name} (track #${srcAacMulti.orderId}) '
           'to AAC ($channels channels) $kbRate kbps as track #$streamCount.');
       streamOpts.add((AudioStreamConvertBuilder()
             ..inputFileId = 0
-            ..srcStreamId = source.orderId
+            ..srcStreamId = srcAacMulti.orderId
             ..dstStreamId = streamCount
             ..format = AudioFormat.aacMulti
             ..channels = channels
@@ -401,13 +401,13 @@ List<StreamOption> processAudioTracks(SuggestOptions opts, BuiltList<AudioTrack>
     if (opts.generateDPL2) {
       streamOpts.add(ComplexFilter.fromFilter('[0:a]aresample=matrix_encoding=dplii[a]'));
       // Find the best audio source track for the Dolby Pro Logic II AAC track.
-      source = audioFinder.bestForDolbyProLogic2();
-      final kbRate = maxAudioKbRate(source.track, 256);
-      log.fine('Transcoding ${source.format.name} (track #${source.orderId}) to '
+      final srcDPL2 = audioFinder.bestForDolbyProLogic2();
+      final kbRate = maxAudioKbRate(srcDPL2.track, 256);
+      log.fine('Transcoding ${srcDPL2.format.name} (track #${srcDPL2.orderId}) to '
           'AAC (Dolby Pro Logic II) $kbRate kbps as track #$streamCount.');
       streamOpts.add((DolbyProLogicAudioStreamConvertBuilder()
             ..inputFileId = 0
-            ..srcStreamId = source.orderId
+            ..srcStreamId = srcDPL2.orderId
             ..dstStreamId = streamCount
             ..format = AudioFormat.stereo
             ..channels = 2
@@ -661,10 +661,8 @@ String makeMovieOutputName(
   }
   fileNameBuffer.write('.mkv');
 
-  var firstLetter = '';
-  if (letterPrefix) {
-    firstLetter = getMovieTitleFirstLetter(movie.name);
-  }
+  final firstLetter = (letterPrefix) ? getMovieTitleFirstLetter(movie.name) : '';
+
   return p.join(outputFolder ?? '', firstLetter, '"${baseNameBuffer.toString()}"',
       '"${fileNameBuffer.toString()}"');
 }
