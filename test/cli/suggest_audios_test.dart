@@ -9,24 +9,6 @@ void main() {
   final defaultOptions = SuggestOptions.withDefaults(
       force: false, dpl2: false, mediaType: MediaType.movie, targetResolution: VideoResolution.uhd);
 
-  final convertAacMulti = (AudioStreamConvertBuilder()
-        ..inputFileId = 0
-        ..srcStreamId = 0
-        ..dstStreamId = 1
-        ..format = AudioFormat.aacMulti
-        ..channels = 6
-        ..kbRate = 384)
-      .build();
-
-  final convertDDPlus = (AudioStreamConvertBuilder()
-        ..inputFileId = 0
-        ..srcStreamId = 0
-        ..dstStreamId = 0
-        ..format = AudioFormat.dolbyDigitalPlus
-        ..channels = 6
-        ..kbRate = 384)
-      .build();
-
   test('mono track produces one track', () {
     var results = processAudioTracks(
         defaultOptions,
@@ -76,7 +58,7 @@ void main() {
           _streamCopy(0, 0),
           _dispositionDefault(0, true),
           _metadataTitle(0, 'Dolby Digital Plus'),
-          convertAacMulti,
+          _makeAacMultiConverter(srcStreamId: 0, dstStreamId: 1),
           _dispositionDefault(1, false),
           _metadataTitle(1, 'AAC (5.1)')
         ]));
@@ -98,7 +80,7 @@ void main() {
           _streamCopy(0, 0),
           _dispositionDefault(0, true),
           _metadataTitle(0, 'Dolby Digital Plus'),
-          convertAacMulti,
+          _makeAacMultiConverter(srcStreamId: 0, dstStreamId: 1),
           _dispositionDefault(1, false),
           _metadataTitle(1, 'AAC (5.1)')
         ]));
@@ -117,10 +99,10 @@ void main() {
     expect(
         results,
         containsAllInOrder(<StreamOption>[
-          convertDDPlus,
+          _makeDDPConverter(),
           _dispositionDefault(0, true),
           _metadataTitle(0, 'Dolby Digital Plus'),
-          convertAacMulti,
+          _makeAacMultiConverter(srcStreamId: 0, dstStreamId: 1),
           _dispositionDefault(1, false),
           _metadataTitle(1, 'AAC (5.1)')
         ]));
@@ -142,7 +124,7 @@ void main() {
           _streamCopy(0, 0),
           _dispositionDefault(0, true),
           _metadataTitle(0, 'Dolby Digital Plus'),
-          convertAacMulti,
+          _makeAacMultiConverter(srcStreamId: 0, dstStreamId: 1),
           _dispositionDefault(1, false),
           _metadataTitle(1, 'AAC (5.1)'),
           (ComplexFilterBuilder()..filter = '[0:a]aresample=matrix_encoding=dplii[a]').build(),
@@ -173,74 +155,36 @@ void main() {
           _streamCopy(0, 0),
           _dispositionDefault(0, true),
           _metadataTitle(0, 'Dolby Digital'),
-          convertAacMulti,
+          _makeAacMultiConverter(srcStreamId: 0, dstStreamId: 1),
           _dispositionDefault(1, false),
           _metadataTitle(1, 'AAC (5.1)'),
         ]));
   });
 
-  test('TrueHD converted', () {
+  test('Dolby Digital with commentary excluded', () {
     var results = processAudioTracks(
         defaultOptions,
         <AudioTrack>[
           _makeAudioTrack(0, AudioFormat.trueHD, true, false, bitRate: 512000, channels: 6),
-        ].build());
-    expect(results, isNotNull);
-    expect(results, hasLength(6));
-    expect(
-        results,
-        containsAllInOrder(<StreamOption>[
-          convertDDPlus,
-          _dispositionDefault(0, true),
-          _metadataTitle(0, 'Dolby Digital Plus'),
-          convertAacMulti,
-          _dispositionDefault(1, false),
-          _metadataTitle(1, 'AAC (5.1)'),
-        ]));
-  });
-
-  test('TrueHD with variable bitrate converted', () {
-    var results = processAudioTracks(
-        defaultOptions,
-        <AudioTrack>[
-          _makeAudioTrack(0, AudioFormat.trueHD, true, false,
-              bitRateMode: BitRateMode.variable, channels: 6),
-        ].build());
-    expect(results, isNotNull);
-    expect(results, hasLength(6));
-    expect(
-        results,
-        containsAllInOrder(<StreamOption>[
-          convertDDPlus,
-          _dispositionDefault(0, true),
-          _metadataTitle(0, 'Dolby Digital Plus'),
-          convertAacMulti,
-          _dispositionDefault(1, false),
-          _metadataTitle(1, 'AAC (5.1)'),
-        ]));
-  });
-
-  test('TrueHD and Dolby Digital with commentary excluded', () {
-    var results = processAudioTracks(
-        defaultOptions,
-        <AudioTrack>[
-          _makeAudioTrack(0, AudioFormat.trueHD, true, false, bitRate: 512000, channels: 6),
-          _makeAudioTrack(0, AudioFormat.dolbyDigital, true, false,
+          _makeAudioTrack(1, AudioFormat.dolbyDigital, true, false,
               bitRate: 512000,
               channels: 6,
               title: 'Director\'s commentary with other famous people'),
         ].build());
     expect(results, isNotNull);
-    expect(results, hasLength(6));
+    expect(results, hasLength(9));
     expect(
         results,
         containsAllInOrder(<StreamOption>[
-          convertDDPlus,
+          _streamCopy(0, 0),
           _dispositionDefault(0, true),
-          _metadataTitle(0, 'Dolby Digital Plus'),
-          convertAacMulti,
+          _metadataTitle(0, '(${AudioFormat.trueHD.name})'),
+          _makeDDPConverter(srcStreamId: 0, dstStreamId: 1),
           _dispositionDefault(1, false),
-          _metadataTitle(1, 'AAC (5.1)'),
+          _metadataTitle(1, AudioFormat.dolbyDigitalPlus.name),
+          _makeAacMultiConverter(srcStreamId: 0, dstStreamId: 2),
+          _dispositionDefault(2, false),
+          _metadataTitle(2, audioTitleAacMulti),
         ]));
   });
 }
@@ -284,5 +228,29 @@ StreamCopy _streamCopy(int sourceId, int destId) {
         ..inputFileId = 0
         ..srcStreamId = sourceId
         ..dstStreamId = destId)
+      .build();
+}
+
+AudioStreamConvert _makeDDPConverter(
+    {int inputFileId = 0, int srcStreamId = 0, int dstStreamId = 0}) {
+  return (AudioStreamConvertBuilder()
+        ..inputFileId = inputFileId
+        ..srcStreamId = srcStreamId
+        ..dstStreamId = dstStreamId
+        ..format = AudioFormat.dolbyDigitalPlus
+        ..channels = 6
+        ..kbRate = 384)
+      .build();
+}
+
+AudioStreamConvert _makeAacMultiConverter(
+    {int inputFileId = 0, int srcStreamId = 0, int dstStreamId = 0}) {
+  return (AudioStreamConvertBuilder()
+        ..inputFileId = inputFileId
+        ..srcStreamId = srcStreamId
+        ..dstStreamId = dstStreamId
+        ..format = AudioFormat.aacMulti
+        ..channels = 6
+        ..kbRate = 384)
       .build();
 }
