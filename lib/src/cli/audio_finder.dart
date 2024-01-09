@@ -35,7 +35,17 @@ abstract class AudioFinder
   }
 
   /// Finds the best source audio track for outputting E-AC3 (Dolby Digital or Dolby Digital Plus).
-  AudioTrackWrapper bestForEAC3() {
+  AudioTrackWrapper bestForEAC3({bool preferLossless = false}) {
+    // If we prefer lossless and we have a lossless track, use that
+    if (preferLossless) {
+      if (tracksByFormat.containsKey(AudioFormat.trueHD)) {
+        return tracksByFormat[AudioFormat.trueHD]!;
+      }
+      if (tracksByFormat.containsKey(AudioFormat.dtsHDMA)) {
+        return tracksByFormat[AudioFormat.trueHD]!;
+      }
+    }
+
     // Prefer DD+ or DD, since we can just copy them.
     if (tracksByFormat.containsKey(AudioFormat.dolbyDigitalPlus)) {
       return tracksByFormat[AudioFormat.dolbyDigitalPlus]!;

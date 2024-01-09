@@ -81,6 +81,11 @@ class SuggestCommand extends Command {
         valueHelp: 'ISO_CODE',
         allowed: Language.codes());
 
+    argParser.addFlag(SuggestFlags.preferLossless,
+        help: 'Prefer lossless audio formats over lossy formats.',
+        defaultsTo: true,
+        negatable: true);
+
     addSubcommand(SuggestMovieCommand());
     addSubcommand(SuggestTvCommand());
   }
