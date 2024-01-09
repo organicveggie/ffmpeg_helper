@@ -1,3 +1,4 @@
+import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 extension EnumAllNames<T extends Enum> on Iterable<T> {
@@ -91,55 +92,77 @@ enum BitRateMode {
 }
 
 enum Language {
-  arabic('ara'), // Arabic
-  bengali('ben'), // Bengali
-  czech('ces'), // Czech
-  chinese('chi'), // Chinese
-  danish('dan'), // Danish
-  german('deu'), // German
-  dutch('dut'), // Dutch
-  greek('ell'), // Greek
-  english('eng'), // English
-  persian('fas'), // Persian
-  finnish('fin'), // Finnish
-  french('fra'), // French
-  gujarati('guj'), // Gujarati
-  hindi('hin'), // Hindi
-  hungarian('hun'), // Hungarian
-  indonesian('ind'), // Indonesian
-  italian('ita'), // Italian
-  japanese('jpn'), // Japanese
-  kannada('kan'), // Kannada
-  korean('kor'), // Korean
-  malayalam('mal'), // Malayalam
-  marathi('mar'), // Marathi
-  nepali('nep'), // Nepali
-  norwegian('nor'), // Norwegian
-  oriya('ori'), // Oriya
-  punjabi('pan'), // Punjabi
-  polish('pol'), // Polish
-  portuguese('por'), // Portuguese
-  russian('rus'), // Russian
-  sinhalese('sin'), // Sinhalese
-  spanish('spa'), // Spanish
-  swahili('swa'), // Swahili
-  swedish('swe'), // Swedish
-  tamil('tam'), // Tamil
-  telugu('tel'), // Telugu
-  thai('tha'), // Thai
-  turkish('tur'), // Turkish
-  ukrainian('ukr'), // Ukrainian
-  urdu('urd'), // Urdu
-  vietnamese('vie'), // Vietnamese
-  unknown('unknown');
+  arabic('ara', {}), // Arabic
+  bengali('ben', {}), // Bengali
+  czech('ces', {}), // Czech
+  chinese('chi', {}), // Chinese
+  danish('dan', {}), // Danish
+  german('deu', {}), // German
+  dutch('dut', {}), // Dutch
+  greek('ell', {}), // Greek
+  english('eng', {'en'}), // English
+  persian('fas', {}), // Persian
+  finnish('fin', {}), // Finnish
+  french('fra', {}), // French
+  gujarati('guj', {}), // Gujarati
+  hindi('hin', {}), // Hindi
+  hungarian('hun', {}), // Hungarian
+  indonesian('ind', {}), // Indonesian
+  italian('ita', {}), // Italian
+  japanese('jpn', {}), // Japanese
+  kannada('kan', {}), // Kannada
+  korean('kor', {}), // Korean
+  malayalam('mal', {}), // Malayalam
+  marathi('mar', {}), // Marathi
+  nepali('nep', {}), // Nepali
+  norwegian('nor', {}), // Norwegian
+  oriya('ori', {}), // Oriya
+  punjabi('pan', {}), // Punjabi
+  polish('pol', {}), // Polish
+  portuguese('por', {}), // Portuguese
+  russian('rus', {}), // Russian
+  sinhalese('sin', {}), // Sinhalese
+  spanish('spa', {}), // Spanish
+  swahili('swa', {}), // Swahili
+  swedish('swe', {}), // Swedish
+  tamil('tam', {}), // Tamil
+  telugu('tel', {}), // Telugu
+  thai('tha', {}), // Thai
+  turkish('tur', {}), // Turkish
+  ukrainian('ukr', {}), // Ukrainian
+  urdu('urd', {}), // Urdu
+  vietnamese('vie', {}), // Vietnamese
+  unknown('unknown', {});
 
-  const Language(this.iso);
+  const Language(this.iso, this.aliases);
+
+  static Language? byIso(String? iso) {
+    if (iso == null) return null;
+    for (final lang in Language.values) {
+      if (lang.iso == iso) return lang;
+      for (final alias in lang.aliases) {
+        if (alias == iso) return lang;
+      }
+    }
+    return null;
+  }
 
   /// ISO 639-2/T code
   final String iso;
 
+  final Set<String> aliases;
+
   @override
   String toString() => name;
+
+  bool matches(String? lang) {
+    if (lang == null) return false;
+    if (lang == iso) return true;
+    for (final alias in aliases) {
+      if (lang == alias) return true;
+    }
+    return false;
+  }
 
   static Iterable<String> codes() => values.map((e) => e.iso);
 }
