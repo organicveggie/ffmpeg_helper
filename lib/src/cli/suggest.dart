@@ -193,8 +193,10 @@ BuiltList<String> processFile(SuggestOptions opts, String filename, TrackList tr
 }
 
 BuiltMap<AudioFormat, AudioTrackWrapper> filterTracks(
-    {required BuiltList<AudioTrack> tracks, String? languageCode}) {
+    {required BuiltList<AudioTrack> tracks, Language? language}) {
   final log = Logger('filterTracks');
+  log.info('Filtering audio tracks for [${language?.iso}]');
+
   final Map<AudioFormat, AudioTrackWrapper> tracksByFormat = {};
 
   for (int i = 0; i < tracks.length; i++) {
@@ -203,9 +205,9 @@ BuiltMap<AudioFormat, AudioTrackWrapper> filterTracks(
       log.fine('Skipping commentary track #$i: "${t.title}"');
       continue;
     }
-    final trackLang = t.language?.toLowerCase();
-    if (languageCode != null && trackLang != null && trackLang != languageCode) {
-      log.fine('Skipping audio track #$i ($trackLang). Need: $languageCode.');
+    final trackLang = t.language;
+    if (language != null && trackLang != null && !language.matches(trackLang)) {
+      log.fine('Skipping audio track #$i ($trackLang). Need: $language.');
       continue;
     }
     final af = t.toAudioFormat();
@@ -223,16 +225,22 @@ List<StreamOption> processAudioTracks(SuggestOptions opts, BuiltList<AudioTrack>
   // Organize audio tracks by format and filter out any commentary tracks.
   // If a specific target language was request, filter out tracks in other languages.
   final BuiltMap<AudioFormat, AudioTrackWrapper> tracksByFormat =
-      filterTracks(tracks: tracks, languageCode: opts.language?.iso);
+      filterTracks(tracks: tracks, language: opts.language);
   if (tracksByFormat.length == 0) {
     throw const NoTracksFoundException(TrackType.audio);
+  }
+  for (final entry in tracksByFormat.entries) {
+    final track = entry.value;
+    log.fine('Found ${entry.key}: track #${track.orderId} '
+        '[${track.track.language}], "${track.track.title}"');
   }
 
   final streamOpts = <StreamOption>[];
 
   // Find the best lossless format.
   var streamCount = 0;
-  final audioFinder = AudioFinder((af) => af..tracksByFormat = tracksByFormat.toBuilder());
+  final audioFinder =
+      AudioFinder((af) => af..tracksByFormat = tracksByFormat.toBuilder());
 
   log.info('Looking for best lossless track...');
   final srcLossless = audioFinder.bestLossless();
@@ -760,10 +768,14 @@ abstract class BaseSuggestCommand extends Command {
       }
     }
 
+    final language = Language.byIso(parentArgs[SuggestFlags.language]);
+
+    log.fine('Flags:');
+    log.fine('  ${SuggestFlags.language} = $language');
     var opts = SuggestOptions.withDefaults(
         force: parentArgs[SuggestFlags.force],
         dpl2: parentArgs[SuggestFlags.dpl2],
-        language: parentArgs[SuggestFlags.language],
+        language: language,
         mediaType: getMediaType(),
         name: parentArgs[SuggestFlags.name],
         outputFile: outputFilename,
