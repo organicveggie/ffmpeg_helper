@@ -109,13 +109,21 @@ class SummaryCommand extends Command {
     }
     List<VideoTrack> videos = tl.videoTracks.toList();
     videos.sort((a, b) {
-      int cmp = a.streamOrder.compareTo(b.streamOrder);
+      var cmp = 0;
+      if (a.streamOrder != null && b.streamOrder != null) {
+        cmp = a.streamOrder!.compareTo(b.streamOrder!);
+      } else if (a.typeOrder != null && b.typeOrder != null) {
+        cmp = a.typeOrder!.compareTo(b.typeOrder!);
+      }
       return (cmp == 0) ? a.id.compareTo(b.id) : cmp;
     });
     for (var i = 0; i < videos.length; i++) {
       VideoTrack v = videos[i];
       if (isDetailed) {
-        buffer.writeln('StreamOrder: ${v.streamOrder}');
+        buffer.writeln('StreamOrder: ${v.streamOrder ?? "-"}');
+        if (v.typeOrder != null) {
+          buffer.writeln('TypeOrder: ${v.typeOrder!}');
+        }
         buffer.writeln('ID: ${v.id}');
         buffer.writeln('Format: ${v.format}');
         buffer.writeln('Codec: ${v.codecId}');

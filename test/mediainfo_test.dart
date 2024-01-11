@@ -36,7 +36,7 @@ void main() {
       expect(gt.title, 'Media Minimal');
 
       const wantVideo = VideoTrack(TrackType.video, '1', 'V_MPEGH/ISO/HEVC',
-          '6d86c4300aca4e9682e263cd7f89a4c4', '0', null, 'AVC', 1920, 800, null, null);
+          '6d86c4300aca4e9682e263cd7f89a4c4', '0', null, 'AVC', 1920, 800, null, null, null);
 
       var vt = mediaRoot.media.trackList.videoTracks[0];
       expect(vt, isNotNull);

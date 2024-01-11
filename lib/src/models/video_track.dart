@@ -17,7 +17,11 @@ class VideoTrack extends CodecIdTrack with EquatableMixin {
   final String? hdrFormatCompatibility;
 
   final String format;
-  final String streamOrder;
+
+  final String? streamOrder;
+
+  @JsonKey(name: '@typeorder')
+  final String? typeOrder;
 
   @JsonKey(fromJson: jsonStringToInt, toJson: jsonIntToString)
   final int height;
@@ -35,21 +39,23 @@ class VideoTrack extends CodecIdTrack with EquatableMixin {
       this.width,
       this.height,
       this.hdrFormat,
-      this.hdrFormatCompatibility);
+      this.hdrFormatCompatibility,
+      this.typeOrder);
 
   const VideoTrack.createFromParams({
     required String codecId,
     required String format,
     required int height,
     required String id,
-    required String streamOrder,
+    String? streamOrder,
     required int width,
     Map<String, String>? extra,
     String? hdrFormat,
     String? hdrFormatCompatibility,
     String? uniqueId,
+    String? typeOrder,
   }) : this(TrackType.video, id, codecId, uniqueId, streamOrder, extra, format, width, height,
-            hdrFormat, hdrFormatCompatibility);
+            hdrFormat, hdrFormatCompatibility, typeOrder);
 
   factory VideoTrack.fromJson(Map<String, dynamic> json) => _$VideoTrackFromJson(json);
 
@@ -88,6 +94,7 @@ class VideoTrack extends CodecIdTrack with EquatableMixin {
         width,
         height,
         hdrFormat,
-        hdrFormatCompatibility
+        hdrFormatCompatibility,
+        typeOrder
       ];
 }
