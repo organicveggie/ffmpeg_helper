@@ -17,7 +17,7 @@ class AudioTrack extends CodecIdTrack with EquatableMixin {
   @JsonKey(name: 'Format_Commercial_IfAny')
   final String? formatCommercialName;
   @JsonKey(name: '@typeorder', fromJson: jsonStringToInt, toJson: jsonIntToString)
-  final int typeOrder;
+  final int? typeOrder;
 
   @JsonKey(fromJson: jsonStringToInt, toJson: jsonIntToString)
   final int? channels;
@@ -26,7 +26,8 @@ class AudioTrack extends CodecIdTrack with EquatableMixin {
   final String? channelLayout;
   final String format;
   final String? language;
-  final String streamOrder;
+
+  final String? streamOrder;
 
   final String? title;
 
@@ -71,8 +72,8 @@ class AudioTrack extends CodecIdTrack with EquatableMixin {
     required String id,
     required String codecId,
     required String format,
-    required String streamOrder,
-    required int typeOrder,
+    String? streamOrder,
+    int? typeOrder,
     int? bitRate,
     int? bitRateMax,
     BitRateMode? bitRateMode,
