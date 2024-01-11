@@ -172,7 +172,10 @@ class SummaryCommand extends Command {
     }
     List<AudioTrack> audios = tl.audioTracks.toList();
     audios.sort((a, b) {
-      int cmp = a.streamOrder.compareTo(b.streamOrder);
+      var cmp = 0;
+      if (a.streamOrder != null && b.streamOrder != null) {
+        cmp = a.streamOrder!.compareTo(b.streamOrder!);
+      }
       return (cmp == 0) ? a.id.compareTo(b.id) : cmp;
     });
     for (var i = 0; i < audios.length; i++) {
