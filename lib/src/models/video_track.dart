@@ -20,8 +20,8 @@ class VideoTrack extends CodecIdTrack with EquatableMixin {
 
   final String? streamOrder;
 
-  @JsonKey(name: '@typeorder')
-  final String? typeOrder;
+  @JsonKey(name: '@typeorder', fromJson: jsonStringToInt, toJson: jsonIntToString)
+  final int? typeOrder;
 
   @JsonKey(fromJson: jsonStringToInt, toJson: jsonIntToString)
   final int height;
@@ -53,7 +53,7 @@ class VideoTrack extends CodecIdTrack with EquatableMixin {
     String? hdrFormat,
     String? hdrFormatCompatibility,
     String? uniqueId,
-    String? typeOrder,
+    int? typeOrder,
   }) : this(TrackType.video, id, codecId, uniqueId, streamOrder, extra, format, width, height,
             hdrFormat, hdrFormatCompatibility, typeOrder);
 
