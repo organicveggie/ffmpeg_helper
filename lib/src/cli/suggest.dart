@@ -882,7 +882,7 @@ abstract class BaseSuggestCommand extends Command {
   }
 
   File makeFileForBluRay(String dirName, String playlist) {
-    final blurayFilename = '$dirName/BDMV/PLAYLIST/$playlist.mpls';
+    final blurayFilename = p.join(dirName, 'BDMV', 'PLAYLIST', '$playlist.mpls');
     log.info('Looking for BluRay playlist: $blurayFilename');
     return File(blurayFilename);
   }
