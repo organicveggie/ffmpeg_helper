@@ -155,14 +155,12 @@ BuiltList<String> processFile(SuggestOptions opts, String filename, TrackList tr
   streamOptions.addAll(audioStreamOpts);
 
   final buffer = <String>[];
-  buffer.add('ffmpeg -i "');
-  if (opts.isBluray()) {
-    buffer.add('bluray:');
-  }
-  buffer.add('$filename" \\');
+
+  final inputFilename = opts.isBluray() ? 'blueray:$filename' : filename;
+  buffer.add('ffmpeg -i "$inputFilename" \\');
 
   if (opts.isBluray()) {
-    buffer.add(' -playlist ${opts.blurayPlaylist}\\');
+    buffer.add(' -playlist ${opts.blurayPlaylist} \\');
   }
 
   var outputFilename = '';
