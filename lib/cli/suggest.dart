@@ -79,7 +79,7 @@ class SuggestCommand extends Command {
         defaultsTo: true,
         negatable: true);
 
-    argParser.addOption(SuggestFlags.bluray,
+    argParser.addOption(SuggestFlags.blurayPlaylist,
         help: 'Indicates the BluRay playlist number to use for a full BluRay disc rip source',
         valueHelp: 'PLAYLIST_NUMBER');
 

@@ -737,7 +737,7 @@ int maxAudioKbRate(AudioTrack track, int defaultMaxKbRate) {
 ////////////////////
 
 class SuggestFlags {
-  static const String bluray = 'bluray';
+  static const String blurayPlaylist = 'bluray_playlist';
   static const String dpl2 = 'dpl2';
   static const String file = 'file';
   static const String fileMode = 'file_mode';
@@ -789,7 +789,7 @@ abstract class BaseSuggestCommand extends Command {
     final language = Language.byIso(parentArgs[SuggestFlags.language]);
 
     log.fine('Flags:');
-    log.fine('  ${SuggestFlags.bluray} = ${parentArgs[SuggestFlags.bluray]}');
+    log.fine('  ${SuggestFlags.blurayPlaylist} = ${parentArgs[SuggestFlags.blurayPlaylist]}');
     log.fine('  ${SuggestFlags.force} = ${parentArgs[SuggestFlags.force]}');
     log.fine('  ${SuggestFlags.dpl2} = ${parentArgs[SuggestFlags.dpl2]}');
     log.fine('  ${SuggestFlags.language} = $language');
@@ -799,7 +799,7 @@ abstract class BaseSuggestCommand extends Command {
     log.fine('  ${SuggestFlags.year} = ${parentArgs[SuggestFlags.year]}');
 
     var opts = SuggestOptions.withDefaults(
-        blurayPlaylist: parentArgs[SuggestFlags.bluray],
+        blurayPlaylist: parentArgs[SuggestFlags.blurayPlaylist],
         force: parentArgs[SuggestFlags.force],
         dpl2: parentArgs[SuggestFlags.dpl2],
         language: language,
@@ -818,9 +818,12 @@ abstract class BaseSuggestCommand extends Command {
     final output = makeOutputSink(opts);
 
     for (final fileGlob in argResults.rest) {
-      final f = File(fileGlob);
+      final f = opts.isBluray()
+          ? makeFileForBluRay(fileGlob, opts.blurayPlaylist!)
+          : makeFileForGlob(fileGlob);
+
       if (!f.existsSync()) {
-        throw FileNotFoundException(fileGlob);
+        throw FileNotFoundException(f.path);
       }
       log.info('Found file: ${f.path}');
 
@@ -877,4 +880,12 @@ abstract class BaseSuggestCommand extends Command {
 
     return stdout;
   }
+
+  File makeFileForBluRay(String dirName, String playlist) {
+    final blurayFilename = '$dirName/BDMV/PLAYLIST/$playlist.mpls';
+    log.info('Looking for BluRay playlist: $blurayFilename');
+    return File(blurayFilename);
+  }
+
+  File makeFileForGlob(String glob) => File(glob);
 }
