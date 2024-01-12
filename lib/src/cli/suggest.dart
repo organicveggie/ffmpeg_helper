@@ -51,9 +51,11 @@ abstract class SuggestOptions
   bool get preferLossless;
   Language? get language;
 
+  String? get bluerayPlaylist;
+  bool isBlueray() => bluerayPlaylist != null;
+
   SuggestOptions._();
-  factory SuggestOptions([void Function(SuggestOptionsBuilder) updates]) =
-      _$SuggestOptions;
+  factory SuggestOptions([void Function(SuggestOptionsBuilder) updates]) = _$SuggestOptions;
 
   factory SuggestOptions.withDefaults(
       {required bool force,
@@ -70,8 +72,10 @@ abstract class SuggestOptions
       String? tmdbId,
       String? tvdbId,
       String? year,
-      Language? language}) {
+      Language? language,
+      String? bluerayPlaylist}) {
     return (SuggestOptionsBuilder()
+          ..bluerayPlaylist = bluerayPlaylist
           ..forceUpscaling = force
           ..generateDPL2 = dpl2
           ..imdbId = imdbId
@@ -92,6 +96,7 @@ abstract class SuggestOptions
 
   @override
   List<Object?> get props => [
+        bluerayPlaylist,
         forceUpscaling,
         generateDPL2,
         imdbId,
@@ -133,8 +138,7 @@ String langToISO639_2(String lang) {
   }
 }
 
-BuiltList<String> processFile(
-    SuggestOptions opts, String filename, TrackList tracks) {
+BuiltList<String> processFile(SuggestOptions opts, String filename, TrackList tracks) {
   final streamOptions = <StreamOption>[];
 
   // Check video track
@@ -151,7 +155,15 @@ BuiltList<String> processFile(
   streamOptions.addAll(audioStreamOpts);
 
   final buffer = <String>[];
-  buffer.add('ffmpeg -i "$filename" \\');
+  buffer.add('ffmpeg -i "');
+  if (opts.isBlueray()) {
+    buffer.add('blueray:');
+  }
+  buffer.add('$filename" \\');
+
+  if (opts.isBlueray()) {
+    buffer.add(' -playlist ${opts.bluerayPlaylist}\\');
+  }
 
   var outputFilename = '';
   if (opts.mediaType == MediaType.movie) {
@@ -222,8 +234,7 @@ BuiltMap<AudioFormat, AudioTrackWrapper> filterTracks(
   return BuiltMap.of(tracksByFormat);
 }
 
-List<StreamOption> processAudioTracks(
-    SuggestOptions opts, BuiltList<AudioTrack> tracks) {
+List<StreamOption> processAudioTracks(SuggestOptions opts, BuiltList<AudioTrack> tracks) {
   final log = Logger('processAudioTracks');
 
   log.info('Analyzing ${tracks.length} audio tracks.');
@@ -245,8 +256,7 @@ List<StreamOption> processAudioTracks(
 
   // Find the best lossless format.
   var streamCount = 0;
-  final audioFinder =
-      AudioFinder((af) => af..tracksByFormat = tracksByFormat.toBuilder());
+  final audioFinder = AudioFinder((af) => af..tracksByFormat = tracksByFormat.toBuilder());
 
   log.info('Looking for best lossless track...');
   final srcLossless = audioFinder.bestLossless();
@@ -279,12 +289,10 @@ List<StreamOption> processAudioTracks(
   log.info('Looking for best source for main multichannel audio track...');
   final srcEAC3 = audioFinder.bestForEAC3();
 
-  if (srcEAC3.format == AudioFormat.mono ||
-      srcEAC3.format == AudioFormat.stereo) {
+  if (srcEAC3.format == AudioFormat.mono || srcEAC3.format == AudioFormat.stereo) {
     // No multichannel audio tracks available, so skip dealing with multichannel audio entirely
     // and include only this track.
-    log.fine(
-        'Only available source is ${srcEAC3.format.name} (track #$streamCount)');
+    log.fine('Only available source is ${srcEAC3.format.name} (track #$streamCount)');
     streamOpts.addAll([
       (StreamCopyBuilder()
             ..trackType = TrackType.audio
@@ -380,8 +388,7 @@ List<StreamOption> processAudioTracks(
     log.info('Looking for best source multi-channel AAC...');
     final srcAacMulti = audioFinder.bestForMultiChannelAAC();
     if (srcAacMulti.format == AudioFormat.aacMulti) {
-      log.info(
-          'Copying ${srcAacMulti.format.name} (track #${srcAacMulti.orderId}) to '
+      log.info('Copying ${srcAacMulti.format.name} (track #${srcAacMulti.orderId}) to '
           '[${srcAacMulti.track.language}] track #$streamCount.');
       streamOpts.add((StreamCopyBuilder()
             ..trackType = TrackType.audio
@@ -391,12 +398,10 @@ List<StreamOption> processAudioTracks(
           .build());
     } else {
       final kbRate = maxAudioKbRate(srcAacMulti.track, 384);
-      final channels = (srcAacMulti.track.channels != null &&
-              srcAacMulti.track.channels! < 6)
+      final channels = (srcAacMulti.track.channels != null && srcAacMulti.track.channels! < 6)
           ? srcAacMulti.track.channels!
           : 6;
-      log.info(
-          'Transcoding ${srcAacMulti.format.name} (track #${srcAacMulti.orderId}) '
+      log.info('Transcoding ${srcAacMulti.format.name} (track #${srcAacMulti.orderId}) '
           '[${srcAacMulti.track.language}] to AAC ($channels channels) $kbRate kbps as '
           'track #$streamCount.');
       streamOpts.add((AudioStreamConvertBuilder()
@@ -425,13 +430,11 @@ List<StreamOption> processAudioTracks(
 
     // Dolby Pro Logic II
     if (opts.generateDPL2) {
-      streamOpts.add(
-          ComplexFilter.fromFilter('[0:a]aresample=matrix_encoding=dplii[a]'));
+      streamOpts.add(ComplexFilter.fromFilter('[0:a]aresample=matrix_encoding=dplii[a]'));
       // Find the best audio source track for the Dolby Pro Logic II AAC track.
       final srcDPL2 = audioFinder.bestForDolbyProLogic2();
       final kbRate = maxAudioKbRate(srcDPL2.track, 256);
-      log.info(
-          'Transcoding ${srcDPL2.format.name} (track #${srcDPL2.orderId}) to '
+      log.info('Transcoding ${srcDPL2.format.name} (track #${srcDPL2.orderId}) to '
           'AAC (Dolby Pro Logic II) $kbRate kbps as track #$streamCount.');
       streamOpts.add((DolbyProLogicAudioStreamConvertBuilder()
             ..inputFileId = 0
@@ -465,8 +468,7 @@ List<StreamOption> processSubtitles(BuiltList<TextTrack> subtitles) {
   final streamOpts = <StreamOption>[];
 
   log.info('Analyzing ${subtitles.length} subtitle tracks.');
-  final subLangs =
-      Set.unmodifiable(['en', 'eng', 'es', 'esp', 'fr', 'fra', 'de', 'deu']);
+  final subLangs = Set.unmodifiable(['en', 'eng', 'es', 'esp', 'fr', 'fra', 'de', 'deu']);
   var destStreamId = 0;
   for (final i in Iterable.generate(subtitles.length)) {
     final TextTrack tt = subtitles[i];
@@ -509,8 +511,7 @@ List<StreamOption> processVideoTrack(SuggestOptions opts, VideoTrack video) {
     if (!opts.forceUpscaling) {
       throw UpscalingRequiredException(opts.targetResolution!, video.width);
     }
-    log.info(
-        'Upscaling from width of ${video.width} to ${opts.targetResolution!.name}.');
+    log.info('Upscaling from width of ${video.width} to ${opts.targetResolution!.name}.');
     streamOpts.add(ScaleFilter.withDefaultHeight(3840));
     // Convert to H.265
     streamOpts.add((VideoStreamConvertBuilder()
@@ -518,10 +519,8 @@ List<StreamOption> processVideoTrack(SuggestOptions opts, VideoTrack video) {
           ..srcStreamId = 0
           ..dstStreamId = 0)
         .build());
-  } else if (opts.targetResolution == VideoResolution.hd &&
-      video.width > 1920) {
-    log.info(
-        'Downscaling from width of ${video.width} to ${opts.targetResolution!.name}.');
+  } else if (opts.targetResolution == VideoResolution.hd && video.width > 1920) {
+    log.info('Downscaling from width of ${video.width} to ${opts.targetResolution!.name}.');
     streamOpts.add(ScaleFilter.withDefaultHeight(1920));
     // Convert to H.265
     streamOpts.add((VideoStreamConvertBuilder()
@@ -572,8 +571,7 @@ Movie extractMovieTitle(String sourcePathname, MovieOverrides overrides) {
   String? imdb, tmdb, year;
 
   // Try to identify the name and year of the movie.
-  final regex = RegExp(
-      r'^(?<name>(\w+[.]?)+?)[.]?(?<year>(19\d\d|20\d\d))?[.].*[.](mkv|mp4|m4v)$');
+  final regex = RegExp(r'^(?<name>(\w+[.]?)+?)[.]?(?<year>(19\d\d|20\d\d))?[.].*[.](mkv|mp4|m4v)$');
   final match = regex.firstMatch(sourceFilename);
   if (match != null) {
     final rawName = match.namedGroup('name');
@@ -694,11 +692,10 @@ String makeMovieOutputName(
   }
   fileNameBuffer.write('.mkv');
 
-  final firstLetter =
-      (letterPrefix) ? getMovieTitleFirstLetter(movie.name) : '';
+  final firstLetter = (letterPrefix) ? getMovieTitleFirstLetter(movie.name) : '';
 
-  return p.join(outputFolder ?? '', firstLetter,
-      '"${baseNameBuffer.toString()}"', '"${fileNameBuffer.toString()}"');
+  return p.join(outputFolder ?? '', firstLetter, '"${baseNameBuffer.toString()}"',
+      '"${fileNameBuffer.toString()}"');
 }
 
 String makeTvOutputName(
@@ -718,8 +715,8 @@ String makeTvOutputName(
 
   final season = 'season${episode.season}';
 
-  return p.join(outputFolder ?? '', '"${episode.series.asFullName()}"', season,
-      '"${buffer.toString()}"');
+  return p.join(
+      outputFolder ?? '', '"${episode.series.asFullName()}"', season, '"${buffer.toString()}"');
 }
 
 int maxAudioKbRate(AudioTrack track, int defaultMaxKbRate) {
@@ -740,6 +737,7 @@ int maxAudioKbRate(AudioTrack track, int defaultMaxKbRate) {
 ////////////////////
 
 class SuggestFlags {
+  static const String blueray = "blueray";
   static const String dpl2 = 'dpl2';
   static const String file = 'file';
   static const String fileMode = 'file_mode';
@@ -773,18 +771,16 @@ abstract class BaseSuggestCommand extends Command {
 
     final parentArgs = parent!.argResults!;
 
-    final outputFolder =
-        parentArgs[SuggestFlags.outputFolder] ?? getDefaultOutputFolder();
+    final outputFolder = parentArgs[SuggestFlags.outputFolder] ?? getDefaultOutputFolder();
     final outputFilename = parentArgs[SuggestFlags.file];
 
-    final outputFileMode = OutputFileMode.values
-        .byNameDefault(parentArgs[SuggestFlags.fileMode], OutputFileMode.fail);
+    final outputFileMode =
+        OutputFileMode.values.byNameDefault(parentArgs[SuggestFlags.fileMode], OutputFileMode.fail);
 
     if (outputFilename != null) {
       final outputFile = File(outputFilename);
       if (outputFile.existsSync() && outputFileMode == OutputFileMode.fail) {
-        log.severe(
-            'Output file already exists: $outputFilename. Use --${SuggestFlags.fileMode} '
+        log.severe('Output file already exists: $outputFilename. Use --${SuggestFlags.fileMode} '
             'to append to it or overwrite it.');
         return;
       }
@@ -797,10 +793,8 @@ abstract class BaseSuggestCommand extends Command {
     log.fine('  ${SuggestFlags.dpl2} = ${parentArgs[SuggestFlags.dpl2]}');
     log.fine('  ${SuggestFlags.language} = $language');
     log.fine('  ${SuggestFlags.name} = ${parentArgs[SuggestFlags.name]}');
-    log.fine(
-        '  ${SuggestFlags.preferLossless} = ${parentArgs[SuggestFlags.preferLossless]}');
-    log.fine(
-        '  ${SuggestFlags.targetResolution} = ${parentArgs[SuggestFlags.targetResolution]}');
+    log.fine('  ${SuggestFlags.preferLossless} = ${parentArgs[SuggestFlags.preferLossless]}');
+    log.fine('  ${SuggestFlags.targetResolution} = ${parentArgs[SuggestFlags.targetResolution]}');
     log.fine('  ${SuggestFlags.year} = ${parentArgs[SuggestFlags.year]}');
 
     var opts = SuggestOptions.withDefaults(
@@ -813,13 +807,11 @@ abstract class BaseSuggestCommand extends Command {
         outputFileMode: outputFileMode,
         outputFolder: outputFolder,
         preferLossless: parentArgs[SuggestFlags.preferLossless],
-        targetResolution: VideoResolution.byNameOrAlias(
-            parentArgs[SuggestFlags.targetResolution]),
+        targetResolution: VideoResolution.byNameOrAlias(parentArgs[SuggestFlags.targetResolution]),
         year: parentArgs[SuggestFlags.year]);
     opts = addOptions(opts);
 
-    final mediainfoRunner =
-        MediainfoRunner(mediainfoBinary: globalResults?['mediainfo_bin']);
+    final mediainfoRunner = MediainfoRunner(mediainfoBinary: globalResults?['mediainfo_bin']);
 
     final output = makeOutputSink(opts);
 
@@ -843,8 +835,7 @@ abstract class BaseSuggestCommand extends Command {
     await output.close();
   }
 
-  Future<TrackList> getTrackList(
-      MediainfoRunner runner, String filename) async {
+  Future<TrackList> getTrackList(MediainfoRunner runner, String filename) async {
     log.info('Running mediainfo on $filename...');
     final MediaRoot root = await runner.run(filename);
     if (root.media.trackList.tracks.isEmpty) {
@@ -871,8 +862,7 @@ abstract class BaseSuggestCommand extends Command {
       if (outputFile.existsSync()) {
         if (opts.outputFileMode != OutputFileMode.append &&
             opts.outputFileMode != OutputFileMode.overwrite) {
-          throw OutputFileExistsException(
-              opts.outputFile!, SuggestFlags.fileMode);
+          throw OutputFileExistsException(opts.outputFile!, SuggestFlags.fileMode);
         }
       }
 
