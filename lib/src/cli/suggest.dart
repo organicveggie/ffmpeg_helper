@@ -51,8 +51,8 @@ abstract class SuggestOptions
   bool get preferLossless;
   Language? get language;
 
-  String? get bluerayPlaylist;
-  bool isBlueray() => bluerayPlaylist != null;
+  String? get blurayPlaylist;
+  bool isBluray() => blurayPlaylist != null;
 
   SuggestOptions._();
   factory SuggestOptions([void Function(SuggestOptionsBuilder) updates]) = _$SuggestOptions;
@@ -73,9 +73,9 @@ abstract class SuggestOptions
       String? tvdbId,
       String? year,
       Language? language,
-      String? bluerayPlaylist}) {
+      String? blurayPlaylist}) {
     return (SuggestOptionsBuilder()
-          ..bluerayPlaylist = bluerayPlaylist
+          ..blurayPlaylist = blurayPlaylist
           ..forceUpscaling = force
           ..generateDPL2 = dpl2
           ..imdbId = imdbId
@@ -96,7 +96,7 @@ abstract class SuggestOptions
 
   @override
   List<Object?> get props => [
-        bluerayPlaylist,
+        blurayPlaylist,
         forceUpscaling,
         generateDPL2,
         imdbId,
@@ -156,13 +156,13 @@ BuiltList<String> processFile(SuggestOptions opts, String filename, TrackList tr
 
   final buffer = <String>[];
   buffer.add('ffmpeg -i "');
-  if (opts.isBlueray()) {
-    buffer.add('blueray:');
+  if (opts.isBluray()) {
+    buffer.add('bluray:');
   }
   buffer.add('$filename" \\');
 
-  if (opts.isBlueray()) {
-    buffer.add(' -playlist ${opts.bluerayPlaylist}\\');
+  if (opts.isBluray()) {
+    buffer.add(' -playlist ${opts.blurayPlaylist}\\');
   }
 
   var outputFilename = '';
@@ -737,7 +737,7 @@ int maxAudioKbRate(AudioTrack track, int defaultMaxKbRate) {
 ////////////////////
 
 class SuggestFlags {
-  static const String blueray = "blueray";
+  static const String bluray = 'bluray';
   static const String dpl2 = 'dpl2';
   static const String file = 'file';
   static const String fileMode = 'file_mode';
@@ -789,6 +789,7 @@ abstract class BaseSuggestCommand extends Command {
     final language = Language.byIso(parentArgs[SuggestFlags.language]);
 
     log.fine('Flags:');
+    log.fine('  ${SuggestFlags.bluray} = ${parentArgs[SuggestFlags.bluray]}');
     log.fine('  ${SuggestFlags.force} = ${parentArgs[SuggestFlags.force]}');
     log.fine('  ${SuggestFlags.dpl2} = ${parentArgs[SuggestFlags.dpl2]}');
     log.fine('  ${SuggestFlags.language} = $language');
@@ -798,6 +799,7 @@ abstract class BaseSuggestCommand extends Command {
     log.fine('  ${SuggestFlags.year} = ${parentArgs[SuggestFlags.year]}');
 
     var opts = SuggestOptions.withDefaults(
+        blurayPlaylist: parentArgs[SuggestFlags.bluray],
         force: parentArgs[SuggestFlags.force],
         dpl2: parentArgs[SuggestFlags.dpl2],
         language: language,
