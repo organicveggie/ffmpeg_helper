@@ -563,20 +563,27 @@ extension CapitalExtension on String {
   }
 }
 
+final _validMovieFileExtensions = BuiltSet<String>(['mkv', 'mp4', 'm4v']);
+
 Movie extractMovieTitle(String sourcePathname, MovieOverrides overrides) {
   final sourceFilename = p.basename(sourcePathname);
 
   var name = 'unknown';
   String? imdb, tmdb, year;
 
-  // Try to identify the name and year of the movie.
-  final regex = RegExp(r'^(?<name>(\w+[.]?)+?)[.]?(?<year>(19\d\d|20\d\d))?[.].*[.](mkv|mp4|m4v)$');
-  final match = regex.firstMatch(sourceFilename);
-  if (match != null) {
-    final rawName = match.namedGroup('name');
-    if (rawName != null) {
-      name = rawName.replaceAll('.', ' ').trim();
-      year = match.namedGroup('year');
+  // Only attempt to extract the title if the filename contains a valid extension.
+  final extension = p.extension(sourceFilename).toLowerCase();
+  if (_validMovieFileExtensions.contains(extension)) {
+    // Try to identify the name and year of the movie.
+    final regex =
+        RegExp(r'^(?<name>(\w+[.]?)+?)[.]?(?<year>(19\d\d|20\d\d))?[.].*[.](mkv|mp4|m4v)$');
+    final match = regex.firstMatch(sourceFilename);
+    if (match != null) {
+      final rawName = match.namedGroup('name');
+      if (rawName != null) {
+        name = rawName.replaceAll('.', ' ').trim();
+        year = match.namedGroup('year');
+      }
     }
   }
 
