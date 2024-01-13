@@ -13,6 +13,7 @@ import 'package:ffmpeg_helper/models.dart';
 
 import '../cli/audio_finder.dart';
 import '../cli/conversions.dart';
+import '../models/source_file.dart';
 import 'exceptions.dart';
 
 part 'suggest.g.dart';
@@ -817,21 +818,21 @@ abstract class BaseSuggestCommand extends Command {
 
     for (final fileGlob in argResults.rest) {
       final f = opts.isBluray()
-          ? makeFileForBluRay(fileGlob, opts.blurayPlaylist!)
-          : makeFileForGlob(fileGlob);
+          ? BluRaySource.create(fileGlob, opts.blurayPlaylist!)
+          : SingleFileSource(fileGlob);
 
-      if (!f.existsSync()) {
-        throw FileNotFoundException(f.path);
+      if (!f.exists()) {
+        throw FileNotFoundException(f.getNameForMediaInfo());
       }
-      log.info('Found file: ${f.path}');
+      log.info('Found file: ${f.getNameForMediaInfo()}');
 
-      final TrackList tracks = await getTrackList(mediainfoRunner, f.path);
+      final TrackList tracks = await getTrackList(mediainfoRunner, f.getNameForMediaInfo());
       try {
-        final suggestedCmdline = processFile(opts, f.path, tracks);
+        final suggestedCmdline = processFile(opts, f.getNameForRemux(), tracks);
         suggestedCmdline.forEach(output.writeln);
         output.writeln();
       } on SuggestException catch (e) {
-        log.severe('***** Error processing ${f.path}: $e');
+        log.severe('***** Error processing ${f.getNameForRemux()}: $e');
       }
     }
 
@@ -878,12 +879,4 @@ abstract class BaseSuggestCommand extends Command {
 
     return stdout;
   }
-
-  File makeFileForBluRay(String dirName, String playlist) {
-    final blurayFilename = p.join(dirName, 'BDMV', 'PLAYLIST', '$playlist.mpls');
-    log.info('Looking for BluRay playlist: $blurayFilename');
-    return File(blurayFilename);
-  }
-
-  File makeFileForGlob(String glob) => File(glob);
 }
