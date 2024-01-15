@@ -42,6 +42,8 @@ void main() {
           format: 'AVC',
           id: '1',
           height: 800,
+          streamOrder: '0',
+          typeOrder: 0,
           width: 1920,
           uniqueId: '6d86c4300aca4e9682e263cd7f89a4c4');
 
