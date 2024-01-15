@@ -480,7 +480,7 @@ void main() {
             typeOrder: 1,
             language: Language.german.iso)
       ]);
-      final filteredTracks = filterTracks(tracks: tracks, languageCode: Language.german.iso);
+      final filteredTracks = filterTracks(tracks: tracks, language: Language.german);
       expect(filteredTracks.length, equals(1));
     });
 
@@ -500,7 +500,7 @@ void main() {
             typeOrder: 1,
             language: Language.german.iso)
       ]);
-      final filteredTracks = filterTracks(tracks: tracks, languageCode: Language.german.iso);
+      final filteredTracks = filterTracks(tracks: tracks, language: Language.german);
       expect(filteredTracks.length, equals(2));
     });
   });
