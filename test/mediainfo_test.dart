@@ -35,8 +35,15 @@ void main() {
       expect(gt!.title, isNotNull);
       expect(gt.title, 'Media Minimal');
 
-      const wantVideo = VideoTrack(TrackType.video, '1', 'V_MPEGH/ISO/HEVC',
-          '6d86c4300aca4e9682e263cd7f89a4c4', '0', null, 'AVC', 1920, 800, null, null, null);
+      // const wantVideo = VideoTrack(TrackType.video, '1', 'V_MPEGH/ISO/HEVC',
+      //     '6d86c4300aca4e9682e263cd7f89a4c4', '0', null, 'AVC', 1920, 800, null, null, 0);
+      const wantVideo = VideoTrack.createFromParams(
+          codecId: 'V_MPEGH/ISO/HEVC',
+          format: 'AVC',
+          id: '1',
+          height: 800,
+          width: 1920,
+          uniqueId: '6d86c4300aca4e9682e263cd7f89a4c4');
 
       var vt = mediaRoot.media.trackList.videoTracks[0];
       expect(vt, isNotNull);
