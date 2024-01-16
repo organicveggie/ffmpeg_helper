@@ -178,7 +178,7 @@ void main() {
         containsAllInOrder(<StreamOption>[
           _streamCopy(0, 0),
           _dispositionDefault(0, true),
-          _metadataTitle(0, '(${AudioFormat.trueHD.name})'),
+          _metadataTitle(0, AudioFormat.trueHD.name),
           _makeDDPConverter(srcStreamId: 0, dstStreamId: 1),
           _dispositionDefault(1, false),
           _metadataTitle(1, AudioFormat.dolbyDigitalPlus.name),
