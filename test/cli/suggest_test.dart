@@ -22,15 +22,15 @@ void main() {
 
   group('Extract movie data from filename', () {
     group('without overrides', () {
-      var overrides = MovieOverridesBuilder().build();
+      final overrides = MovieOverrides();
       test('from full pathname with periods but without year', () {
-        var pathnames = <String>[
+        const pathnames = <String>[
           '/home/user/example/My.Fake.Movie.1080p-SDR.mkv',
           '/home/user/example/My.Fake.Movie.1080p-SDR.mp4',
           '/home/user/example/My.Fake.Movie.1080p-SDR.m4v',
         ];
-        for (var p in pathnames) {
-          var got = extractMovieTitle(p, overrides);
+        for (final p in pathnames) {
+          final got = extractMovieTitle(p, overrides);
           expect(got.imdbId, isNull);
           expect(got.name, 'My Fake Movie');
           expect(got.tmdbId, isNull);
@@ -43,8 +43,8 @@ void main() {
           Tuple3('/home/user/example/My.Fake.Movie.1978.1080p-SDR.mkv', 'My Fake Movie', '1978'),
           Tuple3('/home/user/example/My.Fake.Movie.1979.1080p-SDR.mkv', 'My Fake Movie', '1979'),
         ];
-        for (var p in pathnames) {
-          var got = extractMovieTitle(p.item1, overrides);
+        for (final p in pathnames) {
+          final got = extractMovieTitle(p.item1, overrides);
           expect(got.imdbId, isNull);
           expect(got.name, p.item2);
           expect(got.tmdbId, isNull);
@@ -56,8 +56,8 @@ void main() {
           '/example/Unsupported.Format.mp3',
           '/example/Unsupported.Format.mov'
         ];
-        for (var p in pathnames) {
-          var got = extractMovieTitle(p, overrides);
+        for (final p in pathnames) {
+          final got = extractMovieTitle(p, overrides);
           expect(got.imdbId, isNull);
           expect(got.name.toLowerCase(), 'unknown');
           expect(got.tmdbId, isNull);
@@ -67,15 +67,15 @@ void main() {
     });
     group('with overrides', () {
       group('for imdb', () {
-        var overrides = (MovieOverridesBuilder()..imdbId = 'tt1234').build();
+        final overrides = MovieOverrides((b) => b..imdbId = 'tt1234');
         test('from full pathname with periods but without year', () {
-          var pathnames = <String>[
+          const pathnames = <String>[
             '/home/user/example/My.Fake.Movie.1080p-SDR.mkv',
             '/home/user/example/My.Fake.Movie.1080p-SDR.mp4',
             '/home/user/example/My.Fake.Movie.1080p-SDR.m4v',
           ];
-          for (var p in pathnames) {
-            var got = extractMovieTitle(p, overrides);
+          for (final p in pathnames) {
+            final got = extractMovieTitle(p, overrides);
             expect(got.imdbId, overrides.imdbId);
             expect(got.name, 'My Fake Movie');
             expect(got.tmdbId, isNull);
@@ -88,8 +88,8 @@ void main() {
             Tuple3('/home/user/example/My.Fake.Movie.1978.1080p-SDR.mkv', 'My Fake Movie', '1978'),
             Tuple3('/home/user/example/My.Fake.Movie.1979.1080p-SDR.mkv', 'My Fake Movie', '1979'),
           ];
-          for (var p in pathnames) {
-            var got = extractMovieTitle(p.item1, overrides);
+          for (final p in pathnames) {
+            final got = extractMovieTitle(p.item1, overrides);
             expect(got.imdbId, overrides.imdbId);
             expect(got.name, p.item2);
             expect(got.tmdbId, isNull);
@@ -98,15 +98,15 @@ void main() {
         });
       });
       group('for tmdb', () {
-        var overrides = (MovieOverridesBuilder()..tmdbId = '01234').build();
+        final overrides = MovieOverrides((b) => b..tmdbId = '01234');
         test('from full pathname with periods but without year', () {
-          var pathnames = <String>[
+          const pathnames = <String>[
             '/home/user/example/My.Fake.Movie.1080p-SDR.mkv',
             '/home/user/example/My.Fake.Movie.1080p-SDR.mp4',
             '/home/user/example/My.Fake.Movie.1080p-SDR.m4v',
           ];
-          for (var p in pathnames) {
-            var got = extractMovieTitle(p, overrides);
+          for (final p in pathnames) {
+            final got = extractMovieTitle(p, overrides);
             expect(got.imdbId, isNull);
             expect(got.name, 'My Fake Movie');
             expect(got.tmdbId, overrides.tmdbId);
@@ -119,8 +119,8 @@ void main() {
             Tuple3('/home/user/example/My.Fake.Movie.1978.1080p-SDR.mkv', 'My Fake Movie', '1978'),
             Tuple3('/home/user/example/My.Fake.Movie.1979.1080p-SDR.mkv', 'My Fake Movie', '1979'),
           ];
-          for (var p in pathnames) {
-            var got = extractMovieTitle(p.item1, overrides);
+          for (final p in pathnames) {
+            final got = extractMovieTitle(p.item1, overrides);
             expect(got.imdbId, isNull);
             expect(got.name, p.item2);
             expect(got.tmdbId, overrides.tmdbId);
@@ -129,15 +129,15 @@ void main() {
         });
       });
       group('for year', () {
-        var overrides = (MovieOverridesBuilder()..year = '1977').build();
+        final overrides = MovieOverrides((b) => b..year = '1977');
         test('from full pathname with periods but without year', () {
-          var pathnames = <String>[
+          const pathnames = <String>[
             '/home/user/example/My.Fake.Movie.1080p-SDR.mkv',
             '/home/user/example/My.Fake.Movie.1080p-SDR.mp4',
             '/home/user/example/My.Fake.Movie.1080p-SDR.m4v',
           ];
-          for (var p in pathnames) {
-            var got = extractMovieTitle(p, overrides);
+          for (final p in pathnames) {
+            final got = extractMovieTitle(p, overrides);
             expect(got.imdbId, isNull);
             expect(got.name, 'My Fake Movie');
             expect(got.tmdbId, isNull);
@@ -150,8 +150,8 @@ void main() {
             Tuple2('/home/user/example/My.Fake.Movie.1978.1080p-SDR.mkv', 'My Fake Movie'),
             Tuple2('/home/user/example/My.Fake.Movie.1979.1080p-SDR.mkv', 'My Fake Movie'),
           ];
-          for (var p in pathnames) {
-            var got = extractMovieTitle(p.item1, overrides);
+          for (final p in pathnames) {
+            final got = extractMovieTitle(p.item1, overrides);
             expect(got.imdbId, isNull);
             expect(got.name, p.item2);
             expect(got.tmdbId, isNull);
@@ -160,15 +160,15 @@ void main() {
         });
       });
       group('for name', () {
-        var overrides = (MovieOverridesBuilder()..name = 'A Different Fake Movie').build();
+        final overrides = MovieOverrides((b) => b..name = 'A Different Fake Movie');
         test('from full pathname with periods but without year', () {
-          var pathnames = <String>[
+          const pathnames = <String>[
             '/home/user/example/My.Fake.Movie.1080p-SDR.mkv',
             '/home/user/example/My.Fake.Movie.2160p-HDR.mp4',
             '/home/user/example/My.Fake.Movie.m4v',
           ];
-          for (var p in pathnames) {
-            var got = extractMovieTitle(p, overrides);
+          for (final p in pathnames) {
+            final got = extractMovieTitle(p, overrides);
             expect(got.imdbId, isNull);
             expect(got.name, 'A Different Fake Movie');
             expect(got.tmdbId, isNull);
@@ -181,8 +181,8 @@ void main() {
             Tuple2('/home/user/example/My.Fake.Movie.1978.HDR.mkv', '1978'),
             Tuple2('/home/user/example/My.Fake.Movie.1979.2160p.mkv', '1979'),
           ];
-          for (var p in pathnames) {
-            var got = extractMovieTitle(p.item1, overrides);
+          for (final p in pathnames) {
+            final got = extractMovieTitle(p.item1, overrides);
             expect(got.imdbId, isNull);
             expect(got.name, 'A Different Fake Movie');
             expect(got.tmdbId, isNull);
