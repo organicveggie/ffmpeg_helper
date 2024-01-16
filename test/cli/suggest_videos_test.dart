@@ -72,30 +72,30 @@ void main() {
 
   group('processVideoTrack', () {
     test('throws exception for upscaling without flag', () {
-      var opts = defaultOptions;
+      final opts = defaultOptions;
       expect(
           () => processVideoTrack(opts, vtH265HdSdr), throwsA(isA<UpscalingRequiredException>()));
     });
 
     test('upscales H.265 with flag', () {
-      var opts = defaultOptions.rebuild((o) => o..forceUpscaling = true);
-      var results = processVideoTrack(opts, vtH265HdSdr);
+      final opts = defaultOptions.rebuild((o) => o..forceUpscaling = true);
+      final results = processVideoTrack(opts, vtH265HdSdr);
 
       expect(results, hasLength(2));
       expect(results, containsAll([scaleFilter3840, defaultVideoStreamConverter]));
     });
 
     test('upscales H.264 with flag', () {
-      var opts = defaultOptions.rebuild((o) => o..forceUpscaling = true);
-      var results = processVideoTrack(opts, vtH264HdSdr);
+      final opts = defaultOptions.rebuild((o) => o..forceUpscaling = true);
+      final results = processVideoTrack(opts, vtH264HdSdr);
 
       expect(results, hasLength(2));
       expect(results, containsAll([scaleFilter3840, defaultVideoStreamConverter]));
     });
 
     test('downscaling H.265 works without flag', () {
-      var opts = defaultOptions.rebuild((o) => o..targetResolution = VideoResolution.hd);
-      var results = processVideoTrack(opts, vtH265UhdHdr);
+      final opts = defaultOptions.rebuild((o) => o..targetResolution = VideoResolution.hd);
+      final results = processVideoTrack(opts, vtH265UhdHdr);
 
       expect(results, hasLength(2));
 
@@ -107,63 +107,63 @@ void main() {
     });
 
     test('H.264 UHD requires conversion to H.265 UHD with UHD target', () {
-      var opts = defaultOptions.rebuild((o) => o..targetResolution = VideoResolution.uhd);
-      var results = processVideoTrack(opts, vtH264UhdHdr);
+      final opts = defaultOptions.rebuild((o) => o..targetResolution = VideoResolution.uhd);
+      final results = processVideoTrack(opts, vtH264UhdHdr);
 
       expect(results, hasLength(1));
       expect(results, containsAll([defaultVideoStreamConverter]));
     });
 
     test('H.264 UHD requires conversion to H.265 UHD with no video target', () {
-      var opts = defaultOptions.rebuild((o) => o..targetResolution = null);
-      var results = processVideoTrack(opts, vtH264UhdHdr);
+      final opts = defaultOptions.rebuild((o) => o..targetResolution = null);
+      final results = processVideoTrack(opts, vtH264UhdHdr);
 
       expect(results, hasLength(1));
       expect(results, containsAll([defaultVideoStreamConverter]));
     });
 
     test('H.264 HD requires conversion to H.265 HD with HD target', () {
-      var opts = defaultOptions.rebuild((o) => o..targetResolution = VideoResolution.hd);
-      var results = processVideoTrack(opts, vtH264HdSdr);
+      final opts = defaultOptions.rebuild((o) => o..targetResolution = VideoResolution.hd);
+      final results = processVideoTrack(opts, vtH264HdSdr);
 
       expect(results, hasLength(1));
       expect(results, containsAll([defaultVideoStreamConverter]));
     });
 
     test('H.264 UHD requires conversion to H.265 UHD with no video target', () {
-      var opts = defaultOptions.rebuild((o) => o..targetResolution = null);
-      var results = processVideoTrack(opts, vtH264HdSdr);
+      final opts = defaultOptions.rebuild((o) => o..targetResolution = null);
+      final results = processVideoTrack(opts, vtH264HdSdr);
 
       expect(results, hasLength(1));
       expect(results, containsAll([defaultVideoStreamConverter]));
     });
 
     test('Copies H.265 HD to H.265 HD with HD target', () {
-      var opts = defaultOptions.rebuild((o) => o..targetResolution = VideoResolution.hd);
-      var results = processVideoTrack(opts, vtH265HdSdr);
+      final opts = defaultOptions.rebuild((o) => o..targetResolution = VideoResolution.hd);
+      final results = processVideoTrack(opts, vtH265HdSdr);
 
       expect(results, hasLength(1));
       expect(results, containsAll([defaultVideoStreamCopy]));
     });
     test('Copies H.265 HD to H.265 HD with no target', () {
-      var opts = defaultOptions.rebuild((o) => o..targetResolution = null);
-      var results = processVideoTrack(opts, vtH265HdSdr);
+      final opts = defaultOptions.rebuild((o) => o..targetResolution = null);
+      final results = processVideoTrack(opts, vtH265HdSdr);
 
       expect(results, hasLength(1));
       expect(results, containsAll([defaultVideoStreamCopy]));
     });
 
     test('Copies H.265 UHD to H.265 UHD with UHD target', () {
-      var opts = defaultOptions.rebuild((o) => o..targetResolution = VideoResolution.uhd);
-      var results = processVideoTrack(opts, vtH265UhdHdr);
+      final opts = defaultOptions.rebuild((o) => o..targetResolution = VideoResolution.uhd);
+      final results = processVideoTrack(opts, vtH265UhdHdr);
 
       expect(results, hasLength(1));
       expect(results, containsAll([defaultVideoStreamCopy]));
     });
 
     test('Copies H.265 UHD to H.265 UHD with no target', () {
-      var opts = defaultOptions.rebuild((o) => o..targetResolution = null);
-      var results = processVideoTrack(opts, vtH265UhdHdr);
+      final opts = defaultOptions.rebuild((o) => o..targetResolution = null);
+      final results = processVideoTrack(opts, vtH265UhdHdr);
 
       expect(results, hasLength(1));
       expect(results, containsAll([defaultVideoStreamCopy]));

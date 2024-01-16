@@ -12,29 +12,26 @@ void main() {
         TextTrack.fromParams(typeOrder: 0, id: '0', language: 'eng', isDefault: true),
         TextTrack.fromParams(typeOrder: 1, id: '1', language: 'czh'),
       ];
-      var opts = processSubtitles(tracks.build());
+      final opts = processSubtitles(tracks.build());
       expect(opts.length, 3);
       expect(
           opts,
           containsAllInOrder([
-            (StreamCopyBuilder()
-                  ..trackType = TrackType.text
-                  ..inputFileId = 0
-                  ..srcStreamId = 0
-                  ..dstStreamId = 0)
-                .build(),
-            (StreamMetadataBuilder()
-                  ..trackType = TrackType.text
-                  ..streamId = 0
-                  ..name = 'language'
-                  ..value = 'eng')
-                .build(),
-            (StreamMetadataBuilder()
-                  ..trackType = TrackType.text
-                  ..streamId = 0
-                  ..name = 'handler'
-                  ..value = 'English')
-                .build(),
+            StreamCopy((b) => b
+              ..trackType = TrackType.text
+              ..inputFileId = 0
+              ..srcStreamId = 0
+              ..dstStreamId = 0),
+            StreamMetadata((b) => b
+              ..trackType = TrackType.text
+              ..streamId = 0
+              ..name = 'language'
+              ..value = 'eng'),
+            StreamMetadata((b) => b
+              ..trackType = TrackType.text
+              ..streamId = 0
+              ..name = 'handler'
+              ..value = 'English'),
           ]));
     });
     test('three total, two supported', () {
@@ -55,42 +52,36 @@ void main() {
       expect(
           opts,
           containsAllInOrder([
-            (StreamCopyBuilder()
-                  ..trackType = TrackType.text
-                  ..inputFileId = 0
-                  ..srcStreamId = 0
-                  ..dstStreamId = 0)
-                .build(),
-            (StreamMetadataBuilder()
-                  ..trackType = TrackType.text
-                  ..streamId = 0
-                  ..name = 'language'
-                  ..value = 'eng')
-                .build(),
-            (StreamMetadataBuilder()
-                  ..trackType = TrackType.text
-                  ..streamId = 0
-                  ..name = 'handler'
-                  ..value = 'English')
-                .build(),
-            (StreamCopyBuilder()
-                  ..trackType = TrackType.text
-                  ..inputFileId = 0
-                  ..srcStreamId = 2
-                  ..dstStreamId = 1)
-                .build(),
-            (StreamMetadataBuilder()
-                  ..trackType = TrackType.text
-                  ..streamId = 1
-                  ..name = 'language'
-                  ..value = 'esp')
-                .build(),
-            (StreamMetadataBuilder()
-                  ..trackType = TrackType.text
-                  ..streamId = 1
-                  ..name = 'handler'
-                  ..value = 'Spanish CC (SRT)')
-                .build(),
+            StreamCopy((b) => b
+              ..trackType = TrackType.text
+              ..inputFileId = 0
+              ..srcStreamId = 0
+              ..dstStreamId = 0),
+            StreamMetadata((b) => b
+              ..trackType = TrackType.text
+              ..streamId = 0
+              ..name = 'language'
+              ..value = 'eng'),
+            StreamMetadata((b) => b
+              ..trackType = TrackType.text
+              ..streamId = 0
+              ..name = 'handler'
+              ..value = 'English'),
+            StreamCopy((b) => b
+              ..trackType = TrackType.text
+              ..inputFileId = 0
+              ..srcStreamId = 2
+              ..dstStreamId = 1),
+            StreamMetadata((b) => b
+              ..trackType = TrackType.text
+              ..streamId = 1
+              ..name = 'language'
+              ..value = 'esp'),
+            StreamMetadata((b) => b
+              ..trackType = TrackType.text
+              ..streamId = 1
+              ..name = 'handler'
+              ..value = 'Spanish CC (SRT)'),
           ]));
     });
   });

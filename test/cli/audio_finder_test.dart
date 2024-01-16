@@ -49,7 +49,7 @@ void main() {
       id: '7', typeOrder: 7, streamOrder: '7', codecId: 'A_AC3', format: 'AC-3', channels: 6);
 
   group('E-AC3', () {
-    var tests = <AudioFinderTest>[
+    final tests = <AudioFinderTest>[
       AudioFinderTest.fromTracks(
           name: 'DD+ over TrueHD',
           expected: AudioFormat.dolbyDigitalPlus,
@@ -68,10 +68,10 @@ void main() {
           tracks: [aacStereo, aacMono].build()),
     ];
 
-    for (var t in tests) {
+    for (final t in tests) {
       test(t.name, () {
-        var finder = AudioFinder((af) => af..tracksByFormat = t.trackMap.toBuilder());
-        var got = finder.bestForEAC3();
+        final finder = AudioFinder((af) => af..tracksByFormat = t.trackMap.toBuilder());
+        final got = finder.bestForEAC3();
         expect(got.format, equals(t.expectedFormat));
       });
     }
@@ -80,7 +80,7 @@ void main() {
   });
 
   group('Multi-Channel AAC', () {
-    var tests = <AudioFinderTest>[
+    final tests = <AudioFinderTest>[
       AudioFinderTest.fromTracks(
           name: 'Multi-Channel AAC over everything else',
           expected: AudioFormat.aacMulti,
@@ -111,10 +111,10 @@ void main() {
           tracks: [aacStereo, aacMono].build()),
     ];
 
-    for (var t in tests) {
+    for (final t in tests) {
       test(t.name, () {
-        var finder = AudioFinder((af) => af..tracksByFormat = t.trackMap.toBuilder());
-        var got = finder.bestForMultiChannelAAC();
+        final finder = AudioFinder((af) => af..tracksByFormat = t.trackMap.toBuilder());
+        final got = finder.bestForMultiChannelAAC();
         expect(got.format, equals(t.expectedFormat));
       });
     }
@@ -123,7 +123,7 @@ void main() {
   });
 
   group('Dolby Pro Logic II', () {
-    var tests = <AudioFinderTest>[
+    final tests = <AudioFinderTest>[
       AudioFinderTest.fromTracks(
           name: 'TrueHD lossless over everything else',
           expected: AudioFormat.trueHD,
@@ -154,10 +154,10 @@ void main() {
           tracks: [aacStereo, aacMono].build()),
     ];
 
-    for (var t in tests) {
+    for (final t in tests) {
       test(t.name, () {
-        var finder = AudioFinder((af) => af..tracksByFormat = t.trackMap.toBuilder());
-        var got = finder.bestForDolbyProLogic2();
+        final finder = AudioFinder((af) => af..tracksByFormat = t.trackMap.toBuilder());
+        final got = finder.bestForDolbyProLogic2();
         expect(got.format, equals(t.expectedFormat));
       });
     }

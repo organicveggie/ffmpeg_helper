@@ -8,8 +8,8 @@ void main() {
   group('Media model', () {
     test('can parse audio only track', () async {
       final file = File('test_resources/audiotrack_full.json');
-      Map<String, dynamic> trackMap = jsonDecode(await file.readAsString());
-      var track = AudioTrack.fromJson(trackMap);
+      final Map<String, dynamic> trackMap = jsonDecode(await file.readAsString());
+      final track = AudioTrack.fromJson(trackMap);
 
       expect(track.id, '2');
       expect(track.channels, 8);
@@ -20,8 +20,8 @@ void main() {
 
     test('can parse minimal required JSON', () async {
       final file = File('test_resources/media_minimal.json');
-      Map<String, dynamic> mediaMap = jsonDecode(await file.readAsString());
-      var mediaRoot = MediaRoot.fromJson(mediaMap);
+      final Map<String, dynamic> mediaMap = jsonDecode(await file.readAsString());
+      final mediaRoot = MediaRoot.fromJson(mediaMap);
 
       expect(mediaRoot.media.ref, 'media_minimal.mkv');
       expect(mediaRoot.media.trackList.tracks, hasLength(5));
@@ -30,7 +30,7 @@ void main() {
       expect(mediaRoot.media.trackList.textTracks, hasLength(1));
       expect(mediaRoot.media.trackList.videoTracks, hasLength(1));
 
-      var gt = mediaRoot.media.trackList.generalTrack;
+      final gt = mediaRoot.media.trackList.generalTrack;
       expect(gt, isNotNull);
       expect(gt!.title, isNotNull);
       expect(gt.title, 'Media Minimal');
@@ -47,15 +47,15 @@ void main() {
           width: 1920,
           uniqueId: '6d86c4300aca4e9682e263cd7f89a4c4');
 
-      var vt = mediaRoot.media.trackList.videoTracks[0];
+      final vt = mediaRoot.media.trackList.videoTracks[0];
       expect(vt, isNotNull);
       expect(vt, wantVideo);
     });
 
     test('can parse JSON from non-linear video editor', () async {
       final file = File('test_resources/media_editor.json');
-      Map<String, dynamic> mediaMap = jsonDecode(await file.readAsString());
-      var mediaRoot = MediaRoot.fromJson(mediaMap);
+      final Map<String, dynamic> mediaMap = jsonDecode(await file.readAsString());
+      final mediaRoot = MediaRoot.fromJson(mediaMap);
 
       expect(mediaRoot.media.ref, '2020-10-31 14-31-09.mkv');
       expect(mediaRoot.media.trackList.tracks, hasLength(3));
@@ -66,8 +66,8 @@ void main() {
 
     test('can parse extra big JSON', () async {
       final file = File('test_resources/media.json');
-      Map<String, dynamic> mediaMap = jsonDecode(await file.readAsString());
-      var mediaRoot = MediaRoot.fromJson(mediaMap);
+      final Map<String, dynamic> mediaMap = jsonDecode(await file.readAsString());
+      final mediaRoot = MediaRoot.fromJson(mediaMap);
 
       expect(mediaRoot.media.ref, 'media-large.mkv');
       expect(mediaRoot.media.trackList.tracks, hasLength(42));
@@ -80,8 +80,8 @@ void main() {
 
     test('can parse H.265 2160p HDR data', () async {
       final file = File('test_resources/media-x265-2160p-HDR.json');
-      Map<String, dynamic> mediaMap = jsonDecode(await file.readAsString());
-      var mediaRoot = MediaRoot.fromJson(mediaMap);
+      final Map<String, dynamic> mediaMap = jsonDecode(await file.readAsString());
+      final mediaRoot = MediaRoot.fromJson(mediaMap);
 
       expect(mediaRoot.media.ref, 'The.Media.2160p.X265.HDR/The.Media.2160p.X265.HDR.mkv');
       expect(mediaRoot.media.trackList.tracks, hasLength(34));
@@ -94,8 +94,8 @@ void main() {
 
     test('can parse without unique id', () async {
       final file = File('test_resources/mediainfo-full-01.json');
-      Map<String, dynamic> mediaMap = jsonDecode(await file.readAsString());
-      var mediaRoot = MediaRoot.fromJson(mediaMap);
+      final Map<String, dynamic> mediaMap = jsonDecode(await file.readAsString());
+      final mediaRoot = MediaRoot.fromJson(mediaMap);
 
       expect(mediaRoot.media.trackList.tracks, hasLength(3));
       expect(mediaRoot.media.trackList.videoTracks[0].format, 'HEVC');
@@ -113,8 +113,8 @@ void main() {
 
     test('can parse DTS-HD MA audio streams', () async {
       final file = File('test_resources/mediainfo-full-02.json');
-      Map<String, dynamic> mediaMap = jsonDecode(await file.readAsString());
-      var mediaRoot = MediaRoot.fromJson(mediaMap);
+      final Map<String, dynamic> mediaMap = jsonDecode(await file.readAsString());
+      final mediaRoot = MediaRoot.fromJson(mediaMap);
 
       expect(mediaRoot.media.trackList.tracks, hasLength(27));
       expect(mediaRoot.media.trackList.audioTracks[0].toAudioFormat(), AudioFormat.trueHD);
