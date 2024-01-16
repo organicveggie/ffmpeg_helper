@@ -563,7 +563,7 @@ extension CapitalExtension on String {
   }
 }
 
-final _validMovieFileExtensions = BuiltSet<String>(['mkv', 'mp4', 'm4v']);
+final _validMovieFileExtensions = BuiltSet<String>(['.mkv', '.mp4', '.m4v']);
 
 Movie extractMovieTitle(String sourcePathname, MovieOverrides overrides) {
   final sourceFilename = p.basename(sourcePathname);
