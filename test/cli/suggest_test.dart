@@ -194,50 +194,46 @@ void main() {
   });
 
   group('Extract TV data', () {
-    final unknownEpisode = (TvEpisodeBuilder()
-          ..season = 1
-          ..episodeNumber = 1
-          ..series = (TvSeriesBuilder()..name = 'unknown'))
-        .build();
-    final overrides = TvOverridesBuilder().build();
+    final unknownEpisode = TvEpisode((b) => b
+      ..season = 1
+      ..episodeNumber = 1
+      ..series = (TvSeriesBuilder()..name = 'unknown'));
+    final overrides = TvOverrides();
     test('unknown', () {
       final got = extractTvEpisode('not-a-tv-episode.mp4', overrides);
       expect(got, unknownEpisode);
     });
     test('from period delimited', () {
       final got = extractTvEpisode('the.tv.show.S03E14.mp4', overrides);
-      final want = (TvEpisodeBuilder()
-            ..season = 3
-            ..episodeNumber = 14
-            ..series = (TvSeriesBuilder()..name = 'the tv show'))
-          .build();
+      final want = TvEpisode((b) => b
+        ..season = 3
+        ..episodeNumber = 14
+        ..series = (TvSeriesBuilder()..name = 'the tv show'));
       expect(got, want);
     });
     test('from space delimited', () {
       final got = extractTvEpisode('the tv show  S02E03.mp4', overrides);
-      final want = (TvEpisodeBuilder()
-            ..season = 2
-            ..episodeNumber = 3
-            ..series = (TvSeriesBuilder()..name = 'the tv show'))
-          .build();
+      final want = TvEpisode((b) => b
+        ..season = 2
+        ..episodeNumber = 3
+        ..series = (TvSeriesBuilder()..name = 'the tv show'));
       expect(got, want);
     });
 
     test('with extra data', () {
       final got =
           extractTvEpisode('The.Test.Show.S04E01.iNTERNAL.HDR.2160p.WEB.h265-SKGTV.mkv', overrides);
-      final want = (TvEpisodeBuilder()
-            ..season = 4
-            ..episodeNumber = 1
-            ..series = (TvSeriesBuilder()..name = 'The Test Show'))
-          .build();
+      final want = TvEpisode((b) => b
+        ..season = 4
+        ..episodeNumber = 1
+        ..series = (TvSeriesBuilder()..name = 'The Test Show'));
       expect(got, want);
     });
   });
 
   group('Make movie output filename without prefix', () {
-    var movie = (MovieBuilder()..name = 'My Movie').build();
-    var movieWithYear = movie.rebuild((m) => m.year = '1981');
+    final movie = Movie((b) => b..name = 'My Movie');
+    final movieWithYear = movie.rebuild((m) => m.year = '1981');
     group('without year', () {
       group('without imdb or tvdb', () {
         const tests = <Tuple3>[
@@ -246,17 +242,17 @@ void main() {
           Tuple3(VideoResolution.hd, true, '"My Movie"/"My Movie - 1080p-HDR.mkv"'),
           Tuple3(VideoResolution.hd, false, '"My Movie"/"My Movie - 1080p.mkv"'),
         ];
-        for (var t in tests) {
-          var testName = '${t.item1.toString()} ${t.item2 ? "HDR" : "SDR"}';
+        for (final t in tests) {
+          final testName = '${t.item1.toString()} ${t.item2 ? "HDR" : "SDR"}';
           test(testName, () {
-            var got = makeMovieOutputName(
+            final got = makeMovieOutputName(
                 letterPrefix: false, movie: movie, targetResolution: t.item1, isHdr: t.item2);
             expect(got, t.item3);
           });
         }
       });
       group('with imdb', () {
-        var movieImdb = movie.rebuild((m) => m.imdbId = 'tt1234');
+        final movieImdb = movie.rebuild((m) => m.imdbId = 'tt1234');
         const tests = <Tuple3>[
           Tuple3(VideoResolution.uhd, true,
               '"My Movie {imdb-tt1234}"/"My Movie {imdb-tt1234} - 2160p-HDR.mkv"'),
@@ -267,17 +263,17 @@ void main() {
           Tuple3(VideoResolution.hd, false,
               '"My Movie {imdb-tt1234}"/"My Movie {imdb-tt1234} - 1080p.mkv"'),
         ];
-        for (var t in tests) {
-          var testName = '${t.item1.toString()} ${t.item2 ? "HDR" : "SDR"}';
+        for (final t in tests) {
+          final testName = '${t.item1.toString()} ${t.item2 ? "HDR" : "SDR"}';
           test(testName, () {
-            var got = makeMovieOutputName(
+            final got = makeMovieOutputName(
                 letterPrefix: false, movie: movieImdb, targetResolution: t.item1, isHdr: t.item2);
             expect(got, t.item3);
           });
         }
       });
       group('with tmdb', () {
-        var movieTmdb = movie.rebuild((m) => m.tmdbId = '01234');
+        final movieTmdb = movie.rebuild((m) => m.tmdbId = '01234');
         const tests = <Tuple3>[
           Tuple3(VideoResolution.uhd, true,
               '"My Movie {tmdb-01234}"/"My Movie {tmdb-01234} - 2160p-HDR.mkv"'),
@@ -288,10 +284,10 @@ void main() {
           Tuple3(VideoResolution.hd, false,
               '"My Movie {tmdb-01234}"/"My Movie {tmdb-01234} - 1080p.mkv"'),
         ];
-        for (var t in tests) {
-          var testName = '${t.item1.toString()} ${t.item2 ? "HDR" : "SDR"}';
+        for (final t in tests) {
+          final testName = '${t.item1.toString()} ${t.item2 ? "HDR" : "SDR"}';
           test(testName, () {
-            var got = makeMovieOutputName(
+            final got = makeMovieOutputName(
                 letterPrefix: false, movie: movieTmdb, targetResolution: t.item1, isHdr: t.item2);
             expect(got, t.item3);
           });
@@ -306,10 +302,10 @@ void main() {
           Tuple3(VideoResolution.hd, true, '"My Movie (1981)"/"My Movie (1981) - 1080p-HDR.mkv"'),
           Tuple3(VideoResolution.hd, false, '"My Movie (1981)"/"My Movie (1981) - 1080p.mkv"'),
         ];
-        for (var t in tests) {
-          var testName = '${t.item1.toString()} ${t.item2 ? "HDR" : "SDR"}';
+        for (final t in tests) {
+          final testName = '${t.item1.toString()} ${t.item2 ? "HDR" : "SDR"}';
           test(testName, () {
-            var got = makeMovieOutputName(
+            final got = makeMovieOutputName(
                 letterPrefix: false,
                 movie: movieWithYear,
                 targetResolution: t.item1,
@@ -323,7 +319,7 @@ void main() {
 
   group('Make movie output filename with first letter prefix', () {
     test('for UHD HDR with year', () {
-      var got = makeMovieOutputName(
+      final got = makeMovieOutputName(
           letterPrefix: true,
           movie: (MovieBuilder()
                 ..name = 'The First Movie'
@@ -337,7 +333,7 @@ void main() {
 
   group('Make movie output filename with output folder', () {
     test('for UHD HDR with regular output folder name', () {
-      var got = makeMovieOutputName(
+      final got = makeMovieOutputName(
           letterPrefix: false,
           movie: (MovieBuilder()..name = 'The First Movie').build(),
           outputFolder: 'my/test/folder',
@@ -346,7 +342,7 @@ void main() {
       expect(got, 'my/test/folder/"The First Movie"/"The First Movie - 2160p-HDR.mkv"');
     });
     test('for UHD HDR with Bash variable output folder name', () {
-      var got = makeMovieOutputName(
+      final got = makeMovieOutputName(
           letterPrefix: false,
           movie: (MovieBuilder()..name = 'The First Movie').build(),
           outputFolder: '\$MOVIES',
@@ -355,7 +351,7 @@ void main() {
       expect(got, '\$MOVIES/"The First Movie"/"The First Movie - 2160p-HDR.mkv"');
     });
     test('for UHD HDR with Bash variable output folder name and prefix', () {
-      var got = makeMovieOutputName(
+      final got = makeMovieOutputName(
           letterPrefix: true,
           movie: (MovieBuilder()..name = 'The First Movie').build(),
           outputFolder: '\$MOVIES',
@@ -373,7 +369,7 @@ void main() {
       Tuple3('ignores "an"', 'An American Werewolf in London (1981)', 'A'),
       Tuple3('number as range', '12 Years a Slave (2013)', '0-9'),
     ];
-    for (var t in tests) {
+    for (final t in tests) {
       test(t.item1, () {
         expect(getMovieTitleFirstLetter(t.item2), t.item3);
       });
@@ -381,15 +377,13 @@ void main() {
   });
 
   group('make tv output filename', () {
-    final series = (TvSeriesBuilder()
-          ..name = 'Another TV Series'
-          ..year = '1986')
-        .build();
-    final episode = (TvEpisodeBuilder()
-          ..series.replace(series)
-          ..season = 1
-          ..episodeNumber = 3)
-        .build();
+    final series = TvSeries((b) => b
+      ..name = 'Another TV Series'
+      ..year = '1986');
+    final episode = TvEpisode((b) => b
+      ..series.replace(series)
+      ..season = 1
+      ..episodeNumber = 3);
     test('1080p SDR', () {
       expect(makeTvOutputName(episode: episode, targetResolution: VideoResolution.hd, isHdr: false),
           '"Another TV Series (1986)"/season1/"Another TV Series (1986) - s01e03 [1080p].mkv"');
